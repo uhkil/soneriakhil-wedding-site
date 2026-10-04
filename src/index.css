@@ -1,0 +1,522 @@
+/*
+  Site styles, inspired by Puuung's artwork:
+  warm cream paper, terracotta lettering, sage green accents,
+  and soft brown "ink" instead of harsh black.
+*/
+
+/* ---------- Colors & fonts (change these to restyle the whole site) ---------- */
+
+:root {
+  --cream: #fbf6ec;       /* main background */
+  --sand: #f3e9d7;        /* alternate section background */
+  --sage-light: #e9eee0;  /* alternate section background */
+  --card: #fffdf8;        /* boxes and cards */
+
+  --terracotta: #a7682d;  /* headings (the artist's logo color) */
+  --terracotta-dark: #8a5222;
+  --sage: #6f8c69;        /* buttons and accents */
+  --ink: #4a3b30;         /* body text: warm brown, like the artist's outlines */
+  --line: #e3d5bc;        /* soft borders */
+
+  --font-heading: 'Gaegu', 'Comic Sans MS', cursive;
+  --font-body: 'Nunito', 'Helvetica Neue', Arial, sans-serif;
+
+  --nav-height: 60px;
+}
+
+/* ---------- Basics ---------- */
+
+/* Makes nav-link jumps glide instead of snapping. */
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  margin: 0;
+  font-family: var(--font-body);
+  font-size: 17px;
+  line-height: 1.6;
+  color: var(--ink);
+  background: var(--cream);
+}
+
+h1,
+h2,
+h3 {
+  font-family: var(--font-heading);
+  font-weight: 700;
+  color: var(--terracotta);
+  line-height: 1.1;
+}
+
+/* clamp(smallest, preferred, largest): the size shrinks on narrow screens. */
+h1 {
+  font-size: clamp(2.6rem, 11vw, 4.5rem);
+  margin: 16px 0 8px;
+}
+
+h2 {
+  font-size: clamp(2.2rem, 8vw, 3rem);
+  text-align: center;
+  margin: 0 0 32px;
+}
+
+h3 {
+  font-size: 1.8rem;
+  margin: 0 0 8px;
+}
+
+a {
+  color: var(--terracotta);
+}
+
+/* A link styled as a rounded button (e.g. "RSVP"). */
+.button {
+  display: inline-block;
+  background: var(--terracotta);
+  color: var(--card);
+  text-decoration: none;
+  font-weight: 700;
+  padding: 10px 28px;
+  border-radius: 999px;
+}
+
+.button:hover {
+  background: var(--terracotta-dark);
+}
+
+/* ---------- Nav bar (pinned to the top) ---------- */
+
+.navbar {
+  position: sticky; /* stays stuck to the top while you scroll */
+  top: 0;
+  z-index: 10;      /* keeps it drawn on top of the page content */
+  height: var(--nav-height);
+  box-sizing: border-box;
+  /* Three columns: brand on the left, links in the middle,
+     and an empty (or ☰ button) column on the right to balance it. */
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: center;
+  padding: 0 24px;
+  background: var(--cream);
+  border-bottom: 2px solid var(--line);
+}
+
+.navbar-brand {
+  justify-self: start;
+  font-family: var(--font-heading);
+  font-weight: 700;
+  font-size: 1.8rem;
+  color: var(--terracotta);
+  text-decoration: none;
+}
+
+.navbar-links {
+  display: flex;
+  gap: 24px;
+}
+
+.navbar-links a {
+  color: var(--ink);
+  text-decoration: none;
+  font-weight: 600;
+  padding: 4px 0;
+  border-bottom: 2px solid transparent;
+}
+
+.navbar-links a:hover {
+  color: var(--terracotta);
+}
+
+/* The link for the section you're currently looking at. */
+.navbar-links a.active {
+  color: var(--terracotta);
+  border-bottom-color: var(--terracotta);
+}
+
+/* The ☰ button is hidden on bigger screens... */
+.menu-button {
+  grid-column: 3;
+  justify-self: end;
+  display: none;
+  font-size: 1.6rem;
+  background: none;
+  border: none;
+  color: var(--terracotta);
+  cursor: pointer;
+}
+
+/* ...and on screens narrower than 768px (phones), we swap the
+   row of links for the ☰ button and a dropdown list. */
+@media (max-width: 768px) {
+  .menu-button {
+    display: block;
+  }
+
+  .navbar-links {
+    display: none; /* hidden until the menu is opened */
+    position: absolute;
+    top: var(--nav-height);
+    left: 0;
+    right: 0;
+    flex-direction: column;
+    gap: 0;
+    background: var(--cream);
+    border-bottom: 2px solid var(--line);
+    box-shadow: 0 8px 16px rgba(74, 59, 48, 0.1);
+  }
+
+  .navbar-links.open {
+    display: flex;
+  }
+
+  .navbar-links a {
+    padding: 14px 24px;
+    border-bottom: 1px solid var(--line);
+  }
+
+  .navbar-links a.active {
+    border-bottom-color: var(--line);
+    background: var(--sand);
+  }
+}
+
+/* ---------- Sections ---------- */
+
+.section {
+  /* Each section is at least one screen tall (minus the nav bar),
+     so jumping to a section shows only that section.
+     To turn this off, delete the min-height line. */
+  min-height: calc(100dvh - var(--nav-height));
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  justify-content: center; /* centers short sections vertically */
+  padding: 64px 24px;
+  /* When a nav link jumps here, leave room so the pinned nav
+     doesn't cover the top of the section. */
+  scroll-margin-top: var(--nav-height);
+}
+
+/* Alternate background colors so it's clear where each section starts. */
+.section:nth-child(3n + 1) {
+  background: var(--cream);
+}
+.section:nth-child(3n + 2) {
+  background: var(--sand);
+}
+.section:nth-child(3n) {
+  background: var(--sage-light);
+}
+
+/* Keeps content from stretching too wide on big screens. */
+.section-inner {
+  width: 100%;
+  max-width: 900px;
+  margin: 0 auto;
+}
+
+/* Home and Registry/RSVP content is centered. */
+#home,
+#registry,
+#rsvp {
+  text-align: center;
+}
+
+#home p {
+  font-size: 1.2rem;
+}
+
+/* ---------- Placeholder boxes where artwork/photos will go ---------- */
+
+.image-placeholder {
+  background: rgba(167, 104, 45, 0.08);
+  border: 2px dashed rgba(167, 104, 45, 0.35);
+  border-radius: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--terracotta);
+  font-family: var(--font-heading);
+  font-size: 1.3rem;
+  margin: 16px 0;
+}
+
+/* ---------- Our Story: photo beside text ---------- */
+
+.story-moment {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 32px;
+  align-items: center;
+  margin: 24px 0;
+}
+
+/* Every other moment flips: text on the left, photo on the right. */
+.story-moment:nth-of-type(even) .image-placeholder {
+  order: 2;
+}
+
+/* On narrow screens, stack the photo above the text. */
+@media (max-width: 600px) {
+  .story-moment {
+    grid-template-columns: 1fr;
+    gap: 0;
+  }
+  .story-moment:nth-of-type(even) .image-placeholder {
+    order: 0;
+  }
+}
+
+/* ---------- Memories: view toggle ---------- */
+
+.view-toggle {
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+  margin-bottom: 24px;
+}
+
+.view-toggle button,
+.camera-controls button {
+  font: inherit;
+  font-weight: 600;
+  padding: 6px 20px;
+  border: 2px solid var(--sage);
+  border-radius: 999px;
+  background: var(--card);
+  color: var(--sage);
+  cursor: pointer;
+}
+
+.view-toggle button.selected {
+  background: var(--sage);
+  color: var(--card);
+}
+
+/* ---------- Memories: shared sizing ---------- */
+
+/* A fixed-height area for both views, so switching views
+   doesn't move anything else on the page. */
+.memories-viewer {
+  min-height: 400px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+/* Every memory photo is the same size in both views:
+   320px wide (or 75% of a narrow phone screen), 4:3 shape. */
+.memory-photo.image-placeholder {
+  width: min(320px, 75vw);
+  aspect-ratio: 4 / 3;
+  margin: 0;
+  border: none;
+  border-radius: 2px;
+  background: var(--sand);
+}
+
+/* ---------- Memories: film strip view ---------- */
+
+.filmstrip {
+  display: flex;
+  gap: 12px;
+  overflow-x: auto;      /* scroll sideways through the frames */
+  background: #3e3129;   /* dark brown film */
+  padding: 20px 12px;
+  border-radius: 4px;
+  /* Dashed borders top and bottom stand in for the film's sprocket holes. */
+  border-top: 8px dashed var(--cream);
+  border-bottom: 8px dashed var(--cream);
+}
+
+.filmstrip-frame {
+  flex: 0 0 auto; /* frames keep their size and don't shrink */
+}
+
+/* ---------- Memories: camera view ---------- */
+
+.camera {
+  width: fit-content; /* hugs the screen inside it */
+  margin: 0 auto;
+  border-radius: 20px;
+  padding: 24px;
+  background: #5a4636; /* camera body */
+  box-shadow: 0 10px 24px rgba(74, 59, 48, 0.25);
+}
+
+.camera-screen {
+  border: 6px solid #2e241d;
+  border-radius: 6px;
+  background: #2e241d;
+}
+
+.camera-controls {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 16px;
+  color: var(--cream);
+  font-weight: 600;
+}
+
+.camera-controls button {
+  border-color: var(--cream);
+  background: transparent;
+  color: var(--cream);
+}
+
+/* ---------- Events timeline ---------- */
+
+.timeline {
+  position: relative;
+}
+
+/* The vertical line down the middle. */
+.timeline::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 50%;
+  border-left: 2px dashed rgba(167, 104, 45, 0.45);
+}
+
+/* A date marker sitting on the line at the start of each day. */
+.timeline-day {
+  position: relative; /* draws it on top of the line */
+  width: fit-content;
+  margin: 24px auto;
+  padding: 4px 18px;
+  background: var(--terracotta);
+  color: var(--card);
+  font-family: var(--font-heading);
+  font-size: 1.5rem;
+  font-weight: 700;
+  border-radius: 999px;
+}
+
+/* One event: [card] [dot] [artwork], in three columns.
+   "grid-template-areas" names the columns so we can swap sides easily. */
+.timeline-item {
+  display: grid;
+  grid-template-columns: 1fr 40px 1fr;
+  grid-template-areas: 'card dot image';
+  align-items: center;
+  gap: 16px;
+  margin: 32px 0;
+  scroll-margin-top: calc(var(--nav-height) + 16px);
+}
+
+/* Flipped events put the artwork on the left and the card on the right. */
+.timeline-item.flipped {
+  grid-template-areas: 'image dot card';
+}
+
+.event-block {
+  grid-area: card;
+  background: var(--card);
+  border: 2px solid var(--line);
+  border-radius: 16px;
+  padding: 20px 24px;
+}
+
+.event-block p {
+  margin: 4px 0;
+}
+
+.event-when {
+  font-weight: 700;
+  color: var(--sage);
+  text-transform: uppercase;
+  font-size: 0.85rem;
+  letter-spacing: 0.05em;
+}
+
+.timeline-dot {
+  grid-area: dot;
+  justify-self: center;
+  position: relative; /* draws it on top of the line */
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: var(--terracotta);
+  border: 4px solid var(--sand);
+}
+
+.timeline-image {
+  grid-area: image;
+  width: 100%;
+  max-width: 320px; /* keeps the artwork from getting too big */
+  justify-self: center;
+}
+
+.timeline-image img,
+.event-art.image-placeholder {
+  width: 100%;
+  aspect-ratio: 1 / 1;
+  object-fit: cover;
+  border-radius: 16px;
+  margin: 0;
+}
+
+/* On phones: the line moves to the left edge, and each event
+   stacks its artwork above its card, all on the right of the line. */
+@media (max-width: 700px) {
+  .timeline::before {
+    left: 11px;
+  }
+
+  .timeline-day {
+    margin-left: 0;
+  }
+
+  .timeline-item,
+  .timeline-item.flipped {
+    grid-template-columns: 24px 1fr;
+    grid-template-areas:
+      'dot image'
+      '.   card';
+    align-items: start;
+    gap: 12px;
+  }
+
+  .timeline-dot {
+    margin-top: 8px;
+  }
+}
+
+/* ---------- FAQ ---------- */
+
+.faq-list {
+  max-width: 700px;
+  margin: 0 auto;
+}
+
+.faq-item {
+  background: var(--card);
+  border: 2px solid var(--line);
+  border-radius: 16px;
+  padding: 14px 20px;
+  margin: 12px 0;
+}
+
+.faq-item summary {
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.faq-item p {
+  margin: 8px 0 0;
+}
+
+/* ---------- Generic boxed area ---------- */
+
+.box {
+  background: var(--card);
+  border: 2px solid var(--line);
+  border-radius: 16px;
+  padding: 20px 24px;
+  margin: 16px 0;
+}

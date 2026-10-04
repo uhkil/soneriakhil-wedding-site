@@ -1,0 +1,8 @@
+# Installed packages (re-created by running "npm install")
+node_modules
+
+# Build output (re-created by running "npm run build")
+dist
+
+# Mac system files
+.DS_Store
