@@ -1,20 +1,16 @@
-// The opening of the site: names, date, and a big illustration.
+// The opening of the site: the animated scene, then names, date, and RSVP.
 import Section from '../components/Section.jsx'
-import IllustrationSlot from '../components/IllustrationSlot.jsx'
-import Doodle from '../components/Doodle.jsx'
+import HeroAnimation from '../components/hero/HeroAnimation.jsx'
 
 export default function HomeSection() {
   return (
     <Section id="home" className="hero">
+      <HeroAnimation />
       <div className="hero-text">
-        <h1>
-          Soneri &amp; Akhil
-          <Doodle type="heart" size={36} className="hero-heart" />
-        </h1>
-        <p className="hero-details">April 9–10 · Dallas, TX</p>
+        <h1>Soneri &amp; Akhil</h1>
+        <p className="hero-details">April 9–10, 2027 · Dallas, TX</p>
         <a className="button" href="#rsvp">RSVP</a>
       </div>
-      <IllustrationSlot name="heroCouple" size="large" className="hero-art" />
     </Section>
   )
 }

@@ -411,20 +411,29 @@ summary:focus-visible {
 
 /* ---------- Home (hero) ---------- */
 
+/* The hero spans the full screen width so characters can run fully offscreen.
+   overflow-x: clip hides anything past the left/right edges without
+   creating a sideways scrollbar (hearts can still float up toward the nav). */
+.hero {
+  padding: 16px 0 40px;
+  overflow-x: clip;
+  justify-content: flex-start;
+}
+
 .hero .section-inner {
-  display: grid;
-  grid-template-columns: 1fr 1.2fr;
-  align-items: center;
-  gap: 48px;
+  max-width: none;
+  display: flex;
+  flex-direction: column;
+  flex: 1;
 }
 
 .hero-text {
   text-align: center;
+  padding: 0 24px;
 }
 
-.hero-heart {
-  vertical-align: top;
-  margin-left: 4px;
+.hero h1 {
+  font-size: clamp(2.4rem, 6vw, 3.4rem);
 }
 
 .hero-details {
@@ -433,15 +442,127 @@ summary:focus-visible {
   letter-spacing: 0.25em;
   font-size: 0.95rem;
   color: var(--brown);
-  margin: 20px 0 32px;
+  margin: 10px 0 24px;
 }
 
-/* On narrow screens, stack the names above the illustration. */
-@media (max-width: 800px) {
-  .hero .section-inner {
-    grid-template-columns: 1fr;
-    gap: 32px;
-  }
+/* The animation area: roughly the upper two-thirds of the screen. */
+.hero-stage {
+  --s: 1;  /* artwork scale, set by the animation */
+  --ss: 1; /* Soneri's artwork scale */
+  --ground: 6%; /* height of the ground line from the stage bottom */
+  position: relative;
+  flex: 1;
+  min-height: clamp(300px, 58dvh, 620px);
+}
+
+.hero-headline-wrap {
+  position: absolute;
+  left: 50%;
+  top: 44%;
+  translate: -50% -50%;
+  z-index: 1;
+}
+
+/* "Let's Celebrate!": real text, one line, upright handwriting. */
+.hero-headline {
+  margin: 0;
+  white-space: nowrap;
+  font-family: var(--font-hand);
+  font-weight: 700;
+  font-size: clamp(3rem, 9vw, 7rem);
+  line-height: 1;
+  color: var(--brown);
+}
+
+/* Characters stand on the ground line; the timeline moves them sideways. */
+.hero-actor {
+  position: absolute;
+  left: 0;
+  bottom: var(--ground);
+  will-change: transform;
+}
+
+.hero-body {
+  position: relative;
+}
+
+/* Every pose is stacked in place and hidden; the timeline shows one at a time. */
+.hero-frame {
+  position: absolute;
+  bottom: 0;
+  max-width: none;
+  opacity: 0;
+}
+
+/* The temporary drawn arm linking Soneri's shoulder to Akhil's hand. */
+.hero-handlink {
+  overflow: visible;
+}
+.hero-handlink .arm-outline {
+  fill: none;
+  stroke: #6b4a37;
+  stroke-width: 7;
+  stroke-linecap: round;
+}
+.hero-handlink .arm-skin {
+  fill: none;
+  stroke: #eabf9c;
+  stroke-width: 4.5;
+  stroke-linecap: round;
+}
+.hero-handlink .hand {
+  fill: #eabf9c;
+  stroke: #6b4a37;
+  stroke-width: 1.2;
+}
+
+.hero-ball {
+  position: absolute;
+  left: calc(var(--s) * -27px);  /* centers the ball on its position */
+  bottom: calc(var(--ground) - var(--s) * 27px);
+  width: calc(var(--s) * 54px);
+  opacity: 0;
+  z-index: 4;
+}
+
+.hero-ball img {
+  display: block;
+  width: 100%;
+}
+
+/* Hearts sit above everything, even the pinned nav, as they float away. */
+.hero-heart {
+  position: absolute;
+  left: 0;
+  bottom: var(--ground);
+  opacity: 0;
+  z-index: 11;
+  pointer-events: none;
+}
+
+/* A quiet replay button that fades in once the animation is done. */
+.hero-replay {
+  position: absolute;
+  right: 24px;
+  bottom: 0;
+  font: inherit;
+  font-size: 0.8rem;
+  letter-spacing: 0.08em;
+  color: var(--brown);
+  background: none;
+  border: none;
+  padding: 6px 8px;
+  cursor: pointer;
+  opacity: 0.55;
+  animation: replay-in 0.6s ease;
+}
+
+.hero-replay:hover {
+  opacity: 1;
+}
+
+@keyframes replay-in {
+  from { opacity: 0; }
 }
 
 /* ---------- Our Story: photo beside text ---------- */

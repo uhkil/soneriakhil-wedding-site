@@ -19,6 +19,7 @@ Edits to files in `src/` show up in the browser automatically. Press `Ctrl+C` in
 index.html              The single HTML page React draws into
 public/
   assets/prototype/     Drop illustration files here (see src/data/art.js)
+    hero/               Temporary cutouts for the Home animation
 src/
   main.jsx              Starting point: loads App into the page
   App.jsx               Nav bar + all sections (and decorative transitions), top to bottom
@@ -32,6 +33,10 @@ src/
     ScrollReveal.jsx      Fades content in as it scrolls into view
     DecorativeTransition.jsx  Illustrated pause between sections (not in the nav)
     EventBlock.jsx        One event on the timeline
+    hero/                 The animated Home scene
+      HeroAnimation.jsx     The stage, characters, ball, hearts, replay button
+      heroTimeline.js       The choreography (all timings at the top)
+      HandLink.jsx          Temporary drawn arm for the hand-hold
   sections/             One file per section of the page, in order
     HomeSection.jsx       #home
     OurStorySection.jsx   #story     (text + photos per moment)
@@ -44,6 +49,7 @@ src/
   data/
     events.js           The 4 events: edit names, times, locations here
     art.js              Every illustration spot: name, shape, and image file
+    heroArt.js          Home animation artwork + measurements (prototype cutouts)
 ```
 
 ## Adding artwork

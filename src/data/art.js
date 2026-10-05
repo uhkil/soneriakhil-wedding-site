@@ -1,6 +1,6 @@
 // Every illustration spot on the site, in one list.
 //
-// Each spot has a stable name (like "heroCouple") that the page uses.
+// Each spot has a stable name (like "rsvpCouple") that the page uses.
 // To swap in real artwork:
 //   1. Put the image file in public/assets/prototype/ (e.g. hero-couple.png)
 //   2. Fill in "src" below with the file name: src: 'assets/prototype/hero-couple.png'
@@ -10,11 +10,6 @@
 // roughly match it. "note" describes what the art is meant to show.
 
 const art = {
-  heroCouple: {
-    src: '',
-    ratio: '4 / 3',
-    note: 'Large couple scene for the opening',
-  },
   storyVignette: {
     src: '',
     ratio: '1 / 1',
