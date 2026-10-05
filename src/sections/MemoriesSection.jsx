@@ -3,7 +3,8 @@
 //   - "Camera": one photo at a time, like looking at a camera's playback screen
 import Section from '../components/Section.jsx'
 import { useState } from 'react'
-import ImagePlaceholder from '../components/ImagePlaceholder.jsx'
+import PhotoSlot from '../components/PhotoSlot.jsx'
+import Doodle from '../components/Doodle.jsx'
 
 // For now these are just labels. Later each will point to a real photo file.
 const photos = [
@@ -29,7 +30,9 @@ export default function MemoriesSection() {
 
   return (
     <Section id="memories">
-      <h2>Memories</h2>
+      <h2>
+        Memories <Doodle type="heart" size={28} />
+      </h2>
 
       {/* The toggle: two buttons that switch between the views. */}
       <div className="view-toggle">
@@ -55,14 +58,14 @@ export default function MemoriesSection() {
           <div className="filmstrip">
             {photos.map((photo) => (
               <div key={photo} className="filmstrip-frame">
-                <ImagePlaceholder label={photo} className="memory-photo" />
+                <PhotoSlot label={photo} className="memory-photo" />
               </div>
             ))}
           </div>
         ) : (
           <div className="camera">
             <div className="camera-screen">
-              <ImagePlaceholder label={photos[current]} className="memory-photo" />
+              <PhotoSlot label={photos[current]} className="memory-photo" />
             </div>
             <div className="camera-controls">
               <button onClick={showPrevious}>◀</button>

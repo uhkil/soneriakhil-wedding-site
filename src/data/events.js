@@ -6,8 +6,8 @@
 //
 // "TBD" values are placeholders to fill in later.
 //
-// "image" is the path to that event's artwork, e.g. '/images/events/sangeet.png'.
-// Leave it empty ('') to show a placeholder box instead.
+// Each event's artwork is listed in src/data/art.js as "event-<id>",
+// e.g. the sangeet's art is "event-sangeet".
 
 const events = [
   {
@@ -18,7 +18,6 @@ const events = [
     time: 'TBD',
     location: 'TBD',
     attire: 'TBD',
-    image: '',
     description: 'Placeholder description of the intimate ceremony.',
   },
   {
@@ -29,7 +28,6 @@ const events = [
     time: 'TBD',
     location: 'TBD',
     attire: 'TBD',
-    image: '',
     description: 'Placeholder description of the welcome night and sangeet.',
   },
   {
@@ -40,7 +38,6 @@ const events = [
     time: 'TBD',
     location: 'TBD',
     attire: 'TBD',
-    image: '',
     description: 'Placeholder description of the Indian wedding.',
   },
   {
@@ -51,7 +48,6 @@ const events = [
     time: 'TBD',
     location: 'TBD',
     attire: 'TBD',
-    image: '',
     description: 'Placeholder description of the cocktail hour and reception.',
   },
 ]

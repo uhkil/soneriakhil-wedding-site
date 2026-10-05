@@ -2,6 +2,7 @@
 // This uses the built-in HTML <details> and <summary> tags, which handle
 // opening and closing on their own (no extra code needed).
 import Section from '../components/Section.jsx'
+import Doodle from '../components/Doodle.jsx'
 
 // Edit this list to add, remove, or change questions.
 const faqs = [
@@ -16,7 +17,9 @@ const faqs = [
 export default function FaqSection() {
   return (
     <Section id="faq">
-      <h2>FAQ</h2>
+      <h2>
+        FAQ <Doodle type="sprig" size={36} />
+      </h2>
       <div className="faq-list">
         {faqs.map((faq) => (
           <details key={faq.question} className="faq-item">

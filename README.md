@@ -17,15 +17,21 @@ Edits to files in `src/` show up in the browser automatically. Press `Ctrl+C` in
 
 ```
 index.html              The single HTML page React draws into
+public/
+  assets/prototype/     Drop illustration files here (see src/data/art.js)
 src/
   main.jsx              Starting point: loads App into the page
-  App.jsx               Nav bar + all sections, top to bottom
+  App.jsx               Nav bar + all sections (and decorative transitions), top to bottom
   index.css             Styles (colors & fonts are defined at the top)
   components/           Reusable pieces
     NavBar.jsx            Pinned nav: row of links on big screens, ☰ menu on phones
-    Section.jsx           Shared wrapper: full-screen height + background for each section
-    ImagePlaceholder.jsx  Gray box standing in for a photo
-    EventBlock.jsx        One event's details, in its own box
+    Section.jsx           Shared wrapper: full-screen height + spacing for each section
+    IllustrationSlot.jsx  A named spot for artwork (placeholder until art exists)
+    PhotoSlot.jsx         A spot for a real photo, styled like a printed photo
+    Doodle.jsx            Small hand-drawn-style line doodles (heart, plane, ...)
+    ScrollReveal.jsx      Fades content in as it scrolls into view
+    DecorativeTransition.jsx  Illustrated pause between sections (not in the nav)
+    EventBlock.jsx        One event on the timeline
   sections/             One file per section of the page, in order
     HomeSection.jsx       #home
     OurStorySection.jsx   #story     (text + photos per moment)
@@ -37,7 +43,13 @@ src/
     RsvpSection.jsx       #rsvp      (placeholder until Milestone 2)
   data/
     events.js           The 4 events: edit names, times, locations here
+    art.js              Every illustration spot: name, shape, and image file
 ```
+
+## Adding artwork
+
+1. Put the file in `public/assets/prototype/` (e.g. `hero-couple.png`).
+2. In `src/data/art.js`, set that spot's `src`, e.g. `src: 'assets/prototype/hero-couple.png'`.
 
 ## Milestones
 

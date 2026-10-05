@@ -16,7 +16,7 @@ export default function EventsSection({ invitedEventIds }) {
     : events
 
   return (
-    <Section id="events">
+    <Section id="events" className="section-field">
       <h2>Events</h2>
       <div className="timeline">
         {visibleEvents.map((event, index) => {

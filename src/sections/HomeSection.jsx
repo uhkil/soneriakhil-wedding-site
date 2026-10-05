@@ -1,16 +1,20 @@
-// The landing area at the very top: names, date, and a big hero image.
+// The opening of the site: names, date, and a big illustration.
 import Section from '../components/Section.jsx'
-import ImagePlaceholder from '../components/ImagePlaceholder.jsx'
+import IllustrationSlot from '../components/IllustrationSlot.jsx'
+import Doodle from '../components/Doodle.jsx'
 
 export default function HomeSection() {
   return (
-    <Section id="home">
-      <ImagePlaceholder label="Hero artwork" height={400} />
-      <h1>Soneri &amp; Akhil</h1>
-      <p>April 9–10 · Dallas, TX</p>
-      <p>
+    <Section id="home" className="hero">
+      <div className="hero-text">
+        <h1>
+          Soneri &amp; Akhil
+          <Doodle type="heart" size={36} className="hero-heart" />
+        </h1>
+        <p className="hero-details">April 9–10 · Dallas, TX</p>
         <a className="button" href="#rsvp">RSVP</a>
-      </p>
+      </div>
+      <IllustrationSlot name="heroCouple" size="large" className="hero-art" />
     </Section>
   )
 }
