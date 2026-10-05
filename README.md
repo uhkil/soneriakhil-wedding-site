@@ -49,13 +49,12 @@ src/
     HomeSection.jsx       #home
     OurStorySection.jsx   #story     (text + photos per moment)
     MemoriesSection.jsx   #memories  (film strip / camera toggle)
-    EventsSection.jsx     #events    (timeline; can show only a guest's events)
+    EventsSection.jsx     #events    (timeline of the party's events; details come from the Sheet)
     TravelSection.jsx     #travel
     RegistrySection.jsx   #registry
     FaqSection.jsx        #faq       (click a question to open its answer)
-    RsvpSection.jsx       #rsvp      (placeholder until Milestone 2)
+    RsvpSection.jsx       #rsvp      (the party's RSVP form; saves to the Sheet)
   data/
-    events.js           The 4 events: edit names, times, locations here
     art.js              Every illustration spot: name, shape, and image file
     heroArt.js          Home animation artwork + measurements (prototype cutouts)
 ```
@@ -68,4 +67,4 @@ src/
 ## Milestones
 
 1. **Wireframe static site** (current)
-2. **Guest-specific RSVP**: guests look up their name, then RSVP only to the events they're invited to
+2. **Guest-specific RSVP** (in progress): guests find their name, enter the wedding passcode, and RSVP to the events they're invited to. Event details, guests, and answers live in a private Google Sheet (see `apps-script/SETUP.md`).

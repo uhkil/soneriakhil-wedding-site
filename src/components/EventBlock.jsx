@@ -11,16 +11,24 @@ export default function EventBlock({ event, flipped }) {
           {event.date} · {event.timeOfDay}
         </p>
         <h3>{event.name}</h3>
-        {/* A "definition list": pairs of labels (dt) and values (dd). */}
+        {/* A "definition list": pairs of labels (dt) and values (dd).
+            Rows the Sheet leaves blank are skipped. */}
         <dl className="event-facts">
-          <dt>Time</dt>
-          <dd>{event.time}</dd>
-          <dt>Location</dt>
-          <dd>{event.location}</dd>
-          <dt>Attire</dt>
-          <dd>{event.attire}</dd>
+          {[
+            ['Time', event.time],
+            ['Location', event.location],
+            ['Address', event.address],
+            ['Attire', event.attire],
+          ]
+            .filter(([, value]) => value)
+            .map(([label, value]) => (
+              <div key={label} className="event-fact">
+                <dt>{label}</dt>
+                <dd>{value}</dd>
+              </div>
+            ))}
         </dl>
-        <p>{event.description}</p>
+        {event.description && <p>{event.description}</p>}
       </div>
 
       <div className="timeline-dot" />

@@ -1,27 +1,20 @@
-// The events, shown as a vertical timeline. Events alternate sides,
-// and a small date marker appears at the start of each day.
+// The events this guest's party is invited to, shown as a vertical timeline.
+// Events alternate sides, and a date marker appears at the start of each day.
 //
-// Getting ready for Milestone 2 (guest login):
-// This section can be given a list of event ids, like
-//   <EventsSection invitedEventIds={['sangeet', 'reception']} />
-// and it will show only those events. With no list, it shows every event.
+// The details (times, locations, addresses) come privately from the Google
+// Sheet after login, only for the events this party is invited to. They are
+// not stored in the website's code.
 import Section from '../components/Section.jsx'
 import EventBlock from '../components/EventBlock.jsx'
-import events from '../data/events.js'
 
-export default function EventsSection({ invitedEventIds }) {
-  // Keep only the events this guest is invited to (or all of them).
-  const visibleEvents = invitedEventIds
-    ? events.filter((event) => invitedEventIds.includes(event.id))
-    : events
-
+export default function EventsSection({ events }) {
   return (
     <Section id="events" className="section-field">
       <h2>Events</h2>
       <div className="timeline">
-        {visibleEvents.map((event, index) => {
+        {events.map((event, index) => {
           // Is this the first event shown for its day? If so, show a day marker.
-          const isNewDay = index === 0 || visibleEvents[index - 1].date !== event.date
+          const isNewDay = index === 0 || events[index - 1].date !== event.date
 
           return (
             <div key={event.id}>

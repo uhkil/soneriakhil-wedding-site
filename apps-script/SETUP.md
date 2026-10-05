@@ -79,7 +79,7 @@ columns never reach the website.
 |---|---|
 | **Summary** | Headcount per event (invited / yes / no / waiting) and which invitations haven't responded. Updates after every RSVP, or via **Wedding RSVP → Refresh summary**. |
 | **RSVPs** | One row per guest: dietary notes, plus-one name, and `yes` / `no` per event (blank = not invited). |
-| **Party Responses** | One row per invitation: email, phone, note / song request. These never go back to the website; a guest who leaves a box blank keeps what's saved. |
+| **Party Responses** | One row per invitation: email, phone, note for the couple. These never go back to the website; a guest who leaves a box blank keeps what's saved. |
 | **Change Log** | Every submission, timestamped, so changed answers are never lost. |
 
 ## Changing the script later

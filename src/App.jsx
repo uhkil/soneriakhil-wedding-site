@@ -35,8 +35,8 @@ export default function App() {
             <OurStorySection />
             <MemoriesSection />
             <DecorativeTransition art="transitionWalk" motion="walk" />
-            {/* Only the events this party is invited to. */}
-            <EventsSection invitedEventIds={party.events.map((e) => e.id)} />
+            {/* Only the events this party is invited to, with details from the Sheet. */}
+            <EventsSection events={party.events} />
             <DecorativeTransition art="indianAttire" size="medium" />
             <TravelSection />
             <RegistrySection />
