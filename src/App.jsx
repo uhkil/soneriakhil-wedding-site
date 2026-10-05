@@ -25,7 +25,7 @@ export default function App() {
       {loggedIn && <NavBar onLogout={logout} />}
       {isPractice && (
         <p className="practice-banner">
-          Practice mode: fake guests. Try “Jordan Lee” with code PEONY.
+          Practice mode: fake guests. Try “Jordan Lee” with passcode CELEBRATE.
         </p>
       )}
       <main>

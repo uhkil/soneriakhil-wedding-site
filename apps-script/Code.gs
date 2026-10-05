@@ -6,17 +6,18 @@
  *
  * This code lives inside the wedding Google Sheet (Extensions → Apps Script).
  * The website sends it requests; it reads the guest list from the Sheet and
- * writes RSVPs back. The guest list never leaves the Sheet except for the
- * specific party a guest has verified with their invitation code.
+ * writes RSVPs back. Guests log in with their name plus the wedding passcode
+ * (one passcode for everyone, set in the Settings tab). Saved email, phone,
+ * and notes never leave the Sheet.
  *
  * Tabs it uses (setup() creates them):
- *   You fill in:      Parties, Guests, Events
+ *   You fill in:      Settings (the passcode), Parties, Guests, Events
  *   It fills in:      Summary (headcounts), RSVPs (one row per guest),
  *                     Party Responses (one row per party), Change Log (every submission)
  *
  * The website can ask for four things ("actions"):
  *   search   — find guests by first + last name
- *   verify   — check a guest's invitation code; returns their party + a login token
+ *   verify   — check the wedding passcode; returns the guest's party + a login token
  *   party    — reload a party's details using a saved login token
  *   submit   — save the party's RSVP
  *
@@ -29,6 +30,7 @@
 // ---------------------------------------------------------------------------
 
 const TAB = {
+  settings: 'Settings',
   parties: 'Parties',
   guests: 'Guests',
   events: 'Events',
@@ -39,7 +41,8 @@ const TAB = {
 }
 
 const HEADERS = {
-  Parties: ['party_id', 'party_name', 'invite_code', 'invited_events', 'notes'],
+  Settings: ['setting', 'value'],
+  Parties: ['party_id', 'party_name', 'invited_events', 'notes'],
   Guests: ['guest_id', 'party_id', 'first_name', 'last_name', 'invited_events', 'plus_one'],
   Events: ['event_id', 'name', 'date', 'time_of_day', 'time', 'location', 'address', 'attire', 'description'],
   // One extra column per event (yes / no) is added automatically after these.
@@ -49,7 +52,7 @@ const HEADERS = {
 }
 
 const MAX_MATCHES = 5 // more matches than this → ask the guest to be more specific
-const MAX_CODE_TRIES = 8 // wrong invitation codes allowed per guest, per hour
+const MAX_CODE_TRIES = 8 // wrong passcodes allowed per guest, per hour
 
 // ---------------------------------------------------------------------------
 // Entry points (Google calls these when the website sends a request)
@@ -121,7 +124,7 @@ function searchGuests(name) {
   }
 }
 
-/** Checks the invitation code for a guest's party. */
+/** Checks the wedding passcode, then opens the guest's party. */
 function verifyCode(guestId, code) {
   const cache = CacheService.getScriptCache()
   const triesKey = 'tries:' + guestId
@@ -130,15 +133,23 @@ function verifyCode(guestId, code) {
     throw new UserError('Too many tries. Please wait an hour, or reach out to us.')
   }
 
+  const passcode = sitePasscode()
   const guest = readTab(TAB.guests).find((g) => g.guest_id === String(guestId))
   const party = guest && byId(readTab(TAB.parties), 'party_id')[guest.party_id]
-  if (!party || cleanCode(code) !== cleanCode(party.invite_code)) {
+  if (!party || cleanCode(code) !== cleanCode(passcode)) {
     cache.put(triesKey, String(tries + 1), 60 * 60)
-    throw new UserError("That code doesn't match. Check your invitation and try again.")
+    throw new UserError("That passcode doesn't match. Check your invitation and try again.")
   }
 
   cache.remove(triesKey)
-  return { token: makeToken(party), party: partyDetails(party.party_id) }
+  return { token: makeToken(party.party_id), party: partyDetails(party.party_id) }
+}
+
+/** The wedding passcode from the Settings tab (row "site_passcode"). */
+function sitePasscode() {
+  const row = readTab(TAB.settings).find((r) => r.setting === 'site_passcode')
+  if (!row || !row.value) throw new UserError("RSVPs aren't open yet. Please check back soon.")
+  return row.value
 }
 
 /** Everything the website shows a logged-in party: people, events, past answers. */
@@ -192,7 +203,8 @@ function partyDetails(partyId) {
     guests,
     events,
     answers,
-    contact: { email: response.email || '', phone: response.phone || '', note: response.note || '' },
+    // Saved contact info stays private: the website only learns whether it's on file.
+    onFile: { email: Boolean(response.email), phone: Boolean(response.phone), note: Boolean(response.note) },
     hasResponded: Boolean(response.updated_at),
   }
 }
@@ -242,8 +254,10 @@ function saveRsvp(req) {
     })
   })
 
+  // A blank box keeps what's already saved (the website never sees saved values).
+  const saved = readTab(TAB.responses).find((r) => r.party_id === details.partyId) || {}
   const contact = req.contact || {}
-  const email = limit(contact.email, 200)
+  const email = limit(contact.email, 200) || saved.email || ''
   if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
     throw new UserError('Please check the email address.')
   }
@@ -252,8 +266,8 @@ function saveRsvp(req) {
     party_id: details.partyId,
     party_name: details.partyName,
     email,
-    phone: limit(contact.phone, 40),
-    note: limit(contact.note, 1000),
+    phone: limit(contact.phone, 40) || saved.phone || '',
+    note: limit(contact.note, 1000) || saved.note || '',
   }
 
   // Only one save at a time, so two guests saving at once can't collide.
@@ -291,18 +305,19 @@ function saveRsvp(req) {
 // ---------------------------------------------------------------------------
 // Login tokens
 // ---------------------------------------------------------------------------
-// After a correct code, the website gets a token: a signature of the party's
-// id + code made with a secret only this script knows. The website saves it
-// so guests stay logged in. Changing a party's invite_code logs them out.
+// After the right passcode, the website gets a token: a signature of the
+// party's id + the passcode, made with a secret only this script knows. The
+// website saves it so guests stay logged in. Changing the passcode logs
+// everyone out.
 
-function makeToken(party) {
-  const sig = Utilities.computeHmacSha256Signature(`${party.party_id}|${cleanCode(party.invite_code)}`, secret())
+function makeToken(partyId) {
+  const sig = Utilities.computeHmacSha256Signature(`${partyId}|${cleanCode(sitePasscode())}`, secret())
   return Utilities.base64EncodeWebSafe(sig)
 }
 
 function requireToken(partyId, token) {
   const party = byId(readTab(TAB.parties), 'party_id')[partyId]
-  if (!party || !token || token !== makeToken(party)) {
+  if (!party || !token || token !== makeToken(partyId)) {
     throw new UserError('Please find your invitation again.')
   }
 }
@@ -391,7 +406,7 @@ function normalize(text) {
     .trim()
 }
 
-/** Codes ignore case, spaces, and dashes: "sun-flower" = "SUNFLOWER". */
+/** Passcodes ignore case, spaces, and dashes: "sun-flower" = "SUNFLOWER". */
 function cleanCode(code) {
   return String(code || '').toUpperCase().replace(/[\s-]/g, '')
 }
@@ -462,7 +477,6 @@ function onOpen() {
   SpreadsheetApp.getUi()
     .createMenu('Wedding RSVP')
     .addItem('Refresh summary', 'refreshSummary')
-    .addItem('Fill in missing invite codes', 'fillMissingInviteCodes')
     .addToUi()
 }
 
@@ -483,12 +497,14 @@ function setup() {
       ['indian-wedding', 'Indian Wedding', 'April 10', 'Morning', 'TBD', 'TBD', 'TBD', 'TBD', 'Placeholder description.'],
       ['reception', 'Cocktail Hour + Reception', 'April 10', 'Evening', 'TBD', 'TBD', 'TBD', 'TBD', 'Placeholder description.'],
     ],
+    // CHANGE the passcode before printing invitations.
+    Settings: [['site_passcode', 'CELEBRATE']],
     // SAMPLE parties — replace with your real guest list.
     // Two different "Priya Shah"s let you test the duplicate-name popup.
     Parties: [
-      ['P001', 'The Shah Family', 'MANGO', 'ceremony, sangeet, indian-wedding, reception', 'sample'],
-      ['P002', 'Priya Shah', 'LOTUS', 'sangeet, reception', 'sample'],
-      ['P003', 'The Lee Family', 'PEONY', 'sangeet, indian-wedding, reception', 'sample'],
+      ['P001', 'The Shah Family', 'ceremony, sangeet, indian-wedding, reception', 'sample'],
+      ['P002', 'Priya Shah', 'sangeet, reception', 'sample'],
+      ['P003', 'The Lee Family', 'sangeet, indian-wedding, reception', 'sample'],
     ],
     Guests: [
       ['G001', 'P001', 'Priya', 'Shah', '', ''],
@@ -505,7 +521,7 @@ function setup() {
     if (ss.getSheetByName(name)) return
     const sheet = ss.insertSheet(name)
     // Your tabs are plain text, so Sheets won't turn "April 9" into a date
-    // or drop the leading zero from a code like "0412".
+    // or drop the leading zero from a passcode like "0412".
     if (samples[name]) sheet.getRange(1, 1, sheet.getMaxRows(), HEADERS[name].length).setNumberFormat('@')
     sheet.getRange(1, 1, 1, HEADERS[name].length).setValues([HEADERS[name]]).setFontWeight('bold')
     sheet.setFrozenRows(1)
@@ -522,50 +538,17 @@ function setup() {
   console.log('Setup done. Tabs: ' + ss.getSheets().map((s) => s.getName()).join(', '))
 }
 
-/**
- * Fills in a random invite_code for every party that doesn't have one yet,
- * like "KX7-M4P". Uses letters and numbers that are hard to mix up when
- * typed from a printed card (no O/0, I/1, etc.). Never changes existing codes.
- */
-function fillMissingInviteCodes() {
-  const sheet = getTab(TAB.parties)
-  const header = sheet.getRange(1, 1, 1, sheet.getLastColumn()).getValues()[0]
-  const col = header.indexOf('invite_code') + 1
-  const rows = sheet.getLastRow() - 1
-  if (col === 0 || rows < 1) return
-  const range = sheet.getRange(2, col, rows, 1)
-  const ids = sheet.getRange(2, header.indexOf('party_id') + 1, rows, 1).getDisplayValues()
-  const used = new Set(range.getDisplayValues().map((r) => cleanCode(r[0])).filter(Boolean))
-  const letters = 'ACDEFGHJKMNPQRTUVWXY34679'
-  const randomCode = () => {
-    let code
-    do {
-      code = Array.from({ length: 6 }, () => letters[Math.floor(Math.random() * letters.length)]).join('')
-    } while (used.has(code))
-    used.add(code)
-    return code.slice(0, 3) + '-' + code.slice(3)
-  }
-  let added = 0
-  const values = range.getDisplayValues().map((r, i) => {
-    if (r[0].trim() || !ids[i][0].trim()) return [r[0]]
-    added++
-    return [randomCode()]
-  })
-  range.setNumberFormat('@').setValues(values)
-  console.log(`Added ${added} invite code(s).`)
-}
-
-/** Tries a search and a code check against the sample data; results appear in the log. */
+/** Tries a search and a passcode check; results appear in the log. */
 function tryItOut() {
   const found = searchGuests('priya shah')
   console.log('Search "priya shah" →', JSON.stringify(found.matches))
-  const result = verifyCode(found.matches[0].guestId, 'mango')
-  console.log('Code "mango" → party:', result.party.partyName,
-    '| guests:', result.party.guests.map((g) => g.firstName).join(', '),
+  const result = verifyCode(found.matches[0].guestId, sitePasscode())
+  console.log('Right passcode → party:', result.party.partyName,
+    '| guests:', result.party.guests.map((g) => g.firstName || '(plus-one)').join(', '),
     '| events:', result.party.events.map((e) => e.name).join(', '))
   try {
     verifyCode(found.matches[0].guestId, 'wrong')
   } catch (err) {
-    console.log('Wrong code →', err.message)
+    console.log('Wrong passcode →', err.message)
   }
 }

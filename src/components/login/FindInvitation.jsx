@@ -1,7 +1,7 @@
 // "Find your invitation": the login form on the landing page.
 //   Step 1: type your first and last name.
 //   (If several guests share that name, a popup asks which one you are.)
-//   Step 2: type the code printed on your invitation.
+//   Step 2: type the wedding passcode (the same for everyone, printed on the invitation).
 import { useRef, useState } from 'react'
 import { searchGuests } from '../../api/rsvpApi.js'
 import { useGuest } from '../../guest/GuestProvider.jsx'
@@ -41,7 +41,7 @@ export default function FindInvitation() {
     setGuest(match)
   }
 
-  // Step 2: check the code. On success the whole site opens, so this form goes away.
+  // Step 2: check the passcode. On success the whole site opens, so this form goes away.
   async function openInvitation(event) {
     event.preventDefault()
     setError('')
@@ -89,7 +89,7 @@ export default function FindInvitation() {
       ) : (
         <form onSubmit={openInvitation}>
           <label htmlFor="invite-code">
-            Hi, {guest.name.split(' ')[0]}! Enter the code printed on your invitation.
+            Hi, {guest.name.split(' ')[0]}! Enter the passcode from your invitation.
           </label>
           <div className="field-row">
             <input
@@ -98,7 +98,7 @@ export default function FindInvitation() {
               autoComplete="off"
               autoCapitalize="characters"
               spellCheck="false"
-              placeholder="e.g. KX7-M4P"
+              placeholder="Passcode"
               value={code}
               onChange={(e) => setCode(e.target.value)}
               required

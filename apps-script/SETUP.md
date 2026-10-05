@@ -2,7 +2,7 @@
 
 The guest list and RSVPs live in a private Google Sheet. A small script inside
 that Sheet (`Code.gs`) answers the website's questions: "does this name match a
-guest?", "is this invitation code right?", "save this RSVP." This takes about
+guest?", "is this the wedding passcode?", "save this RSVP." This takes about
 15 minutes, once.
 
 ## 1. Create the Sheet
@@ -49,12 +49,14 @@ guest?", "is this invitation code right?", "save this RSVP." This takes about
 5. Paste that URL somewhere and send it to me (Claude); the website needs it.
    Opening it in your browser should show `"RSVP service is running."`
 
-**Use random invitation codes for real guests** (the menu can generate them).
-Simple words like the sample "MANGO" are easy to guess.
+**Set your own passcode** in the Settings tab (the sample is CELEBRATE). Every
+guest uses the same passcode, printed on the invitations.
 
 "Anyone" means the website can reach the script, not that anyone can see your
-Sheet. The script only ever hands out one party's details, and only after the
-right invitation code.
+Sheet. The script only hands out one party's details at a time, and only with
+the right name and passcode. Anyone with the passcode can look up any guest
+by name (like Zola); saved email, phone, and notes are never sent back to the
+website.
 
 ## The tabs
 
@@ -66,7 +68,8 @@ columns never reach the website.
 
 | Tab | One row per… | Columns the script uses |
 |---|---|---|
-| **Parties** | invitation / household | `party_id` (e.g. P001), `party_name` (shown to guests), `invite_code` (printed on the invitation; use **Wedding RSVP → Fill in missing invite codes** for random ones), `invited_events` (event ids, comma-separated), `notes` |
+| **Settings** | setting | `site_passcode`: the wedding passcode guests type. Changing it logs everyone out. |
+| **Parties** | invitation / household | `party_id` (e.g. P001), `party_name` (shown to guests), `invited_events` (event ids, comma-separated), `notes` |
 | **Guests** | person | `guest_id` (e.g. G001), `party_id`, `first_name`, `last_name`, `invited_events` (blank = same as their party), `plus_one` (`yes` for an unnamed "+ Guest" slot; leave the name blank and the guest types it when they RSVP) |
 | **Events** | event | `event_id` (short, no spaces), `name`, `date`, `time_of_day`, `time`, `location`, `address`, `attire`, `description` |
 
@@ -76,7 +79,7 @@ columns never reach the website.
 |---|---|
 | **Summary** | Headcount per event (invited / yes / no / waiting) and which invitations haven't responded. Updates after every RSVP, or via **Wedding RSVP → Refresh summary**. |
 | **RSVPs** | One row per guest: dietary notes, plus-one name, and `yes` / `no` per event (blank = not invited). |
-| **Party Responses** | One row per invitation: email, phone, note / song request. |
+| **Party Responses** | One row per invitation: email, phone, note / song request. These never go back to the website; a guest who leaves a box blank keeps what's saved. |
 | **Change Log** | Every submission, timestamped, so changed answers are never lost. |
 
 ## Changing the script later

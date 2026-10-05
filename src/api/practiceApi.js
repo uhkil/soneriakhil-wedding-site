@@ -1,7 +1,7 @@
 // A pretend back end with fake guests, used when the address has ?practice.
 // It behaves like the real Google Sheet script, without touching the Sheet.
 //
-// Try: "Jordan Lee" + PEONY, or "Priya Shah" (two matches) + MANGO / LOTUS.
+// Try: "Jordan Lee" or "Priya Shah" (two matches), with the passcode CELEBRATE.
 
 const events = [
   { id: 'ceremony', name: 'Intimate Ceremony', date: 'April 9', timeOfDay: 'Morning', time: '10:00 AM', location: 'Practice Venue', address: '123 Example St, Dallas, TX', attire: 'Formal', description: 'Practice-mode details.' },
@@ -10,10 +10,12 @@ const events = [
   { id: 'reception', name: 'Cocktail Hour + Reception', date: 'April 10', timeOfDay: 'Evening', time: '6:00 PM', location: 'Practice Venue', address: '123 Example St, Dallas, TX', attire: 'Black tie optional', description: 'Practice-mode details.' },
 ]
 
+const PASSCODE = 'CELEBRATE'
+
 const parties = {
-  P001: { name: 'The Shah Family', code: 'MANGO', events: ['ceremony', 'sangeet', 'indian-wedding', 'reception'] },
-  P002: { name: 'Priya Shah', code: 'LOTUS', events: ['sangeet', 'reception'] },
-  P003: { name: 'The Lee Family', code: 'PEONY', events: ['sangeet', 'indian-wedding', 'reception'] },
+  P001: { name: 'The Shah Family', events: ['ceremony', 'sangeet', 'indian-wedding', 'reception'] },
+  P002: { name: 'Priya Shah', events: ['sangeet', 'reception'] },
+  P003: { name: 'The Lee Family', events: ['sangeet', 'indian-wedding', 'reception'] },
 }
 
 const guests = [
@@ -39,14 +41,15 @@ function partyDetails(partyId) {
     .filter((g) => g.partyId === partyId)
     .map((g) => ({ guestId: g.guestId, firstName: g.firstName, lastName: g.lastName, isPlusOne: Boolean(g.isPlusOne), invitedEvents: g.events || party.events }))
   const invited = new Set(members.flatMap((g) => g.invitedEvents))
-  const answers = saved[partyId] || { answers: {}, contact: { email: '', phone: '', note: '' } }
+  const answers = saved[partyId] || { answers: {}, contact: {} }
   return {
     partyId,
     partyName: party.name,
     guests: members,
     events: events.filter((e) => invited.has(e.id)),
     answers: answers.answers,
-    contact: answers.contact,
+    // Like the real back end: only whether contact info is on file, never the values.
+    onFile: { email: Boolean(answers.contact.email), phone: Boolean(answers.contact.phone), note: Boolean(answers.contact.note) },
     hasResponded: Boolean(saved[partyId]),
   }
 }
@@ -70,8 +73,8 @@ export async function handlePractice(req) {
 
   if (req.action === 'verify') {
     const guest = guests.find((g) => g.guestId === req.guestId)
-    if (!guest || cleanCode(req.code) !== parties[guest.partyId].code) {
-      fail("That code doesn't match. Check your invitation and try again.")
+    if (!guest || cleanCode(req.code) !== PASSCODE) {
+      fail("That passcode doesn't match. Check your invitation and try again.")
     }
     return { ok: true, token: 'practice-' + guest.partyId, party: partyDetails(guest.partyId) }
   }
@@ -83,7 +86,10 @@ export async function handlePractice(req) {
   if (req.action === 'submit') {
     const answers = {}
     req.guests.forEach((g) => (answers[g.guestId] = { name: g.name || '', dietary: g.dietary || '', attending: g.attending || {} }))
-    saved[req.partyId] = { answers, contact: req.contact || {} }
+    // A blank box keeps what was saved before.
+    const before = saved[req.partyId]?.contact || {}
+    const c = req.contact || {}
+    saved[req.partyId] = { answers, contact: { email: c.email || before.email, phone: c.phone || before.phone, note: c.note || before.note } }
     return { ok: true, party: partyDetails(req.partyId) }
   }
 

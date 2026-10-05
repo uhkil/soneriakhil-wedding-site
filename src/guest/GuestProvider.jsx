@@ -6,7 +6,7 @@
 //   token     proof of login, sent along when saving an RSVP
 //   login(guestId, code), logout(), setParty(updatedParty)
 //
-// After a correct code, the login token is saved in this browser, so guests
+// After the right passcode, the login token is saved in this browser, so guests
 // stay logged in when they come back, until they log out.
 import { createContext, useContext, useEffect, useState } from 'react'
 import { isPractice, loadParty, verifyCode } from '../api/rsvpApi.js'
@@ -49,7 +49,7 @@ export function GuestProvider({ children }) {
         setStatus('in')
       })
       .catch((error) => {
-        // A rejected login (e.g. the code was changed) is forgotten.
+        // A rejected login (e.g. the passcode was changed) is forgotten.
         // A network hiccup keeps it, so the next visit tries again.
         if (!error.isNetwork) writeSaved(null)
         setStatus('guest')
@@ -57,7 +57,7 @@ export function GuestProvider({ children }) {
   }, [])
 
   async function login(guestId, code) {
-    const result = await verifyCode(guestId, code) // throws if the code is wrong
+    const result = await verifyCode(guestId, code) // throws if the passcode is wrong
     writeSaved({ partyId: result.party.partyId, token: result.token })
     setParty(result.party)
     setToken(result.token)

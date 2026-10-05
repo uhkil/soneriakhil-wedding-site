@@ -36,7 +36,7 @@ async function call(action, data) {
 // Returns a list of { guestId, name, partyName } matching a typed name.
 export const searchGuests = (name) => call('search', { name }).then((r) => r.matches)
 
-// Checks an invitation code. Returns { token, party }.
+// Checks the wedding passcode. Returns { token, party }.
 export const verifyCode = (guestId, code) => call('verify', { guestId, code })
 
 // Reloads a party's details with a saved login token.
