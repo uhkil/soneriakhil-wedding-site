@@ -49,29 +49,35 @@ guest?", "is this invitation code right?", "save this RSVP." This takes about
 5. Paste that URL somewhere and send it to me (Claude); the website needs it.
    Opening it in your browser should show `"RSVP service is running."`
 
+**Use random invitation codes for real guests** (the menu can generate them).
+Simple words like the sample "MANGO" are easy to guess.
+
 "Anyone" means the website can reach the script, not that anyone can see your
 Sheet. The script only ever hands out one party's details, and only after the
 right invitation code.
 
 ## The tabs
 
+You can add your own extra columns (addresses, side, notes, …) to the right of
+any tab you fill in. The script only reads the columns listed here, so extra
+columns never reach the website.
+
 **You fill in** (all plain text):
 
-| Tab | One row per… | Columns |
+| Tab | One row per… | Columns the script uses |
 |---|---|---|
-| **Parties** | invitation / household | `party_id` (e.g. P001), `party_name` (shown to guests, e.g. "The Shah Family"), `invite_code` (printed on their invitation; case, spaces, and dashes are ignored), `invited_events` (event ids separated by commas), `notes` (just for you) |
-| **Guests** | person | `guest_id` (e.g. G001), `party_id` (which invitation they're on), `first_name`, `last_name`, `invited_events` (leave blank to use the party's; fill in only if this person is invited to fewer events, e.g. kids) |
-| **Events** | event | `event_id` (short, no spaces; must match the ids used above), `name`, `date`, `time_of_day`, `time`, `location`, `address`, `attire`, `description` |
+| **Parties** | invitation / household | `party_id` (e.g. P001), `party_name` (shown to guests), `invite_code` (printed on the invitation; use **Wedding RSVP → Fill in missing invite codes** for random ones), `invited_events` (event ids, comma-separated), `notes` |
+| **Guests** | person | `guest_id` (e.g. G001), `party_id`, `first_name`, `last_name`, `invited_events` (blank = same as their party), `plus_one` (`yes` for an unnamed "+ Guest" slot; leave the name blank and the guest types it when they RSVP) |
+| **Events** | event | `event_id` (short, no spaces), `name`, `date`, `time_of_day`, `time`, `location`, `address`, `attire`, `description` |
 
-**The script fills in** (don't edit these by hand while guests are RSVPing):
+**The script fills in** (don't edit by hand):
 
-| Tab | One row per… | What's in it |
-|---|---|---|
-| **RSVPs** | guest who has responded | dietary notes, then a column per event with `yes` / `no` (blank = not invited) |
-| **Party Responses** | party that has responded | email, phone, note / song request |
-
-Tip: to count who's coming to an event, use a formula like
-`=COUNTIF(RSVPs!H:H, "yes")` (pointing at that event's column).
+| Tab | What's in it |
+|---|---|
+| **Summary** | Headcount per event (invited / yes / no / waiting) and which invitations haven't responded. Updates after every RSVP, or via **Wedding RSVP → Refresh summary**. |
+| **RSVPs** | One row per guest: dietary notes, plus-one name, and `yes` / `no` per event (blank = not invited). |
+| **Party Responses** | One row per invitation: email, phone, note / song request. |
+| **Change Log** | Every submission, timestamped, so changed answers are never lost. |
 
 ## Changing the script later
 

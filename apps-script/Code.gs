@@ -1,4 +1,7 @@
 /**
+ * @OnlyCurrentDoc
+ * (This line limits the script's permissions to this one Sheet.)
+ *
  * Soneri & Akhil — RSVP back end (Google Apps Script)
  *
  * This code lives inside the wedding Google Sheet (Extensions → Apps Script).
@@ -8,7 +11,8 @@
  *
  * Tabs it uses (setup() creates them):
  *   You fill in:      Parties, Guests, Events
- *   It fills in:      RSVPs (one row per guest), Party Responses (one row per party)
+ *   It fills in:      Summary (headcounts), RSVPs (one row per guest),
+ *                     Party Responses (one row per party), Change Log (every submission)
  *
  * The website can ask for four things ("actions"):
  *   search   — find guests by first + last name
@@ -30,15 +34,18 @@ const TAB = {
   events: 'Events',
   rsvps: 'RSVPs',
   responses: 'Party Responses',
+  log: 'Change Log',
+  summary: 'Summary',
 }
 
 const HEADERS = {
   Parties: ['party_id', 'party_name', 'invite_code', 'invited_events', 'notes'],
-  Guests: ['guest_id', 'party_id', 'first_name', 'last_name', 'invited_events'],
+  Guests: ['guest_id', 'party_id', 'first_name', 'last_name', 'invited_events', 'plus_one'],
   Events: ['event_id', 'name', 'date', 'time_of_day', 'time', 'location', 'address', 'attire', 'description'],
   // One extra column per event (yes / no) is added automatically after these.
-  RSVPs: ['updated_at', 'party_id', 'party_name', 'guest_id', 'guest_name', 'dietary'],
+  RSVPs: ['updated_at', 'party_id', 'party_name', 'guest_id', 'guest_name', 'plus_one', 'dietary'],
   'Party Responses': ['updated_at', 'party_id', 'party_name', 'email', 'phone', 'note'],
+  'Change Log': ['submitted_at', 'party_id', 'party_name', 'who', 'answers', 'dietary'],
 }
 
 const MAX_MATCHES = 5 // more matches than this → ask the guest to be more specific
@@ -92,6 +99,7 @@ function searchGuests(name) {
 
   const parties = byId(readTab(TAB.parties), 'party_id')
   const matches = readTab(TAB.guests).filter((g) => {
+    if (isYes(g.plus_one)) return false // unnamed plus-ones can't log in
     const firstNames = normalize(g.first_name).split(' ')
     const lastNames = normalize(g.last_name).split(' ')
     return firstNames.some((n) => n.startsWith(first)) && lastNames.some((n) => n.startsWith(last))
@@ -144,6 +152,7 @@ function partyDetails(partyId) {
       guestId: g.guest_id,
       firstName: g.first_name,
       lastName: g.last_name,
+      isPlusOne: isYes(g.plus_one),
       // A guest's own invited_events overrides the party's (e.g. kids skipping the reception).
       invitedEvents: idList(g.invited_events || party.invited_events),
     }))
@@ -173,7 +182,7 @@ function partyDetails(partyId) {
       events.forEach((ev) => {
         if (r[ev.id]) attending[ev.id] = r[ev.id]
       })
-      answers[r.guest_id] = { dietary: r.dietary, attending }
+      answers[r.guest_id] = { name: r.guest_name, dietary: r.dietary, attending }
     })
   const response = readTab(TAB.responses).find((r) => r.party_id === partyId) || {}
 
@@ -188,57 +197,94 @@ function partyDetails(partyId) {
   }
 }
 
-/** Saves a party's RSVP: one row per guest in RSVPs, one row in Party Responses. */
+/**
+ * Saves a party's RSVP: one row per guest in RSVPs, one row in Party Responses,
+ * a record of the submission in Change Log, then refreshes the Summary.
+ */
 function saveRsvp(req) {
   const details = partyDetails(req.partyId)
   const guestsById = byId(details.guests, 'guestId')
-  const eventIds = readTab(TAB.events).map((ev) => ev.event_id)
+  const eventsById = byId(details.events, 'id')
+  const allEventIds = readTab(TAB.events).map((ev) => ev.event_id)
+  const now = new Date()
+
+  // Check everything first, so a mistake never leaves a half-saved RSVP.
+  const guestRows = []
+  ;(req.guests || []).forEach((g) => {
+    const guest = guestsById[g.guestId]
+    if (!guest) return // ignore anyone not in this party
+    // Record yes/no only for events this guest is invited to.
+    const attending = {}
+    guest.invitedEvents.forEach((id) => {
+      const answer = g.attending && g.attending[id]
+      attending[id] = answer === 'yes' || answer === 'no' ? answer : ''
+    })
+    let name = `${guest.firstName} ${guest.lastName}`.trim()
+    if (guest.isPlusOne) {
+      name = limit(g.name, 100)
+      if (!name && Object.values(attending).includes('yes')) {
+        throw new UserError("Please add your guest's name.")
+      }
+    }
+    guestRows.push({
+      updated_at: now,
+      party_id: details.partyId,
+      party_name: details.partyName,
+      guest_id: guest.guestId,
+      guest_name: name,
+      plus_one: guest.isPlusOne ? 'yes' : '',
+      dietary: limit(g.dietary, 500),
+      ...attending,
+      // For the Change Log: "Sangeet: yes · Reception: no"
+      _summary: guest.invitedEvents
+        .map((id) => `${eventsById[id] ? eventsById[id].name : id}: ${attending[id] || '—'}`)
+        .join(' · '),
+    })
+  })
+
+  const contact = req.contact || {}
+  const email = limit(contact.email, 200)
+  if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+    throw new UserError('Please check the email address.')
+  }
+  const contactRow = {
+    updated_at: now,
+    party_id: details.partyId,
+    party_name: details.partyName,
+    email,
+    phone: limit(contact.phone, 40),
+    note: limit(contact.note, 1000),
+  }
 
   // Only one save at a time, so two guests saving at once can't collide.
   const lock = LockService.getScriptLock()
   lock.waitLock(20000)
   try {
-    const sheet = getTab(TAB.rsvps)
-    const header = ensureColumns(sheet, HEADERS.RSVPs.concat(eventIds))
-    const now = new Date()
+    const rsvps = getTab(TAB.rsvps)
+    const rsvpHeader = ensureColumns(rsvps, HEADERS.RSVPs.concat(allEventIds))
+    guestRows.forEach((row) => upsertRow(rsvps, rsvpHeader, 'guest_id', row))
 
-    ;(req.guests || []).forEach((g) => {
-      const guest = guestsById[g.guestId]
-      if (!guest) return // ignore anyone not in this party
-      const row = {
-        updated_at: now,
+    const responses = getTab(TAB.responses)
+    upsertRow(responses, ensureColumns(responses, HEADERS['Party Responses']), 'party_id', contactRow)
+
+    const log = getTab(TAB.log)
+    const logHeader = ensureColumns(log, HEADERS['Change Log'])
+    const logRow = (who, answers, dietary) =>
+      appendObject(log, logHeader, {
+        submitted_at: now,
         party_id: details.partyId,
         party_name: details.partyName,
-        guest_id: guest.guestId,
-        guest_name: `${guest.firstName} ${guest.lastName}`,
-        dietary: limit(g.dietary, 500),
-      }
-      // Record yes/no only for events this guest is invited to.
-      guest.invitedEvents.forEach((id) => {
-        const answer = g.attending && g.attending[id]
-        row[id] = answer === 'yes' || answer === 'no' ? answer : ''
+        who,
+        answers,
+        dietary,
       })
-      upsertRow(sheet, header, 'guest_id', row)
-    })
-
-    const contact = req.contact || {}
-    const email = limit(contact.email, 200)
-    if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-      throw new UserError('Please check the email address.')
-    }
-    const responses = getTab(TAB.responses)
-    upsertRow(responses, ensureColumns(responses, HEADERS['Party Responses']), 'party_id', {
-      updated_at: now,
-      party_id: details.partyId,
-      party_name: details.partyName,
-      email,
-      phone: limit(contact.phone, 40),
-      note: limit(contact.note, 1000),
-    })
+    guestRows.forEach((r) => logRow(r.guest_name || '(unnamed plus-one)', r._summary, r.dietary))
+    logRow('(contact info)', `email: ${email || '—'} · phone: ${contactRow.phone || '—'} · note: ${contactRow.note || '—'}`, '')
   } finally {
     lock.releaseLock()
   }
 
+  refreshSummary()
   return partyDetails(req.partyId)
 }
 
@@ -318,6 +364,11 @@ function upsertRow(sheet, header, keyColumn, data) {
   }
 }
 
+/** Adds a new row at the bottom, matching values to the header's columns. */
+function appendObject(sheet, header, data) {
+  sheet.appendRow(header.map((h) => (h in data ? data[h] : '')))
+}
+
 // ---------------------------------------------------------------------------
 // Small helpers
 // ---------------------------------------------------------------------------
@@ -350,12 +401,69 @@ function idList(text) {
   return String(text || '').split(',').map((s) => s.trim()).filter(Boolean)
 }
 
+/** True for "yes", "y", "true", "x" (how you might mark a checkbox-style column). */
+function isYes(value) {
+  return ['yes', 'y', 'true', 'x'].includes(String(value || '').trim().toLowerCase())
+}
+
 function byId(list, key) {
   return Object.fromEntries(list.map((item) => [item[key], item]))
 }
 
 function limit(text, max) {
   return String(text || '').trim().slice(0, max)
+}
+
+// ---------------------------------------------------------------------------
+// Summary tab and the "Wedding RSVP" menu
+// ---------------------------------------------------------------------------
+
+/**
+ * Rebuilds the Summary tab: headcount per event and who hasn't responded.
+ * Runs after every RSVP; you can also run it from the Wedding RSVP menu
+ * after editing the guest list.
+ */
+function refreshSummary() {
+  const ss = SpreadsheetApp.getActive()
+  const sheet = ss.getSheetByName(TAB.summary) || ss.insertSheet(TAB.summary, 0)
+  const parties = readTab(TAB.parties).filter((p) => p.party_id)
+  const partyById = byId(parties, 'party_id')
+  const guests = readTab(TAB.guests).filter((g) => partyById[g.party_id])
+  const answers = byId(readTab(TAB.rsvps), 'guest_id')
+  const responded = new Set(readTab(TAB.responses).map((r) => r.party_id))
+
+  const rows = [
+    ['Last updated', new Date(), '', '', ''],
+    ['', '', '', '', ''],
+    ['Event', 'Invited', 'Yes', 'No', 'Waiting'],
+  ]
+  readTab(TAB.events).forEach((ev) => {
+    const invited = guests.filter((g) =>
+      idList(g.invited_events || partyById[g.party_id].invited_events).includes(ev.event_id)
+    )
+    const count = (answer) => invited.filter((g) => (answers[g.guest_id] || {})[ev.event_id] === answer).length
+    const yes = count('yes')
+    const no = count('no')
+    rows.push([ev.name, invited.length, yes, no, invited.length - yes - no])
+  })
+  const waiting = parties.filter((p) => !responded.has(p.party_id))
+  rows.push(['', '', '', '', ''])
+  rows.push([`Invitations: ${parties.length} · responded: ${parties.length - waiting.length} · waiting: ${waiting.length}`, '', '', '', ''])
+  rows.push(['Still waiting on:', '', '', '', ''])
+  waiting.forEach((p) => rows.push([p.party_name, '', '', '', '']))
+
+  sheet.clearContents()
+  sheet.getRange(1, 1, rows.length, 5).setValues(rows)
+  sheet.getRange(3, 1, 1, 5).setFontWeight('bold')
+}
+
+/** Adds a "Wedding RSVP" menu to the Sheet (Google runs this when the Sheet opens). */
+function onOpen() {
+  SpreadsheetApp.getUi()
+    .createMenu('Wedding RSVP')
+    .addItem('Refresh summary', 'refreshSummary')
+    .addItem('Fill in missing invite codes', 'fillMissingInviteCodes')
+    .addToUi()
 }
 
 // ---------------------------------------------------------------------------
@@ -383,12 +491,13 @@ function setup() {
       ['P003', 'The Lee Family', 'PEONY', 'sangeet, indian-wedding, reception', 'sample'],
     ],
     Guests: [
-      ['G001', 'P001', 'Priya', 'Shah', ''],
-      ['G002', 'P001', 'Rohan', 'Shah', ''],
-      ['G003', 'P002', 'Priya', 'Shah', ''],
-      ['G004', 'P003', 'Jordan', 'Lee', ''],
-      ['G005', 'P003', 'Sam', 'Lee', ''],
-      ['G006', 'P003', 'Max', 'Lee', 'sangeet, indian-wedding'],
+      ['G001', 'P001', 'Priya', 'Shah', '', ''],
+      ['G002', 'P001', 'Rohan', 'Shah', '', ''],
+      ['G003', 'P002', 'Priya', 'Shah', '', ''],
+      ['G004', 'P003', 'Jordan', 'Lee', '', ''],
+      ['G005', 'P003', 'Sam', 'Lee', '', ''],
+      ['G006', 'P003', 'Max', 'Lee', 'sangeet, indian-wedding', ''],
+      ['G007', 'P002', '', '', '', 'yes'], // Priya's unnamed plus-one
     ],
   }
 
@@ -408,8 +517,42 @@ function setup() {
   const starter = ss.getSheetByName('Sheet1')
   if (starter && starter.getLastRow() === 0 && ss.getSheets().length > 1) ss.deleteSheet(starter)
 
+  refreshSummary() // creates the Summary tab (first in the list)
   secret() // creates the private signing key if it doesn't exist yet
   console.log('Setup done. Tabs: ' + ss.getSheets().map((s) => s.getName()).join(', '))
+}
+
+/**
+ * Fills in a random invite_code for every party that doesn't have one yet,
+ * like "KX7-M4P". Uses letters and numbers that are hard to mix up when
+ * typed from a printed card (no O/0, I/1, etc.). Never changes existing codes.
+ */
+function fillMissingInviteCodes() {
+  const sheet = getTab(TAB.parties)
+  const header = sheet.getRange(1, 1, 1, sheet.getLastColumn()).getValues()[0]
+  const col = header.indexOf('invite_code') + 1
+  const rows = sheet.getLastRow() - 1
+  if (col === 0 || rows < 1) return
+  const range = sheet.getRange(2, col, rows, 1)
+  const ids = sheet.getRange(2, header.indexOf('party_id') + 1, rows, 1).getDisplayValues()
+  const used = new Set(range.getDisplayValues().map((r) => cleanCode(r[0])).filter(Boolean))
+  const letters = 'ACDEFGHJKMNPQRTUVWXY34679'
+  const randomCode = () => {
+    let code
+    do {
+      code = Array.from({ length: 6 }, () => letters[Math.floor(Math.random() * letters.length)]).join('')
+    } while (used.has(code))
+    used.add(code)
+    return code.slice(0, 3) + '-' + code.slice(3)
+  }
+  let added = 0
+  const values = range.getDisplayValues().map((r, i) => {
+    if (r[0].trim() || !ids[i][0].trim()) return [r[0]]
+    added++
+    return [randomCode()]
+  })
+  range.setNumberFormat('@').setValues(values)
+  console.log(`Added ${added} invite code(s).`)
 }
 
 /** Tries a search and a code check against the sample data; results appear in the log. */
