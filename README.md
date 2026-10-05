@@ -22,7 +22,13 @@ public/
     hero/               Temporary cutouts for the Home animation
 src/
   main.jsx              Starting point: loads App into the page
-  App.jsx               Nav bar + all sections (and decorative transitions), top to bottom
+  App.jsx               Landing page before login; nav + all sections after
+  config.js             Site settings (the RSVP back end's address)
+  api/
+    rsvpApi.js            Talks to the RSVP back end (Google Sheet script)
+    practiceApi.js        Fake guests for testing: add ?practice to the address
+  guest/
+    GuestProvider.jsx     Remembers who's logged in, for the whole site
   index.css             Styles (colors & fonts are defined at the top)
   components/           Reusable pieces
     NavBar.jsx            Pinned nav: row of links on big screens, ☰ menu on phones
@@ -33,6 +39,8 @@ src/
     ScrollReveal.jsx      Fades content in as it scrolls into view
     DecorativeTransition.jsx  Illustrated pause between sections (not in the nav)
     EventBlock.jsx        One event on the timeline
+    login/
+      FindInvitation.jsx    Name search, "which one is you?" popup, code check
     hero/                 The animated Home scene
       HeroAnimation.jsx     The stage, characters, ball, hearts, replay button
       heroTimeline.js       The choreography (all timings at the top)

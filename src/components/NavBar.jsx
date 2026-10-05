@@ -1,7 +1,8 @@
 // The nav bar pinned to the top of the screen.
 //   - On laptops and bigger screens: a row of links.
 //   - On phones: a ☰ button that opens a dropdown list of the same links.
-// It also underlines the link for whichever section you're currently looking at.
+// It also underlines the link for whichever section you're currently looking at,
+// and has a "Log out" button (onLogout) at the end.
 import { useState, useEffect } from 'react'
 
 // The list of sections in the nav. To add, remove, or reorder links, edit this list.
@@ -17,7 +18,7 @@ const links = [
   { id: 'rsvp', label: 'RSVP' },
 ]
 
-export default function NavBar() {
+export default function NavBar({ onLogout }) {
   // Is the phone menu open? Starts closed.
   const [menuOpen, setMenuOpen] = useState(false)
 
@@ -78,6 +79,9 @@ export default function NavBar() {
             {link.label}
           </a>
         ))}
+        <button type="button" className="navbar-logout" onClick={onLogout}>
+          Log out
+        </button>
       </div>
     </nav>
   )

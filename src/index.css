@@ -452,7 +452,7 @@ summary:focus-visible {
   --ground: 6%; /* height of the ground line from the stage bottom */
   position: relative;
   flex: 1;
-  min-height: clamp(300px, 58dvh, 620px);
+  min-height: clamp(280px, 52dvh, 600px);
 }
 
 .hero-headline-wrap {
@@ -563,6 +563,184 @@ summary:focus-visible {
 
 @keyframes replay-in {
   from { opacity: 0; }
+}
+
+/* ---------- Login: "Find your invitation" ---------- */
+
+.find-invitation {
+  max-width: 460px;
+  margin: 0 auto;
+}
+
+.find-invitation label {
+  display: block;
+  margin-bottom: 10px;
+  font-weight: 600;
+}
+
+/* The first step's label is a handwritten heading. */
+.find-invitation label[for='guest-name'] {
+  font-family: var(--font-hand);
+  font-size: 1.7rem;
+  font-weight: 700;
+  color: var(--brown);
+}
+
+.field-row {
+  display: flex;
+  flex-wrap: wrap; /* the button drops below the box on narrow phones */
+  justify-content: center;
+  gap: 8px;
+}
+
+.field-row input {
+  flex: 1 1 180px;
+  min-width: 0;
+  font: inherit;
+  padding: 10px 18px;
+  border: 2px solid var(--sand);
+  border-radius: 999px;
+  background: var(--card);
+  color: var(--charcoal);
+}
+
+.field-row input:focus {
+  outline: none;
+  border-color: var(--olive);
+}
+
+.field-row .button {
+  flex: 0 0 auto;
+  cursor: pointer;
+}
+
+.button:disabled {
+  opacity: 0.6;
+  cursor: wait;
+}
+
+/* A button that looks like a small text link ("Search again", "Cancel"). */
+.link-button {
+  background: none;
+  border: none;
+  padding: 4px;
+  margin-top: 10px;
+  font: inherit;
+  font-size: 0.9rem;
+  color: var(--brown);
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+.form-error {
+  margin: 12px 0 0;
+  color: #9b3b2a;
+  font-size: 0.95rem;
+}
+
+.hero-status {
+  font-style: italic;
+  color: var(--olive);
+}
+
+.hero-welcome {
+  font-family: var(--font-hand);
+  font-size: 1.8rem;
+  font-weight: 700;
+  color: var(--olive);
+  margin: 0 0 16px;
+}
+
+/* The "Which one is you?" popup. */
+.choose-dialog {
+  border: none;
+  border-radius: 20px;
+  padding: 28px;
+  width: min(420px, calc(100vw - 32px));
+  box-sizing: border-box;
+  background: var(--paper);
+  color: var(--charcoal);
+  text-align: center;
+  box-shadow: 0 20px 50px rgba(63, 58, 51, 0.3);
+}
+
+.choose-dialog::backdrop {
+  background: rgba(63, 58, 51, 0.45);
+}
+
+.choose-dialog h2 {
+  font-size: 2.4rem;
+  margin-bottom: 12px;
+}
+
+.choose-dialog p {
+  margin: 0;
+}
+
+.choose-list {
+  display: grid;
+  gap: 10px;
+  margin: 20px 0 8px;
+}
+
+.choose-option {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2px;
+  padding: 12px 16px;
+  border: 2px solid var(--sand);
+  border-radius: 14px;
+  background: var(--card);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.choose-option:hover {
+  border-color: var(--olive);
+}
+
+.choose-name {
+  font-weight: 600;
+  color: var(--brown);
+}
+
+.choose-party {
+  font-size: 0.9rem;
+  color: var(--olive);
+}
+
+/* "Log out" in the nav bar, styled like the other nav links. */
+.navbar-logout {
+  background: none;
+  border: none;
+  padding: 4px 0;
+  font: inherit;
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--olive);
+  cursor: pointer;
+}
+
+@media (max-width: 768px) {
+  .navbar-logout {
+    padding: 14px 24px;
+    text-align: left;
+    font-size: 0.85rem;
+  }
+}
+
+/* A thin strip at the top of the page when using fake practice guests. */
+.practice-banner {
+  margin: 0;
+  padding: 6px 16px;
+  background: var(--charcoal);
+  color: var(--paper);
+  font-size: 0.8rem;
+  text-align: center;
 }
 
 /* ---------- Our Story: photo beside text ---------- */
