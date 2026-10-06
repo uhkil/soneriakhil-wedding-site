@@ -135,8 +135,8 @@ export default function RsvpSection() {
                     </p>
                     <div className="rsvp-choices">
                       {[
-                        ['yes', 'Joyfully accepts'],
-                        ['no', 'Regretfully declines'],
+                        ['yes', 'Accept'],
+                        ['no', 'Decline'],
                       ].map(([value, label]) => (
                         <span key={value} className="rsvp-choice">
                           <input
