@@ -1,25 +1,63 @@
-// The main picture after login: the Central Park photo, which every few
-// seconds wipes into a line drawing of the same moment (left to right),
-// then wipes back to the photo (right to left).
+// The main picture after login: the Central Park line drawing and the photo
+// of the same moment, swapping back and forth.
+//
+// The swap is a "bloom": the photo spreads outward from the couple through
+// the drawing until it fills the frame, holds, then gathers back into the
+// couple as the drawing returns. It starts on the drawing and blooms within
+// about a second, so guests see the change right away.
 //
 // The drawing (central-park-drawing.webp) was scaled and positioned to match
 // the photo exactly (both are 2000 × 1333), so the couple stays in the same
-// place while the picture changes around them.
-// The timing lives in index.css (look for "photo-swap").
-// A small button pauses the swapping. People who have "reduce motion" turned
-// on see the photo without any swapping.
-import { useState } from 'react'
+// place throughout. The timing lives in index.css (look for "photo-bloom").
+// A small button pauses it. With "reduce motion" on, guests see the photo only.
+import { useEffect, useRef, useState } from 'react'
 
-const photo = import.meta.env.BASE_URL + 'assets/photos/central-park.jpg'
-const photoSmall = import.meta.env.BASE_URL + 'assets/photos/central-park-1000.jpg'
-const drawing = import.meta.env.BASE_URL + 'assets/photos/central-park-drawing.webp'
-const drawingSmall = import.meta.env.BASE_URL + 'assets/photos/central-park-drawing-1000.webp'
+const base = import.meta.env.BASE_URL + 'assets/photos/'
+const photo = base + 'central-park.jpg'
+const photoSmall = base + 'central-park-1000.jpg'
+const drawing = base + 'central-park-drawing.webp'
+const drawingSmall = base + 'central-park-drawing-1000.webp'
+
+// Where the couple stands in the 2000 × 1333 artwork: the bloom's center.
+const COUPLE = { x: 1012, y: 880 }
+const ART = { w: 2000, h: 1333 }
 
 export default function PhotoDrawingSwap() {
   const [paused, setPaused] = useState(false)
+  const frame = useRef(null)
+
+  // The frame crops the artwork to fit the screen ("object-fit: cover"), so the
+  // couple's on-screen position changes with the screen size. This works it out
+  // and hands it to the CSS as --cx / --cy, plus --rmax (how big the bloom must
+  // grow to reach the farthest corner).
+  useEffect(() => {
+    const el = frame.current
+    const measure = () => {
+      const w = el.clientWidth
+      const h = el.clientHeight
+      const k = Math.max(w / ART.w, h / ART.h)
+      const cx = w / 2 + (COUPLE.x - ART.w / 2) * k
+      const cy = h / 2 + (COUPLE.y - ART.h / 2) * k
+      const rmax = Math.max(Math.hypot(cx, cy), Math.hypot(w - cx, cy), Math.hypot(cx, h - cy), Math.hypot(w - cx, h - cy))
+      el.style.setProperty('--cx', `${cx}px`)
+      el.style.setProperty('--cy', `${cy}px`)
+      el.style.setProperty('--rmax', `${rmax + 200}px`) // + room for the soft edge
+    }
+    measure()
+    // Re-measure whenever the frame changes size (window resized, phone rotated).
+    const observer = new ResizeObserver(measure)
+    observer.observe(el)
+    return () => observer.disconnect()
+  }, [])
 
   return (
-    <div className={paused ? 'photo-swap paused' : 'photo-swap'}>
+    <div className={paused ? 'photo-swap paused' : 'photo-swap'} ref={frame}>
+      {/* Bottom layer: the line drawing on paper. */}
+      <div className="photo-swap-drawing" aria-hidden="true">
+        <img src={drawing} srcSet={`${drawingSmall} 1000w, ${drawing} 2000w`} sizes="100vw" alt="" />
+      </div>
+
+      {/* Top layer: the photo, revealed through a growing soft-edged circle. */}
       <img
         className="photo-swap-photo"
         src={photo}
@@ -28,12 +66,6 @@ export default function PhotoDrawingSwap() {
         sizes="100vw"
         alt="Soneri and Akhil walking under an umbrella down a tree-lined path in Central Park"
       />
-
-      {/* The drawing layer sits on top (paper background + rust lines); the
-          animation reveals and hides it. It's cropped exactly like the photo. */}
-      <div className="photo-swap-drawing" aria-hidden="true">
-        <img src={drawing} srcSet={`${drawingSmall} 1000w, ${drawing} 2000w`} sizes="100vw" alt="" />
-      </div>
 
       <button
         type="button"

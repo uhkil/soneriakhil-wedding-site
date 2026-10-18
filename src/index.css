@@ -464,7 +464,7 @@ summary:focus-visible {
   margin: 10px 0 24px;
 }
 
-/* ---------- Home: the photo that swaps to a line drawing ---------- */
+/* ---------- Home: the photo that blooms out of the line drawing ---------- */
 
 /* Edge to edge, the photo's 3:2 shape, but never taller than ~3/4 of the screen. */
 .photo-swap {
@@ -482,45 +482,56 @@ summary:focus-visible {
   }
 }
 
-.photo-swap-photo {
+/* Both layers fill the frame and are cropped the same way, so they line up. */
+.photo-swap-photo,
+.photo-swap-drawing {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+
+.photo-swap-drawing {
+  background: var(--paper);
+}
+
+.photo-swap-photo,
+.photo-swap-drawing img {
   display: block;
   width: 100%;
   height: 100%;
   object-fit: cover; /* fills the frame, cropping the edges if needed */
 }
 
-/* The drawing layer covers the photo. "clip-path: inset(...)" hides part of it:
-   inset(0 100% 0 0) hides it all from the right; inset(0 0 0 0) shows all of it.
-   Animating between the two makes the wipe. */
-.photo-swap-drawing {
-  position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-  background: var(--paper);
-  clip-path: inset(0 100% 0 0);
-  animation: photo-swap 12s ease-in-out 1.5s infinite;
+/* The bloom. The photo is seen only inside a soft-edged circle centered on the
+   couple (--cx, --cy, set by the component). Growing the circle's radius (--r)
+   from 0 to past the farthest corner (--rmax) blooms the photo outward;
+   shrinking it gathers the photo back into the couple.
+   "@property" lets the browser animate --r smoothly. */
+@property --r {
+  syntax: '<length>';
+  inherits: false;
+  initial-value: 0px;
 }
 
-/* One 12-second loop:
-   photo (4s) → drawing wipes in, left to right → drawing (4s) →
-   photo wipes back in, right to left → photo again. */
-@keyframes photo-swap {
-  0%, 35% { clip-path: inset(0 100% 0 0); }
-  45%, 80% { clip-path: inset(0 0 0 0); }
-  90%, 100% { clip-path: inset(0 100% 0 0); }
+.photo-swap-photo {
+  --mask: radial-gradient(circle at var(--cx, 50%) var(--cy, 66%), #000 calc(var(--r) - 180px), transparent var(--r));
+  -webkit-mask-image: var(--mask);
+  mask-image: var(--mask);
+  animation: photo-bloom 9s ease-in-out infinite;
 }
 
-.photo-swap.paused .photo-swap-drawing {
+/* One 9-second loop, starting on the drawing:
+   drawing (1s) → photo blooms out from the couple (1.8s) → photo (3.4s) →
+   photo gathers back into the couple (1.8s) → drawing (1s) → repeat. */
+@keyframes photo-bloom {
+  0%, 11% { --r: 0px; }
+  31%, 69% { --r: var(--rmax, 2400px); }
+  89%, 100% { --r: 0px; }
+}
+
+.photo-swap.paused .photo-swap-photo {
   animation-play-state: paused;
-}
-
-/* The drawing fills its layer, cropped exactly like the photo underneath. */
-.photo-swap-drawing img {
-  display: block;
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
 }
 
 .photo-swap-toggle {
@@ -543,8 +554,10 @@ summary:focus-visible {
 
 /* Reduce motion: just the photo, no swapping. */
 @media (prefers-reduced-motion: reduce) {
-  .photo-swap-drawing {
+  .photo-swap-photo {
     animation: none;
+    -webkit-mask-image: none;
+    mask-image: none;
   }
   .photo-swap-toggle {
     display: none;
