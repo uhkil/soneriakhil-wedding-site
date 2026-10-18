@@ -560,7 +560,7 @@ summary:focus-visible {
   z-index: 2;
   padding: 0 16px;
   text-align: center;
-  animation: sketch-over-title 10s ease-in-out infinite;
+  color: var(--rust); /* stays the same the whole time; only the picture changes */
 }
 
 .photo-swap-title h1 {
@@ -582,52 +582,22 @@ summary:focus-visible {
   }
 }
 
-/* Two soft ovals behind the text, each shown only when it's needed:
-   a faint dark haze over the photo, and a paper "clearing" over the drawing. */
-.photo-swap-title::before,
-.photo-swap-title::after {
+/* A soft, still glow of paper behind the names, so they read on both the
+   photo (where it looks like light in the misty sky) and the drawing (where
+   it blends into the paper). Nothing about the text animates. */
+.photo-swap-title::before {
   content: '';
   position: absolute;
-  inset: -70% 6%;
+  inset: -80% 4%;
   z-index: -1;
+  background: radial-gradient(
+    ellipse closest-side,
+    rgba(223, 220, 215, 0.88) 0%,
+    rgba(223, 220, 215, 0.7) 45%,
+    rgba(223, 220, 215, 0) 100%
+  );
 }
 
-.photo-swap-title::before {
-  background: radial-gradient(ellipse closest-side, rgba(22, 26, 20, 0.34), rgba(22, 26, 20, 0));
-  animation: sketch-over-haze 10s ease-in-out infinite;
-}
-
-.photo-swap-title::after {
-  background: radial-gradient(ellipse closest-side, rgba(223, 220, 215, 0.9) 45%, rgba(223, 220, 215, 0));
-  animation: sketch-over-clearing 10s ease-in-out infinite;
-}
-
-/* The text color follows the dissolve: warm white with a soft shadow over the
-   photo, rust with a paper glow over the drawing. */
-@keyframes sketch-over-title {
-  0%, 26%, 76%, 100% {
-    color: #f6f2ec;
-    text-shadow: 0 1px 3px rgba(20, 24, 18, 0.45), 0 0 22px rgba(20, 24, 18, 0.35);
-  }
-  31%, 71% {
-    color: #82442c;
-    text-shadow: 0 0 14px rgba(223, 220, 215, 0.9), 0 0 4px rgba(223, 220, 215, 0.9);
-  }
-}
-
-@keyframes sketch-over-haze {
-  0%, 26%, 76%, 100% { opacity: 1; }
-  31%, 71% { opacity: 0; }
-}
-
-@keyframes sketch-over-clearing {
-  0%, 26%, 76%, 100% { opacity: 0; }
-  31%, 71% { opacity: 1; }
-}
-
-.photo-swap.paused .photo-swap-title,
-.photo-swap.paused .photo-swap-title::before,
-.photo-swap.paused .photo-swap-title::after,
 .photo-swap.paused .photo-swap-photo,
 .photo-swap.paused .photo-swap-wash,
 .photo-swap.paused .photo-swap-lines {
@@ -661,19 +631,6 @@ summary:focus-visible {
   }
   .photo-swap-wash,
   .photo-swap-lines {
-    opacity: 0;
-  }
-  /* The title stays in its "over the photo" style. */
-  .photo-swap-title,
-  .photo-swap-title::before,
-  .photo-swap-title::after {
-    animation: none;
-  }
-  .photo-swap-title {
-    color: #f6f2ec;
-    text-shadow: 0 1px 3px rgba(20, 24, 18, 0.45), 0 0 22px rgba(20, 24, 18, 0.35);
-  }
-  .photo-swap-title::after {
     opacity: 0;
   }
   .photo-swap-toggle {

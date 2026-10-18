@@ -10,8 +10,8 @@
 // The drawing (central-park-drawing.webp) was scaled and positioned to match
 // the photo exactly (both are 2000 × 1333), so the lines sit right on top of
 // the couple, the lamps, and the trees.
-// The names and date sit in the sky above the couple. Their color changes in
-// step with the dissolve: light over the photo, rust over the drawing.
+// The names and date sit, perfectly still, in the sky above the couple on a
+// soft paper glow, so they read on both the photo and the drawing.
 // A small button pauses it. With "reduce motion" on, guests see the photo only.
 import { useState } from 'react'
 
