@@ -430,11 +430,11 @@ summary:focus-visible {
 
 /* ---------- Home (hero) ---------- */
 
-/* The hero spans the full screen width so characters can run fully offscreen.
+/* The hero spans the full screen width, so the photo runs edge to edge.
    overflow-x: clip hides anything past the left/right edges without
-   creating a sideways scrollbar (hearts can still float up toward the nav). */
+   creating a sideways scrollbar. */
 .hero {
-  padding: 16px 0 40px;
+  padding: 0 0 48px;
   overflow-x: clip;
   justify-content: flex-start;
 }
@@ -464,7 +464,106 @@ summary:focus-visible {
   margin: 10px 0 24px;
 }
 
-/* The animation area: roughly the upper two-thirds of the screen. */
+/* ---------- Home: the photo that swaps to a line drawing ---------- */
+
+/* Edge to edge, the photo's 3:2 shape, but never taller than ~3/4 of the screen. */
+.photo-swap {
+  position: relative;
+  width: 100%;
+  height: min(74dvh, 66.6vw);
+  overflow: hidden;
+  margin-bottom: 40px;
+}
+
+/* On phones, a taller frame crops in from the sides so the couple is bigger. */
+@media (max-width: 640px) {
+  .photo-swap {
+    height: min(68dvh, 118vw);
+  }
+}
+
+.photo-swap-photo {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover; /* fills the frame, cropping the edges if needed */
+}
+
+/* The drawing layer covers the photo. "clip-path: inset(...)" hides part of it:
+   inset(0 100% 0 0) hides it all from the right; inset(0 0 0 0) shows all of it.
+   Animating between the two makes the wipe. */
+.photo-swap-drawing {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  background: var(--paper);
+  clip-path: inset(0 100% 0 0);
+  animation: photo-swap 12s ease-in-out 1.5s infinite;
+}
+
+/* One 12-second loop:
+   photo (4s) → drawing wipes in, left to right → drawing (4s) →
+   photo wipes back in, right to left → photo again. */
+@keyframes photo-swap {
+  0%, 35% { clip-path: inset(0 100% 0 0); }
+  45%, 80% { clip-path: inset(0 0 0 0); }
+  90%, 100% { clip-path: inset(0 100% 0 0); }
+}
+
+.photo-swap.paused .photo-swap-drawing {
+  animation-play-state: paused;
+}
+
+/* "non-scaling-stroke" keeps the line the same thickness on every screen size. */
+.drawing-couple,
+.drawing-scene {
+  fill: none;
+  stroke: var(--rust);
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  vector-effect: non-scaling-stroke;
+}
+
+.drawing-couple {
+  stroke-width: 1.6px;
+}
+
+.drawing-scene {
+  stroke-width: 1px;
+  opacity: 0.4;
+}
+
+.photo-swap-toggle {
+  position: absolute;
+  right: 16px;
+  bottom: 16px;
+  width: 34px;
+  height: 34px;
+  border: 1px solid var(--rust);
+  background: rgba(223, 220, 215, 0.85);
+  color: var(--rust);
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+}
+
+.photo-swap-toggle svg {
+  fill: currentColor;
+}
+
+/* Reduce motion: just the photo, no swapping. */
+@media (prefers-reduced-motion: reduce) {
+  .photo-swap-drawing {
+    animation: none;
+  }
+  .photo-swap-toggle {
+    display: none;
+  }
+}
+
+/* The animation area: roughly the upper two-thirds of the screen.
+   (The animated hero isn't used in this design; its styles are kept for later.) */
 .hero-stage {
   --s: 1;  /* artwork scale, set by the animation */
   --ss: 1; /* Soneri's artwork scale */
@@ -584,6 +683,79 @@ summary:focus-visible {
 
 @keyframes replay-in {
   from { opacity: 0; }
+}
+
+/* ---------- Login page: an invitation card ---------- */
+
+.login-page {
+  min-height: 100dvh;
+  box-sizing: border-box;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 32px 16px;
+}
+
+/* A card with a thin border and a second, inset hairline frame. */
+.invitation-card {
+  width: min(520px, 100%);
+  box-sizing: border-box;
+  padding: 64px 40px 48px;
+  text-align: center;
+  background: var(--paper-light);
+  border: 1px solid var(--line);
+  outline: 1px solid var(--line);
+  outline-offset: -12px;
+  box-shadow: 0 18px 40px rgba(61, 52, 48, 0.12);
+}
+
+.invitation-names {
+  display: flex;
+  flex-direction: column;
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: clamp(2rem, 9vw, 3rem);
+  line-height: 1.15;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--rust);
+}
+
+.invitation-and {
+  margin: 6px 0;
+  font-family: var(--font-body);
+  font-style: italic;
+  font-size: 0.45em;
+  letter-spacing: 0;
+  text-transform: none;
+  color: var(--cocoa);
+}
+
+.invitation-details {
+  margin: 24px 0 0;
+  font-size: 0.78rem;
+  letter-spacing: 0.26em;
+  text-transform: uppercase;
+  color: var(--cocoa);
+}
+
+.invitation-rule {
+  width: 40px;
+  height: 1px;
+  margin: 32px auto;
+  background: var(--rust);
+  opacity: 0.5;
+}
+
+.invitation-status {
+  font-style: italic;
+  color: var(--cocoa);
+}
+
+@media (max-width: 480px) {
+  .invitation-card {
+    padding: 48px 24px 36px;
+  }
 }
 
 /* ---------- Login: "Find your invitation" ---------- */

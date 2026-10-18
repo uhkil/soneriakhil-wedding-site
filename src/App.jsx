@@ -1,6 +1,6 @@
 // The whole site is one long scrolling page.
-// Before a guest finds their invitation, only the Home section shows.
-// After, the nav bar and every other section appear.
+// Before a guest finds their invitation, they only see the invitation-card
+// login page. After, the nav bar and every section appear.
 // DecorativeTransitions are small illustrated pauses BETWEEN sections.
 // They aren't in the nav; delete a line to remove one.
 import NavBar from './components/NavBar.jsx'
@@ -13,6 +13,7 @@ import TravelSection from './sections/TravelSection.jsx'
 import RegistrySection from './sections/RegistrySection.jsx'
 import FaqSection from './sections/FaqSection.jsx'
 import RsvpSection from './sections/RsvpSection.jsx'
+import LoginPage from './components/login/LoginPage.jsx'
 import { useGuest } from './guest/GuestProvider.jsx'
 import { isPractice } from './api/rsvpApi.js'
 
@@ -22,16 +23,18 @@ export default function App() {
 
   return (
     <>
-      {loggedIn && <NavBar onLogout={logout} />}
       {isPractice && (
         <p className="practice-banner">
           Practice mode: fake guests. Try “Jordan Lee” with passcode CELEBRATE.
         </p>
       )}
-      <main>
-        <HomeSection />
-        {loggedIn && (
-          <>
+      {!loggedIn ? (
+        <LoginPage />
+      ) : (
+        <>
+          <NavBar onLogout={logout} />
+          <main>
+            <HomeSection />
             <OurStorySection />
             <MemoriesSection />
             <DecorativeTransition art="transitionWalk" motion="walk" />
@@ -42,9 +45,9 @@ export default function App() {
             <RegistrySection />
             <FaqSection />
             <RsvpSection />
-          </>
-        )}
-      </main>
+          </main>
+        </>
+      )}
     </>
   )
 }

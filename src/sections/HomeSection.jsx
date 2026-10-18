@@ -1,8 +1,7 @@
-// The opening of the site: the animated scene, then names and date.
-// Before login it shows "Find your invitation"; after, a welcome and RSVP button.
+// The top of the site after login: the Central Park photo (which swaps to a
+// line drawing), then names, date, a welcome, and the RSVP button.
 import Section from '../components/Section.jsx'
-import HeroAnimation from '../components/hero/HeroAnimation.jsx'
-import FindInvitation from '../components/login/FindInvitation.jsx'
+import PhotoDrawingSwap from '../components/home/PhotoDrawingSwap.jsx'
 import { useGuest } from '../guest/GuestProvider.jsx'
 
 // "Jordan, Sam & Max": first names of everyone on the invitation
@@ -16,23 +15,16 @@ function welcomeNames(party) {
 }
 
 export default function HomeSection() {
-  const { status, party } = useGuest()
+  const { party } = useGuest()
 
   return (
     <Section id="home" className="hero">
-      <HeroAnimation />
+      <PhotoDrawingSwap />
       <div className="hero-text">
         <h1>Soneri &amp; Akhil</h1>
         <p className="hero-details">April 9–10, 2027 · Dallas, TX</p>
-
-        {status === 'checking' && <p className="hero-status">Opening your invitation…</p>}
-        {status === 'guest' && <FindInvitation />}
-        {status === 'in' && (
-          <>
-            <p className="hero-welcome">Welcome, {welcomeNames(party)}!</p>
-            <a className="button" href="#rsvp">RSVP</a>
-          </>
-        )}
+        <p className="hero-welcome">Welcome, {welcomeNames(party)}!</p>
+        <a className="button" href="#rsvp">RSVP</a>
       </div>
     </Section>
   )
