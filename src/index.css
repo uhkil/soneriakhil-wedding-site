@@ -464,7 +464,7 @@ summary:focus-visible {
   margin: 10px 0 24px;
 }
 
-/* ---------- Home: the photo that blooms out of the line drawing ---------- */
+/* ---------- Home: the photo and line drawing, dissolving back and forth ---------- */
 
 /* Edge to edge, the photo's 3:2 shape, but never taller than ~3/4 of the screen. */
 .photo-swap {
@@ -482,55 +482,67 @@ summary:focus-visible {
   }
 }
 
-/* Both layers fill the frame and are cropped the same way, so they line up. */
-.photo-swap-photo,
-.photo-swap-drawing {
-  position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-}
-
-.photo-swap-drawing {
+/* All three layers fill the frame and are cropped the same way, so they line up. */
+.photo-swap {
   background: var(--paper);
 }
 
 .photo-swap-photo,
-.photo-swap-drawing img {
+.photo-swap-wash,
+.photo-swap-lines {
+  position: absolute;
+  inset: 0;
   display: block;
   width: 100%;
   height: 100%;
   object-fit: cover; /* fills the frame, cropping the edges if needed */
 }
 
-/* The bloom. The photo is seen only inside a soft-edged circle centered on the
-   couple (--cx, --cy, set by the component). Growing the circle's radius (--r)
-   from 0 to past the farthest corner (--rmax) blooms the photo outward;
-   shrinking it gathers the photo back into the couple.
-   "@property" lets the browser animate --r smoothly. */
-@property --r {
-  syntax: '<length>';
-  inherits: false;
-  initial-value: 0px;
+.photo-swap-wash {
+  background: var(--paper);
 }
 
+/* "Sketch over the photo", one 10-second loop:
+   photo (1.2s) → the photo lightens into the paper while the rust lines fade
+   in on top (about 2s) → the photo dissolves away beneath them (about 1.8s) →
+   drawing (1.6s) → the same in reverse → photo.
+   The three layers' keyframes overlap, so it's one continuous dissolve. */
 .photo-swap-photo {
-  --mask: radial-gradient(circle at var(--cx, 50%) var(--cy, 66%), #000 calc(var(--r) - 180px), transparent var(--r));
-  -webkit-mask-image: var(--mask);
-  mask-image: var(--mask);
-  animation: photo-bloom 9s ease-in-out infinite;
+  animation: sketch-over-photo 10s ease-in-out infinite;
 }
 
-/* One 9-second loop, starting on the drawing:
-   drawing (1s) → photo blooms out from the couple (1.8s) → photo (3.4s) →
-   photo gathers back into the couple (1.8s) → drawing (1s) → repeat. */
-@keyframes photo-bloom {
-  0%, 11% { --r: 0px; }
-  31%, 69% { --r: var(--rmax, 2400px); }
-  89%, 100% { --r: 0px; }
+.photo-swap-wash {
+  animation: sketch-over-wash 10s ease-in-out infinite;
 }
 
-.photo-swap.paused .photo-swap-photo {
+.photo-swap-lines {
+  animation: sketch-over-lines 10s ease-in-out infinite;
+}
+
+@keyframes sketch-over-photo {
+  0%, 12%   { opacity: 1; filter: none; }
+  30%       { opacity: 1; filter: saturate(0.7) brightness(1.08); }
+  48%, 64%  { opacity: 0; filter: saturate(0.4) brightness(1.15); }
+  82%       { opacity: 1; filter: saturate(0.7) brightness(1.08); }
+  96%, 100% { opacity: 1; filter: none; }
+}
+
+/* The wash: how much the photo is lightened toward the paper color. */
+@keyframes sketch-over-wash {
+  0%, 12%   { opacity: 0; }
+  32%, 78%  { opacity: 0.55; }
+  96%, 100% { opacity: 0; }
+}
+
+@keyframes sketch-over-lines {
+  0%, 14%   { opacity: 0; }
+  32%, 78%  { opacity: 1; }
+  94%, 100% { opacity: 0; }
+}
+
+.photo-swap.paused .photo-swap-photo,
+.photo-swap.paused .photo-swap-wash,
+.photo-swap.paused .photo-swap-lines {
   animation-play-state: paused;
 }
 
@@ -554,10 +566,14 @@ summary:focus-visible {
 
 /* Reduce motion: just the photo, no swapping. */
 @media (prefers-reduced-motion: reduce) {
-  .photo-swap-photo {
+  .photo-swap-photo,
+  .photo-swap-wash,
+  .photo-swap-lines {
     animation: none;
-    -webkit-mask-image: none;
-    mask-image: none;
+  }
+  .photo-swap-wash,
+  .photo-swap-lines {
+    opacity: 0;
   }
   .photo-swap-toggle {
     display: none;
