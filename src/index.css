@@ -515,23 +515,12 @@ summary:focus-visible {
   animation-play-state: paused;
 }
 
-/* "non-scaling-stroke" keeps the line the same thickness on every screen size. */
-.drawing-couple,
-.drawing-scene {
-  fill: none;
-  stroke: var(--rust);
-  stroke-linecap: round;
-  stroke-linejoin: round;
-  vector-effect: non-scaling-stroke;
-}
-
-.drawing-couple {
-  stroke-width: 1.6px;
-}
-
-.drawing-scene {
-  stroke-width: 1px;
-  opacity: 0.4;
+/* The drawing fills its layer, cropped exactly like the photo underneath. */
+.photo-swap-drawing img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
 }
 
 .photo-swap-toggle {

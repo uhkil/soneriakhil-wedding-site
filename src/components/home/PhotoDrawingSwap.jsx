@@ -1,17 +1,19 @@
 // The main picture after login: the Central Park photo, which every few
-// seconds wipes into a single-line drawing of the same moment (left to
-// right), then wipes back to the photo (right to left).
+// seconds wipes into a line drawing of the same moment (left to right),
+// then wipes back to the photo (right to left).
 //
-// The drawing is traced in the photo's own coordinates, so the couple stays
-// in exactly the same place while the picture changes around them.
+// The drawing (central-park-drawing.webp) was scaled and positioned to match
+// the photo exactly (both are 2000 × 1333), so the couple stays in the same
+// place while the picture changes around them.
 // The timing lives in index.css (look for "photo-swap").
 // A small button pauses the swapping. People who have "reduce motion" turned
 // on see the photo without any swapping.
 import { useState } from 'react'
-import { couple, scene, viewBox } from '../../data/centralParkDrawing.js'
 
 const photo = import.meta.env.BASE_URL + 'assets/photos/central-park.jpg'
 const photoSmall = import.meta.env.BASE_URL + 'assets/photos/central-park-1000.jpg'
+const drawing = import.meta.env.BASE_URL + 'assets/photos/central-park-drawing.webp'
+const drawingSmall = import.meta.env.BASE_URL + 'assets/photos/central-park-drawing-1000.webp'
 
 export default function PhotoDrawingSwap() {
   const [paused, setPaused] = useState(false)
@@ -27,12 +29,11 @@ export default function PhotoDrawingSwap() {
         alt="Soneri and Akhil walking under an umbrella down a tree-lined path in Central Park"
       />
 
-      {/* The drawing layer sits on top; the animation reveals and hides it.
-          preserveAspectRatio="xMidYMid slice" crops it exactly like the photo. */}
-      <svg className="photo-swap-drawing" viewBox={viewBox} preserveAspectRatio="xMidYMid slice" aria-hidden="true">
-        <path className="drawing-scene" d={scene} />
-        <path className="drawing-couple" d={couple} />
-      </svg>
+      {/* The drawing layer sits on top (paper background + rust lines); the
+          animation reveals and hides it. It's cropped exactly like the photo. */}
+      <div className="photo-swap-drawing" aria-hidden="true">
+        <img src={drawing} srcSet={`${drawingSmall} 1000w, ${drawing} 2000w`} sizes="100vw" alt="" />
+      </div>
 
       <button
         type="button"
