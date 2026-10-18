@@ -10,6 +10,8 @@
 // The drawing (central-park-drawing.webp) was scaled and positioned to match
 // the photo exactly (both are 2000 × 1333), so the lines sit right on top of
 // the couple, the lamps, and the trees.
+// The names and date sit in the sky above the couple. Their color changes in
+// step with the dissolve: light over the photo, rust over the drawing.
 // A small button pauses it. With "reduce motion" on, guests see the photo only.
 import { useState } from 'react'
 
@@ -43,6 +45,12 @@ export default function PhotoDrawingSwap() {
         alt=""
         aria-hidden="true"
       />
+
+      {/* The names and date, over the picture in the open sky above the couple. */}
+      <div className="photo-swap-title">
+        <h1>Soneri &amp; Akhil</h1>
+        <p>April 9–10, 2027 · Dallas, TX</p>
+      </div>
 
       <button
         type="button"
