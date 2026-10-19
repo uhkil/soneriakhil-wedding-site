@@ -472,7 +472,7 @@ summary:focus-visible {
   width: 100%;
   height: min(74dvh, 66.6vw);
   overflow: hidden;
-  margin-bottom: 40px;
+  margin-bottom: 12px; /* small, since the picture already fades into the page */
 }
 
 /* On phones, a taller frame crops in from the sides so the couple is bigger. */
@@ -483,9 +483,6 @@ summary:focus-visible {
 }
 
 /* All three layers fill the frame and are cropped the same way, so they line up. */
-.photo-swap {
-  background: var(--paper);
-}
 
 .photo-swap-photo,
 .photo-swap-wash,
@@ -540,96 +537,17 @@ summary:focus-visible {
   94%, 100% { opacity: 0; }
 }
 
-/* ----- The names and date over the picture ----- */
-
-/* "container-type: size" lets the title measure the frame (cqw / cqh units). */
-.photo-swap {
-  container-type: size;
-}
-
-/* Centered, in the sky above the couple. The picture is cropped differently on
-   different screens, so the position is worked out from the artwork's scale:
-   the title's middle sits 236 artwork-pixels above the picture's center
-   (max(11.8cqw, 17.7cqh) is that distance on screen). */
-.photo-swap-title {
-  position: absolute;
-  left: 50%;
-  top: calc(50% - max(11.8cqw, 17.7cqh));
-  translate: -50% -50%;
-  z-index: 2;
-  width: max-content; /* the panel hugs the text */
-  max-width: calc(100% - 32px);
-  box-sizing: border-box;
-  padding: 22px 44px 20px;
-  text-align: center;
-  color: var(--rust); /* the text itself never changes */
-}
-
-.photo-swap-title h1 {
-  font-size: clamp(1.5rem, 4.6vw, 3.2rem);
-  color: inherit;
-}
-
-.photo-swap-title p {
-  margin: 12px 0 0;
-  font-size: 0.82rem;
-  letter-spacing: 0.3em;
-  text-transform: uppercase;
-}
-
-@media (max-width: 480px) {
-  .photo-swap-title {
-    padding: 16px 22px 14px;
-  }
-  .photo-swap-title p {
-    font-size: 0.7rem;
-    letter-spacing: 0.18em;
-  }
-}
-
-/* The frosted panel behind the names: translucent paper-white, lightly
-   blurring the photo behind it, with a hairline edge. It's there over the
-   photo and slowly dissolves away as the picture becomes the drawing, so the
-   names end up sitting directly on the line drawing. */
-.photo-swap-title::before {
-  content: '';
+/* The three layers sit in one group so the whole picture can fade out at the
+   bottom: the "mask" keeps the picture fully visible down to 72% of its
+   height, then fades it to transparent, revealing the page's paper. */
+.photo-swap-layers {
   position: absolute;
   inset: 0;
-  z-index: -1;
-  background: rgba(236, 233, 228, 0.72);
-  -webkit-backdrop-filter: blur(6px);
-  backdrop-filter: blur(6px);
-  border: 1px solid rgba(130, 68, 44, 0.22);
-  animation: sketch-over-panel 10s ease-in-out infinite;
+  background: var(--paper);
+  -webkit-mask-image: linear-gradient(to bottom, #000 72%, transparent 100%);
+  mask-image: linear-gradient(to bottom, #000 72%, transparent 100%);
 }
 
-/* Fully there on the photo, gone on the drawing (matches the photo's dissolve). */
-@keyframes sketch-over-panel {
-  0%, 26%, 86%, 100% { opacity: 1; }
-  46%, 66% { opacity: 0; }
-}
-
-/* On the drawing only: a soft paper clearing behind the names so the drawing's
-   branches don't run through the letters. Paper on paper, so it doesn't read
-   as a shape. It appears only after the photo is gone and leaves before the
-   photo returns, so it never shows over the photo. */
-.photo-swap-title::after {
-  content: '';
-  position: absolute;
-  inset: -45% -12%;
-  z-index: -1;
-  background: radial-gradient(ellipse closest-side, var(--paper) 55%, rgba(223, 220, 215, 0));
-  opacity: 0;
-  animation: sketch-over-clearing 10s ease-in-out infinite;
-}
-
-@keyframes sketch-over-clearing {
-  0%, 42%, 68%, 100% { opacity: 0; }
-  48%, 62% { opacity: 1; }
-}
-
-.photo-swap.paused .photo-swap-title::after,
-.photo-swap.paused .photo-swap-title::before,
 .photo-swap.paused .photo-swap-photo,
 .photo-swap.paused .photo-swap-wash,
 .photo-swap.paused .photo-swap-lines {
