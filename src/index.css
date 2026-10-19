@@ -466,11 +466,16 @@ summary:focus-visible {
 
 /* ---------- Home: the photo and line drawing, dissolving back and forth ---------- */
 
-/* Edge to edge, the photo's 3:2 shape, but never taller than ~3/4 of the screen. */
+/* Edge to edge. The picture is sized as if the frame were the photo's 3:2
+   shape (up to ~3/4 of the screen), then the frame shows only its bottom 85%:
+   the top 15% is cropped off to leave more room for the text below.
+   --crop is the share kept; change it to crop more or less. */
 .photo-swap {
+  --crop: 0.85;
+  --full-height: min(74dvh, 66.6vw);
   position: relative;
   width: 100%;
-  height: min(74dvh, 66.6vw);
+  height: calc(var(--full-height) * var(--crop));
   overflow: hidden;
   margin-bottom: 12px; /* small, since the picture already fades into the page */
 }
@@ -478,7 +483,7 @@ summary:focus-visible {
 /* On phones, a taller frame crops in from the sides so the couple is bigger. */
 @media (max-width: 640px) {
   .photo-swap {
-    height: min(68dvh, 118vw);
+    --full-height: min(68dvh, 118vw);
   }
 }
 
@@ -542,7 +547,11 @@ summary:focus-visible {
    height, then fades it to transparent, revealing the page's paper. */
 .photo-swap-layers {
   position: absolute;
-  inset: 0;
+  /* Full picture height, anchored to the bottom; the frame hides the top part. */
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: var(--full-height);
   background: var(--paper);
   -webkit-mask-image: linear-gradient(to bottom, #000 72%, transparent 100%);
   mask-image: linear-gradient(to bottom, #000 72%, transparent 100%);
