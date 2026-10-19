@@ -553,14 +553,16 @@ summary:focus-visible {
    (max(11.8cqw, 17.7cqh) is that distance on screen). */
 .photo-swap-title {
   position: absolute;
-  left: 0;
-  right: 0;
+  left: 50%;
   top: calc(50% - max(11.8cqw, 17.7cqh));
-  translate: 0 -50%;
+  translate: -50% -50%;
   z-index: 2;
-  padding: 0 16px;
+  width: max-content; /* the panel hugs the text */
+  max-width: calc(100% - 32px);
+  box-sizing: border-box;
+  padding: 22px 44px 20px;
   text-align: center;
-  color: var(--rust); /* stays the same the whole time; only the picture changes */
+  color: var(--rust); /* the text itself never changes */
 }
 
 .photo-swap-title h1 {
@@ -576,28 +578,58 @@ summary:focus-visible {
 }
 
 @media (max-width: 480px) {
+  .photo-swap-title {
+    padding: 16px 22px 14px;
+  }
   .photo-swap-title p {
     font-size: 0.7rem;
     letter-spacing: 0.18em;
   }
 }
 
-/* A soft, still glow of paper behind the names, so they read on both the
-   photo (where it looks like light in the misty sky) and the drawing (where
-   it blends into the paper). Nothing about the text animates. */
+/* The frosted panel behind the names: translucent paper-white, lightly
+   blurring the photo behind it, with a hairline edge. It's there over the
+   photo and slowly dissolves away as the picture becomes the drawing, so the
+   names end up sitting directly on the line drawing. */
 .photo-swap-title::before {
   content: '';
   position: absolute;
-  inset: -80% 4%;
+  inset: 0;
   z-index: -1;
-  background: radial-gradient(
-    ellipse closest-side,
-    rgba(223, 220, 215, 0.88) 0%,
-    rgba(223, 220, 215, 0.7) 45%,
-    rgba(223, 220, 215, 0) 100%
-  );
+  background: rgba(236, 233, 228, 0.72);
+  -webkit-backdrop-filter: blur(6px);
+  backdrop-filter: blur(6px);
+  border: 1px solid rgba(130, 68, 44, 0.22);
+  animation: sketch-over-panel 10s ease-in-out infinite;
 }
 
+/* Fully there on the photo, gone on the drawing (matches the photo's dissolve). */
+@keyframes sketch-over-panel {
+  0%, 26%, 86%, 100% { opacity: 1; }
+  46%, 66% { opacity: 0; }
+}
+
+/* On the drawing only: a soft paper clearing behind the names so the drawing's
+   branches don't run through the letters. Paper on paper, so it doesn't read
+   as a shape. It appears only after the photo is gone and leaves before the
+   photo returns, so it never shows over the photo. */
+.photo-swap-title::after {
+  content: '';
+  position: absolute;
+  inset: -45% -12%;
+  z-index: -1;
+  background: radial-gradient(ellipse closest-side, var(--paper) 55%, rgba(223, 220, 215, 0));
+  opacity: 0;
+  animation: sketch-over-clearing 10s ease-in-out infinite;
+}
+
+@keyframes sketch-over-clearing {
+  0%, 42%, 68%, 100% { opacity: 0; }
+  48%, 62% { opacity: 1; }
+}
+
+.photo-swap.paused .photo-swap-title::after,
+.photo-swap.paused .photo-swap-title::before,
 .photo-swap.paused .photo-swap-photo,
 .photo-swap.paused .photo-swap-wash,
 .photo-swap.paused .photo-swap-lines {
