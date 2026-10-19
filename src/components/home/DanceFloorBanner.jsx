@@ -4,13 +4,6 @@
 //
 // The illustration is stored as a shape only (dance-floor.webp) and colored by
 // the CSS (--cobalt in index.css), so changing the blue is a one-line change.
-// Behind it, each string-light bulb has a soft warm glow that twinkles.
-
-// Where each bulb hangs, as % of the illustration's width and height.
-const BULBS = [
-  [6.3, 14.3], [11.7, 16.8], [17.5, 18.6], [23.7, 18.6], [29.7, 16.5], [35, 13.6], [40.8, 9],
-  [48.3, 10.4], [58.3, 17.5], [64.4, 19.7], [71.5, 20.9], [78.8, 20.9], [86.1, 19.1], [93.4, 14.3],
-]
 
 export default function DanceFloorBanner({ welcome }) {
   return (
@@ -23,15 +16,6 @@ export default function DanceFloorBanner({ welcome }) {
       </h1>
 
       <div className="dance-art">
-        {/* The glows sit behind the drawing; each starts its twinkle at a different moment. */}
-        {BULBS.map(([x, y], i) => (
-          <span
-            key={i}
-            className="dance-glow"
-            aria-hidden="true"
-            style={{ left: `${x}%`, top: `${y}%`, animationDelay: `${(i * 0.37) % 2.6}s` }}
-          />
-        ))}
         <div
           className="dance-drawing"
           role="img"

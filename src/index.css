@@ -1872,12 +1872,11 @@ summary:focus-visible {
    an elegant serif for names and headings, and soft arches and pills that
    echo the illustration's rounded lines (kept quiet so it stays grown-up).
    The string lights come back as a small motif under each heading, and the
-   Events section is the "evening": cobalt, with glowing bulbs on its timeline.
+   Events section is the "evening": cobalt, with ivory dots on its timeline.
    ===================================================================== */
 
 :root[data-design='cobalt'] {
   --cobalt: #00338b;       /* the illustration's blue (sampled). Change it here. */
-  --glow: #f2c66d;         /* the warm light of the string-light bulbs */
   --paper: #f6f1e6;        /* warm ivory background */
   --paper-light: #fcf9f3;  /* cards and inputs */
   --paper-tinted: #eaeef6; /* a pale blue field (Registry) */
@@ -2120,22 +2119,6 @@ summary:focus-visible {
   from { opacity: 0; transform: translateY(14px); }
 }
 
-/* A soft warm glow behind each bulb, twinkling slowly. */
-.dance-glow {
-  position: absolute;
-  width: 7%;
-  aspect-ratio: 1;
-  translate: -50% -50%;
-  border-radius: 50%;
-  background: radial-gradient(circle, rgba(242, 198, 109, 0.85), rgba(242, 198, 109, 0) 68%);
-  animation: bulb-twinkle 2.6s ease-in-out infinite alternate;
-}
-
-@keyframes bulb-twinkle {
-  from { opacity: 0.25; }
-  to   { opacity: 1; }
-}
-
 .dance-welcome {
   margin: 20px 0 22px;
   font-family: var(--font-display);
@@ -2146,12 +2129,8 @@ summary:focus-visible {
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .dance-drawing,
-  .dance-glow {
+  .dance-drawing {
     animation: none;
-  }
-  .dance-glow {
-    opacity: 0.7;
   }
 }
 
@@ -2244,7 +2223,7 @@ summary:focus-visible {
   overflow: hidden;
 }
 
-/* ----- Events: the evening. Cobalt, ivory type, glowing bulbs on the timeline ----- */
+/* ----- Events: the evening. Cobalt, ivory type, ivory dots on the timeline ----- */
 
 [data-design='cobalt'] #events {
   background: var(--cobalt);
@@ -2290,9 +2269,8 @@ summary:focus-visible {
 [data-design='cobalt'] .timeline-dot {
   width: 10px;
   height: 10px;
-  background: var(--glow);
+  background: var(--paper);
   border-color: var(--cobalt);
-  box-shadow: 0 0 14px 4px rgba(242, 198, 109, 0.55);
 }
 
 [data-design='cobalt'] #events .slot-placeholder {
