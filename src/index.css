@@ -542,9 +542,9 @@ summary:focus-visible {
   94%, 100% { opacity: 0; }
 }
 
-/* The three layers sit in one group so the whole picture can fade out at the
-   bottom: the "mask" keeps the picture fully visible down to 72% of its
-   height, then fades it to transparent, revealing the page's paper. */
+/* The three layers sit in one group, sized to the full picture and anchored to
+   the bottom (the frame hides the cropped top). The group is see-through, so
+   the page's paper shows wherever the photo isn't. */
 .photo-swap-layers {
   position: absolute;
   /* Full picture height, anchored to the bottom; the frame hides the top part. */
@@ -552,7 +552,13 @@ summary:focus-visible {
   right: 0;
   bottom: 0;
   height: var(--full-height);
-  background: var(--paper);
+}
+
+/* Only the photo (and its paper wash) fades out at the bottom: fully visible
+   down to 72% of its height, then fading into the page. The drawing's lines
+   are not faded, so they stay crisp all the way down. */
+.photo-swap-photo,
+.photo-swap-wash {
   -webkit-mask-image: linear-gradient(to bottom, #000 72%, transparent 100%);
   mask-image: linear-gradient(to bottom, #000 72%, transparent 100%);
 }

@@ -10,7 +10,8 @@
 // The drawing (central-park-drawing.webp) was scaled and positioned to match
 // the photo exactly (both are 2000 × 1333), so the lines sit right on top of
 // the couple, the lamps, and the trees.
-// The bottom of the picture fades softly into the page's paper color.
+// The bottom of the photo fades softly into the page's paper color (the
+// drawing's lines stay crisp to the bottom).
 // A small button pauses it. With "reduce motion" on, guests see the photo only.
 import { useState } from 'react'
 
@@ -26,7 +27,7 @@ export default function PhotoDrawingSwap() {
   return (
     <div className={paused ? 'photo-swap paused' : 'photo-swap'}>
       {/* Three layers, bottom to top: the photo, a paper-colored wash, the drawing's lines.
-          They're grouped so the bottom of the whole picture can fade into the page. */}
+          They're grouped so they're cropped together. */}
       <div className="photo-swap-layers">
         <img
           className="photo-swap-photo"
