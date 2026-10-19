@@ -1,8 +1,10 @@
 // The top of the site after login: the Central Park photo (which dissolves
 // into a line drawing and back), then the names, date, a welcome, and the
-// RSVP button.
+// RSVP button. (In the House of Honey design, a bold banner and carousel instead.)
 import Section from '../components/Section.jsx'
 import PhotoDrawingSwap from '../components/home/PhotoDrawingSwap.jsx'
+import HoneyBanner from '../components/home/HoneyBanner.jsx'
+import { useDesign } from '../design/useDesign.js'
 import { useGuest } from '../guest/GuestProvider.jsx'
 
 // "Jordan, Sam & Max": first names of everyone on the invitation
@@ -17,6 +19,16 @@ function welcomeNames(party) {
 
 export default function HomeSection() {
   const { party } = useGuest()
+  const [design] = useDesign()
+
+  // House of Honey design: a bold banner with the names, then a photo carousel.
+  if (design === 'honey') {
+    return (
+      <Section id="home" className="hero hero-honey">
+        <HoneyBanner welcome={welcomeNames(party)} />
+      </Section>
+    )
+  }
 
   return (
     <Section id="home" className="hero">

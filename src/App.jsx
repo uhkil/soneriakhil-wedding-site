@@ -14,6 +14,7 @@ import RegistrySection from './sections/RegistrySection.jsx'
 import FaqSection from './sections/FaqSection.jsx'
 import RsvpSection from './sections/RsvpSection.jsx'
 import LoginPage from './components/login/LoginPage.jsx'
+import DesignToggle from './design/DesignToggle.jsx'
 import { useGuest } from './guest/GuestProvider.jsx'
 import { isPractice } from './api/rsvpApi.js'
 
@@ -23,6 +24,7 @@ export default function App() {
 
   return (
     <>
+      <DesignToggle />
       {isPractice && (
         <p className="practice-banner">
           Practice mode: fake guests. Try “Jordan Lee” with passcode CELEBRATE.
