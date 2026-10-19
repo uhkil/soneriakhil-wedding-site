@@ -1,9 +1,11 @@
 // The top of the site after login: the Central Park photo (which dissolves
 // into a line drawing and back), then the names, date, a welcome, and the
-// RSVP button. (In the House of Honey design, a bold banner and carousel instead.)
+// RSVP button. (In the House of Honey design, a bold banner and carousel instead;
+// in the Dance floor design, the names above the dancing illustration.)
 import Section from '../components/Section.jsx'
 import PhotoDrawingSwap from '../components/home/PhotoDrawingSwap.jsx'
 import HoneyBanner from '../components/home/HoneyBanner.jsx'
+import DanceFloorBanner from '../components/home/DanceFloorBanner.jsx'
 import { useDesign } from '../design/useDesign.js'
 import { useGuest } from '../guest/GuestProvider.jsx'
 
@@ -26,6 +28,15 @@ export default function HomeSection() {
     return (
       <Section id="home" className="hero hero-honey">
         <HoneyBanner welcome={welcomeNames(party)} />
+      </Section>
+    )
+  }
+
+  // Dance floor design: the names, then the two of them dancing under string lights.
+  if (design === 'cobalt') {
+    return (
+      <Section id="home" className="hero hero-dance">
+        <DanceFloorBanner welcome={welcomeNames(party)} />
       </Section>
     )
   }

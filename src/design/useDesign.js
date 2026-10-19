@@ -1,9 +1,11 @@
-// Which visual design the site uses. Two designs share all the same content
+// Which visual design the site uses. The designs share all the same content
 // and RSVP logic; only the look (and the Home banner) differs:
 //   'pressed' — Pressed paper: warm gray paper, rust ink, fine Didone capitals,
 //               the photo that dissolves into a line drawing.
 //   'honey'   — House of Honey: blush pink and dark chocolate, huge bold names
 //               with a script ampersand, and a photo carousel.
+//   'cobalt'  — Dance floor: warm ivory and cobalt blue, an elegant serif,
+//               and the illustration of the two of them dancing.
 //
 // The choice is stored on the <html> element as data-design="...", which the
 // CSS uses to switch styles, and remembered in this browser.
@@ -12,6 +14,7 @@ import { useEffect, useState } from 'react'
 export const DESIGNS = [
   { id: 'pressed', label: 'Pressed paper' },
   { id: 'honey', label: 'House of Honey' },
+  { id: 'cobalt', label: 'Dance floor' },
 ]
 
 // The design the public site uses. (Only the local preview shows a switch.)

@@ -1864,3 +1864,595 @@ summary:focus-visible {
 .carousel-dots button.active {
   background: var(--paper);
 }
+
+/* =====================================================================
+   Dance floor design: everything below applies only when
+   <html data-design="cobalt">. Built around the illustration of the two of
+   them dancing under string lights: warm ivory paper, one deep cobalt ink,
+   an elegant serif for names and headings, and soft arches and pills that
+   echo the illustration's rounded lines (kept quiet so it stays grown-up).
+   The string lights come back as a small motif under each heading, and the
+   Events section is the "evening": cobalt, with glowing bulbs on its timeline.
+   ===================================================================== */
+
+:root[data-design='cobalt'] {
+  --cobalt: #00338b;       /* the illustration's blue (sampled). Change it here. */
+  --glow: #f2c66d;         /* the warm light of the string-light bulbs */
+  --paper: #f6f1e6;        /* warm ivory background */
+  --paper-light: #fcf9f3;  /* cards and inputs */
+  --paper-tinted: #eaeef6; /* a pale blue field (Registry) */
+  --line: #d7dae4;         /* hairlines */
+  --rust: var(--cobalt);   /* headings, links, buttons */
+  --cocoa: #4d5677;        /* small labels: a soft slate blue */
+  --dust: #a3acc8;         /* placeholder outlines */
+  --rose-clay: #3a5bb5;    /* small accents */
+  --petal: #dfe5f3;        /* soft fills in the doodles */
+  --stem: #f1e7cf;
+  --ink: #1d2440;          /* body text: a very dark navy */
+  --font-display: 'Instrument Serif', 'Cormorant Garamond', Georgia, serif;
+  --font-body: 'Instrument Sans', 'Helvetica Neue', Arial, sans-serif;
+  /* The string-lights motif: a little swag of wire with hanging bulbs. */
+  --swag: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 140 26'%3E%3Cg fill='none' stroke='%23000' stroke-width='1.3' stroke-linecap='round'%3E%3Cpath d='M2 3Q70 21 138 3'/%3E%3Cellipse cx='20' cy='12' rx='2.3' ry='3.3'/%3E%3Cellipse cx='45' cy='15.6' rx='2.3' ry='3.3'/%3E%3Cellipse cx='70' cy='16.8' rx='2.3' ry='3.3'/%3E%3Cellipse cx='95' cy='15.6' rx='2.3' ry='3.3'/%3E%3Cellipse cx='120' cy='12' rx='2.3' ry='3.3'/%3E%3C/g%3E%3C/svg%3E");
+}
+
+:root[data-design='cobalt'] body {
+  background-image: none; /* flat ivory, no paper grain */
+  font-size: 17px;
+  line-height: 1.7;
+}
+
+/* ----- Headings: the serif, in normal case (no all-caps) ----- */
+
+[data-design='cobalt'] h1,
+[data-design='cobalt'] h2 {
+  text-transform: none;
+  letter-spacing: -0.01em;
+  line-height: 1;
+}
+
+[data-design='cobalt'] h2 {
+  font-size: clamp(2.6rem, 7vw, 4.6rem);
+}
+
+/* Each section heading gets a small number above it, like chapters: 01, 02... */
+[data-design='cobalt'] main {
+  counter-reset: chapter;
+}
+
+[data-design='cobalt'] .section:not(.hero) h2::before {
+  counter-increment: chapter;
+  content: counter(chapter, decimal-leading-zero);
+  display: block;
+  margin-bottom: 18px;
+  font-family: var(--font-body);
+  font-size: 0.72rem;
+  font-weight: 500;
+  letter-spacing: 0.3em;
+  color: var(--cocoa);
+}
+
+/* Under each heading: the string-lights swag instead of a plain line. */
+[data-design='cobalt'] h2::after {
+  width: 120px;
+  height: 22px;
+  margin-top: 22px;
+  opacity: 1;
+  background: currentColor;
+  -webkit-mask: var(--swag) center / contain no-repeat;
+  mask: var(--swag) center / contain no-repeat;
+}
+
+[data-design='cobalt'] h3 {
+  font-size: 1.75rem;
+  letter-spacing: 0;
+  line-height: 1.15;
+}
+
+/* ----- Buttons: soft pills ----- */
+
+[data-design='cobalt'] .button {
+  border-radius: 999px;
+  border-color: var(--cobalt);
+  background: var(--cobalt);
+  color: var(--paper);
+  font-family: var(--font-body);
+  font-weight: 600;
+  font-size: 0.74rem;
+  letter-spacing: 0.18em;
+  padding: 15px 36px;
+  transition: background 0.25s ease, color 0.25s ease;
+}
+
+[data-design='cobalt'] .button:hover {
+  background: transparent;
+  color: var(--cobalt);
+}
+
+[data-design='cobalt'] .button-outline {
+  background: transparent;
+  color: var(--cobalt);
+}
+
+[data-design='cobalt'] .button-outline:hover {
+  background: var(--cobalt);
+  color: var(--paper);
+}
+
+[data-design='cobalt'] a:focus-visible,
+[data-design='cobalt'] button:focus-visible,
+[data-design='cobalt'] summary:focus-visible {
+  outline: 2px solid var(--rose-clay);
+  outline-offset: 4px;
+  border-radius: 4px;
+}
+
+/* ----- Nav: ivory, a hairline, and a small dot under the current section ----- */
+
+[data-design='cobalt'] .navbar {
+  background: rgba(246, 241, 230, 0.9);
+  -webkit-backdrop-filter: blur(8px);
+  backdrop-filter: blur(8px);
+  border-bottom-color: var(--line);
+}
+
+[data-design='cobalt'] .navbar-brand {
+  font-style: italic;
+  text-transform: none;
+  letter-spacing: 0;
+  font-size: 1.55rem;
+}
+
+[data-design='cobalt'] .navbar-links a,
+[data-design='cobalt'] .navbar-logout {
+  font-family: var(--font-body);
+  font-size: 0.7rem;
+  letter-spacing: 0.18em;
+}
+
+[data-design='cobalt'] .navbar-links a {
+  position: relative;
+  border-bottom: none;
+}
+
+[data-design='cobalt'] .navbar-links a.active::after {
+  content: '';
+  position: absolute;
+  left: 50%;
+  bottom: -6px;
+  width: 4px;
+  height: 4px;
+  margin-left: -2px;
+  border-radius: 50%;
+  background: var(--cobalt);
+}
+
+@media (max-width: 768px) {
+  [data-design='cobalt'] .navbar-links {
+    background: var(--paper);
+  }
+  [data-design='cobalt'] .navbar-links a {
+    border-bottom: 1px solid var(--line);
+  }
+  [data-design='cobalt'] .navbar-links a.active::after {
+    left: 12px;
+    bottom: 50%;
+    margin: 0 0 -2px;
+  }
+}
+
+/* ----- Sections: a little more breathing room ----- */
+
+[data-design='cobalt'] .section {
+  padding: 120px 24px;
+}
+
+/* ----- Home ----- */
+
+[data-design='cobalt'] .hero-dance {
+  padding: 40px 20px 56px;
+}
+
+.dance {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+}
+
+.dance-details {
+  margin: 0 0 18px;
+  font-size: 0.74rem;
+  font-weight: 500;
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+  color: var(--cocoa);
+}
+
+.dance-details span {
+  margin: 0 0.6em;
+}
+
+/* (".hero .dance-names" so it wins over the other design's ".hero h1" size.) */
+.hero .dance-names {
+  font-size: clamp(3.2rem, 8.5vw, 7.5rem);
+  line-height: 0.95;
+  letter-spacing: -0.02em;
+  color: var(--cobalt);
+}
+
+.dance-and {
+  font-style: italic;
+  margin: 0 0.04em;
+}
+
+/* The illustration: as wide as the screen allows (up to 1100px), but short
+   enough that the names, the drawing, and the RSVP button fit on one screen. */
+.dance-art {
+  position: relative;
+  width: min(100%, 1100px, calc((100dvh - 420px) * 1.777));
+  min-width: min(100%, 560px);
+  aspect-ratio: 1672 / 941;
+  margin-top: 12px;
+}
+
+/* The drawing itself: a cobalt fill, cut into the illustration's shape. */
+.dance-drawing {
+  position: absolute;
+  inset: 0;
+  background: var(--cobalt);
+  -webkit-mask: url('/assets/illustrations/dance-floor.webp') center / contain no-repeat;
+  mask: url('/assets/illustrations/dance-floor.webp') center / contain no-repeat;
+  animation: dance-in 1.4s ease-out both;
+}
+
+@media (max-width: 700px) {
+  /* Phones: the illustration runs almost edge to edge. */
+  .dance-art {
+    width: calc(100% + 28px);
+  }
+  .dance-drawing {
+    -webkit-mask-image: url('/assets/illustrations/dance-floor-900.webp');
+    mask-image: url('/assets/illustrations/dance-floor-900.webp');
+  }
+}
+
+@keyframes dance-in {
+  from { opacity: 0; transform: translateY(14px); }
+}
+
+/* A soft warm glow behind each bulb, twinkling slowly. */
+.dance-glow {
+  position: absolute;
+  width: 7%;
+  aspect-ratio: 1;
+  translate: -50% -50%;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(242, 198, 109, 0.85), rgba(242, 198, 109, 0) 68%);
+  animation: bulb-twinkle 2.6s ease-in-out infinite alternate;
+}
+
+@keyframes bulb-twinkle {
+  from { opacity: 0.25; }
+  to   { opacity: 1; }
+}
+
+.dance-welcome {
+  margin: 20px 0 22px;
+  font-family: var(--font-display);
+  font-style: italic;
+  font-size: clamp(1.4rem, 3vw, 1.8rem);
+  line-height: 1.2;
+  color: var(--cobalt);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .dance-drawing,
+  .dance-glow {
+    animation: none;
+  }
+  .dance-glow {
+    opacity: 0.7;
+  }
+}
+
+/* ----- Photos: arches and soft corners, no tilt ----- */
+
+[data-design='cobalt'] .photo-slot {
+  rotate: 0deg !important; /* overrides the tilt set on each photo */
+  padding: 0;
+  background: none;
+  box-shadow: none;
+  border-radius: 16px;
+  overflow: hidden;
+}
+
+[data-design='cobalt'] .photo-placeholder {
+  background: var(--petal);
+  font-family: var(--font-display);
+  font-style: italic;
+  font-size: 1.4rem;
+  letter-spacing: 0;
+  text-transform: none;
+  color: var(--cobalt);
+}
+
+/* Our Story's photos are tall arches. */
+[data-design='cobalt'] .story-moment .photo-slot {
+  max-width: 340px;
+  border-radius: 999px 999px 16px 16px;
+}
+
+@media (max-width: 640px) {
+  [data-design='cobalt'] .story-moment .photo-slot {
+    max-width: 280px;
+  }
+}
+
+[data-design='cobalt'] .story-moment .photo-slot img,
+[data-design='cobalt'] .story-moment .photo-placeholder {
+  aspect-ratio: 4 / 5;
+}
+
+[data-design='cobalt'] .story-text p {
+  max-width: 34em;
+}
+
+/* Illustration spots (until the art exists): soft dashed boxes. */
+[data-design='cobalt'] .slot-placeholder {
+  border-radius: 16px;
+  background: repeating-linear-gradient(-45deg, transparent 0 14px, rgba(0, 51, 139, 0.05) 14px 16px);
+}
+
+[data-design='cobalt'] .slot-name {
+  font-style: italic;
+  font-size: 1.2rem;
+  letter-spacing: 0;
+  text-transform: none;
+}
+
+/* ----- Memories ----- */
+
+[data-design='cobalt'] .view-toggle button,
+[data-design='cobalt'] .camera-controls button {
+  border-radius: 999px;
+  font-family: var(--font-body);
+}
+
+[data-design='cobalt'] .view-toggle button.selected {
+  background: var(--cobalt);
+  border-color: var(--cobalt);
+}
+
+[data-design='cobalt'] .filmstrip {
+  background: var(--cobalt);
+  border-radius: 16px;
+  border-color: var(--paper);
+}
+
+[data-design='cobalt'] .memory-photo.photo-slot {
+  border-radius: 10px;
+}
+
+[data-design='cobalt'] .camera {
+  background: var(--cobalt);
+  border-radius: 24px;
+}
+
+[data-design='cobalt'] .camera-screen {
+  border-color: var(--ink);
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+/* ----- Events: the evening. Cobalt, ivory type, glowing bulbs on the timeline ----- */
+
+[data-design='cobalt'] #events {
+  background: var(--cobalt);
+  color: var(--paper);
+}
+
+[data-design='cobalt'] #events h2,
+[data-design='cobalt'] #events h3,
+[data-design='cobalt'] #events .timeline-day {
+  color: var(--paper);
+}
+
+[data-design='cobalt'] #events h2::before,
+[data-design='cobalt'] #events .event-when,
+[data-design='cobalt'] #events .event-facts dt {
+  color: rgba(246, 241, 230, 0.68);
+}
+
+[data-design='cobalt'] .timeline::before {
+  border-left-color: rgba(246, 241, 230, 0.3);
+}
+
+[data-design='cobalt'] .timeline-day {
+  background: var(--cobalt);
+  font-style: italic;
+  font-size: 1.9rem;
+  letter-spacing: 0;
+  text-transform: none;
+}
+
+[data-design='cobalt'] .event-when {
+  font-family: var(--font-body);
+  font-size: 0.72rem;
+  letter-spacing: 0.24em;
+}
+
+[data-design='cobalt'] .event-facts dt {
+  font-size: 0.68rem;
+  font-weight: 500;
+  letter-spacing: 0.18em;
+}
+
+[data-design='cobalt'] .timeline-dot {
+  width: 10px;
+  height: 10px;
+  background: var(--glow);
+  border-color: var(--cobalt);
+  box-shadow: 0 0 14px 4px rgba(242, 198, 109, 0.55);
+}
+
+[data-design='cobalt'] #events .slot-placeholder {
+  border-color: rgba(246, 241, 230, 0.35);
+  background: repeating-linear-gradient(-45deg, transparent 0 14px, rgba(246, 241, 230, 0.06) 14px 16px);
+}
+
+[data-design='cobalt'] #events .slot-name,
+[data-design='cobalt'] #events .slot-note,
+[data-design='cobalt'] #events .slot-ratio {
+  color: rgba(246, 241, 230, 0.8);
+}
+
+/* ----- Registry: a pale blue field ----- */
+
+[data-design='cobalt'] #registry {
+  background: var(--paper-tinted);
+}
+
+/* ----- FAQ: serif questions, a + in a small circle ----- */
+
+[data-design='cobalt'] .faq-item {
+  padding: 22px 4px;
+}
+
+[data-design='cobalt'] .faq-item summary {
+  font-size: 1.5rem;
+  line-height: 1.25;
+  align-items: center;
+}
+
+[data-design='cobalt'] .faq-item summary::after {
+  flex: 0 0 auto;
+  display: grid;
+  place-items: center;
+  width: 30px;
+  height: 30px;
+  border: 1px solid var(--cobalt);
+  border-radius: 50%;
+  font-family: var(--font-body);
+  font-size: 1rem;
+  color: var(--cobalt);
+}
+
+/* ----- RSVP: rounded cards, pill choices ----- */
+
+[data-design='cobalt'] .rsvp-guest {
+  border-radius: 22px;
+  padding: 28px 28px 32px;
+}
+
+[data-design='cobalt'] .rsvp-guest legend {
+  font-style: italic;
+  font-size: 1.6rem;
+  letter-spacing: 0;
+  text-transform: none;
+}
+
+[data-design='cobalt'] .rsvp-event-name {
+  font-size: 1.4rem;
+}
+
+[data-design='cobalt'] .rsvp-choice label {
+  border-radius: 999px;
+  padding: 9px 24px;
+  font-size: 0.85rem;
+  letter-spacing: 0.06em;
+}
+
+[data-design='cobalt'] .rsvp-choice input:checked + label {
+  background: var(--cobalt);
+  border-color: var(--cobalt);
+}
+
+[data-design='cobalt'] .rsvp-field label {
+  font-weight: 500;
+  font-size: 0.85rem;
+}
+
+[data-design='cobalt'] .rsvp-field input,
+[data-design='cobalt'] .rsvp-field textarea {
+  border-radius: 12px;
+  padding: 12px 16px;
+}
+
+/* ----- Login: an arched invitation card on cobalt ----- */
+
+[data-design='cobalt'] .login-page {
+  background: var(--cobalt);
+}
+
+[data-design='cobalt'] .invitation-card {
+  width: min(500px, 100%);
+  padding: 120px 44px 56px;
+  border: none;
+  border-radius: 250px 250px 20px 20px; /* an arch */
+  outline: 1px solid rgba(0, 51, 139, 0.25);
+  outline-offset: -14px;
+  background: var(--paper);
+  box-shadow: 0 30px 60px rgba(0, 10, 40, 0.35);
+}
+
+[data-design='cobalt'] .invitation-names {
+  font-size: clamp(3rem, 13vw, 4.4rem);
+  line-height: 0.95;
+  letter-spacing: -0.01em;
+  text-transform: none;
+}
+
+[data-design='cobalt'] .invitation-and {
+  margin: 4px 0;
+  font-family: var(--font-display);
+  font-size: 0.55em;
+  color: var(--cobalt);
+}
+
+[data-design='cobalt'] .invitation-details {
+  font-size: 0.7rem;
+  letter-spacing: 0.28em;
+}
+
+/* The string-lights swag in place of the little rule. */
+[data-design='cobalt'] .invitation-rule {
+  width: 110px;
+  height: 20px;
+  opacity: 1;
+  background: var(--cobalt);
+  -webkit-mask: var(--swag) center / contain no-repeat;
+  mask: var(--swag) center / contain no-repeat;
+}
+
+[data-design='cobalt'] .find-invitation label[for='guest-name'] {
+  font-style: italic;
+  font-size: 1.5rem;
+  letter-spacing: 0;
+  text-transform: none;
+}
+
+[data-design='cobalt'] .find-invitation label {
+  font-weight: 500;
+}
+
+[data-design='cobalt'] .field-row input {
+  border-radius: 999px;
+  padding: 12px 20px;
+  background: var(--paper-light);
+}
+
+[data-design='cobalt'] .choose-dialog,
+[data-design='cobalt'] .choose-option {
+  border-radius: 16px;
+}
+
+[data-design='cobalt'] .choose-dialog::backdrop {
+  background: rgba(0, 20, 60, 0.5);
+}
+
+@media (max-width: 480px) {
+  [data-design='cobalt'] .invitation-card {
+    padding: 96px 24px 40px;
+    border-radius: 200px 200px 18px 18px;
+  }
+}
