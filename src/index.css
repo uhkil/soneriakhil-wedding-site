@@ -2086,22 +2086,14 @@ summary:focus-visible {
 }
 
 /* The illustration: as wide as the screen allows (up to 1100px), but short
-   enough that the names, the drawing, and the RSVP button fit on one screen. */
+   enough that the names, the drawing, and the RSVP button fit on one screen.
+   It fades in gently when the page opens. */
 .dance-art {
   position: relative;
   width: min(100%, 1100px, calc((100dvh - 420px) * 1.777));
   min-width: min(100%, 560px);
   aspect-ratio: 1672 / 941;
   margin-top: 12px;
-}
-
-/* The drawing itself: a cobalt fill, cut into the illustration's shape. */
-.dance-drawing {
-  position: absolute;
-  inset: 0;
-  background: var(--cobalt);
-  -webkit-mask: url('/assets/illustrations/dance-floor.webp') center / contain no-repeat;
-  mask: url('/assets/illustrations/dance-floor.webp') center / contain no-repeat;
   animation: dance-in 1.4s ease-out both;
 }
 
@@ -2110,14 +2102,71 @@ summary:focus-visible {
   .dance-art {
     width: calc(100% + 28px);
   }
-  .dance-drawing {
-    -webkit-mask-image: url('/assets/illustrations/dance-floor-900.webp');
-    mask-image: url('/assets/illustrations/dance-floor-900.webp');
-  }
 }
 
 @keyframes dance-in {
   from { opacity: 0; transform: translateY(14px); }
+}
+
+/* Each layer (the couple, a friend, the lights...): a cobalt fill cut into
+   that layer's shape. The shape image is set on each layer in DanceFloorBanner.jsx. */
+.dance-layer,
+.dance-lights {
+  position: absolute;
+  inset: 0;
+}
+
+.dance-layer {
+  background: var(--cobalt);
+  -webkit-mask-size: 100% 100%;
+  mask-size: 100% 100%;
+  -webkit-mask-repeat: no-repeat;
+  mask-repeat: no-repeat;
+}
+
+/* The moves. One beat = 0.6 seconds (100 beats a minute, a relaxed dance). */
+
+/* The couple: sways left and right, bouncing up on each beat in between. */
+.dance-sway {
+  animation: dance-sway 2.4s ease-in-out infinite;
+}
+
+@keyframes dance-sway {
+  0%, 100% { transform: rotate(-1.8deg); }
+  25%      { transform: translateY(-1.1%) rotate(0deg); }
+  50%      { transform: rotate(1.8deg); }
+  75%      { transform: translateY(-1.1%) rotate(0deg); }
+}
+
+/* The friends: a small bob and lean on every other beat. */
+.dance-bob {
+  animation: dance-bob 1.2s ease-in-out infinite;
+}
+
+@keyframes dance-bob {
+  0%, 100% { transform: none; }
+  50%      { transform: translateY(-0.8%) rotate(var(--tilt)); }
+}
+
+/* The confetti: drifts down and back up, slowly. */
+.dance-float {
+  animation: dance-float 3.2s ease-in-out infinite;
+}
+
+@keyframes dance-float {
+  0%, 100% { transform: none; }
+  50%      { transform: translate(0.3%, 1.4%); }
+}
+
+/* The string lights: a gentle swing from the middle hook. */
+.dance-lights {
+  transform-origin: 44.6% 2%;
+  animation: dance-swing 4.8s ease-in-out infinite;
+}
+
+@keyframes dance-swing {
+  0%, 100% { transform: rotate(-0.5deg); }
+  50%      { transform: rotate(0.5deg); }
 }
 
 /* A soft warm glow behind each bulb, twinkling slowly. */
@@ -2145,8 +2194,11 @@ summary:focus-visible {
   color: var(--cobalt);
 }
 
+/* Reduce motion: the picture stands still. */
 @media (prefers-reduced-motion: reduce) {
-  .dance-drawing,
+  .dance-art,
+  .dance-layer,
+  .dance-lights,
   .dance-glow {
     animation: none;
   }
