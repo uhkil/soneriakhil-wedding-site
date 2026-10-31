@@ -18,7 +18,7 @@ export default function HoneyBanner({ welcome }) {
           <p>
             April 9–10, 2027
             <br />
-            Dallas, Texas
+            Arlington, TX
           </p>
           <p className="honey-welcome">
             Welcome,

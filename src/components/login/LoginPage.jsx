@@ -14,7 +14,7 @@ export default function LoginPage() {
           <span className="invitation-and">and</span>
           Akhil
         </p>
-        <p className="invitation-details">April 9–10, 2027 · Dallas, Texas</p>
+        <p className="invitation-details">April 9–10, 2027 · Arlington, TX</p>
         <div className="invitation-rule" aria-hidden="true" />
 
         {/* While a saved login is being checked, show a short message instead of the form. */}

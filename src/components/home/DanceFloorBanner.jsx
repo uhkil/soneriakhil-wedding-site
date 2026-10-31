@@ -9,7 +9,7 @@ export default function DanceFloorBanner({ welcome }) {
   return (
     <div className="dance">
       <p className="dance-details">
-        April 9–10, 2027 <span aria-hidden="true">·</span> Dallas, Texas
+        April 9–10, 2027 <span aria-hidden="true">·</span> Arlington, TX
       </p>
       <h1 className="dance-names">
         Soneri <span className="dance-and">&amp;</span> Akhil

@@ -1579,6 +1579,7 @@ summary:focus-visible {
   --font-display: 'Archivo', 'Arial Black', Helvetica, sans-serif;
   --font-script: 'Pinyon Script', 'Snell Roundhand', cursive;
   --font-ui: 'Archivo', Helvetica, Arial, sans-serif;
+  --nav-height: 46px;      /* a slimmer nav, so the names and photo sit higher */
 }
 
 /* The login card's names, bold and wide too. */
@@ -1648,12 +1649,12 @@ summary:focus-visible {
   font-weight: 900;
   font-stretch: 125%;
   letter-spacing: 0;
-  font-size: 1.2rem;
+  font-size: 1.05rem;
 }
 
 [data-design='honey'] .navbar-links {
   flex: 1;
-  gap: 28px;
+  gap: 24px;
 }
 
 [data-design='honey'] .navbar-links a,
@@ -1662,7 +1663,7 @@ summary:focus-visible {
   font-weight: 400;
   text-transform: none;
   letter-spacing: 0;
-  font-size: 0.95rem;
+  font-size: 0.82rem;
   color: var(--ink);
 }
 
@@ -1729,7 +1730,7 @@ summary:focus-visible {
 }
 
 .honey-banner {
-  padding: 28px 16px 24px;
+  padding: 18px 16px 22px;
 }
 
 /* The names stretch across the full width: SONERI on the left, AKHIL on the

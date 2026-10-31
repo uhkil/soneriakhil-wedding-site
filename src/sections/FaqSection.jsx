@@ -10,7 +10,7 @@ const faqs = [
   { question: 'Can I bring a plus-one?', answer: 'Placeholder answer.' },
   { question: 'Are kids welcome?', answer: 'Placeholder answer.' },
   { question: 'Where should I park?', answer: 'Placeholder answer.' },
-  { question: 'What will the weather be like in April?', answer: 'Placeholder answer about Dallas weather in April.' },
+  { question: 'What will the weather be like in April?', answer: 'Placeholder answer about Arlington weather in April.' },
   { question: 'When is the RSVP deadline?', answer: 'Placeholder answer.' },
 ]
 

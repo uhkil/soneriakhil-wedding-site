@@ -49,7 +49,7 @@ export default function HomeSection() {
       {design === 'cream' ? <HeroDance /> : <PhotoDrawingSwap />}
       <div className="hero-text">
         <h1>Soneri &amp; Akhil</h1>
-        <p className="hero-details">April 9–10, 2027 · Dallas, TX</p>
+        <p className="hero-details">April 9–10, 2027 · Arlington, TX</p>
         <p className="hero-welcome">Welcome, {welcomeNames(party)}!</p>
         <a className="button" href="#rsvp">RSVP</a>
       </div>
