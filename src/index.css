@@ -1697,6 +1697,37 @@ summary:focus-visible {
   padding: 0;
 }
 
+/* The banner and the carousel share exactly one screen: the carousel takes
+   whatever height is left below the names, so the photo is never cut off by
+   the bottom of the screen. */
+.honey {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.honey .carousel {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: 320px; /* on very short screens, it can run past the bottom */
+}
+
+.honey .carousel-track {
+  flex: 1;
+}
+
+.honey .carousel-slide {
+  position: relative;
+  height: auto;
+}
+
+/* The photo fills its slide without making it taller. */
+.honey .carousel-slide img {
+  position: absolute;
+  inset: 0;
+}
+
 .honey-banner {
   padding: 28px 16px 24px;
 }

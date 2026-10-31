@@ -5,6 +5,9 @@
 //
 // To add a photo: put it in public/assets/photos/ and add it to SLIDES below.
 // Slides with no "src" show a placeholder.
+// The carousel fills the screen below the names, so wide screens crop the top
+// and bottom of each photo. "focus" says which part to keep in view
+// (left-right %, top-bottom %): '50% 50%' is the middle, '50% 100%' the bottom.
 import { useEffect, useRef, useState } from 'react'
 
 const base = import.meta.env.BASE_URL + 'assets/photos/'
@@ -14,6 +17,7 @@ const SLIDES = [
     src: base + 'central-park.jpg',
     srcSet: `${base}central-park-1000.jpg 1000w, ${base}central-park.jpg 2000w`,
     alt: 'Soneri and Akhil walking under an umbrella down a tree-lined path in Central Park',
+    focus: '50% 78%', // keep the two of us (lower middle) in view
   },
   { label: 'Photo 2' },
   { label: 'Photo 3' },
@@ -69,7 +73,14 @@ export default function PhotoCarousel() {
             aria-label={`${i + 1} of ${SLIDES.length}`}
           >
             {slide.src ? (
-              <img src={slide.src} srcSet={slide.srcSet} sizes="100vw" alt={slide.alt} loading={i ? 'lazy' : 'eager'} />
+              <img
+                src={slide.src}
+                srcSet={slide.srcSet}
+                sizes="100vw"
+                alt={slide.alt}
+                loading={i ? 'lazy' : 'eager'}
+                style={{ objectPosition: slide.focus }}
+              />
             ) : (
               <div className="carousel-placeholder">{slide.label}</div>
             )}
