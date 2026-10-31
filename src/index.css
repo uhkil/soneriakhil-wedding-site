@@ -1021,6 +1021,14 @@ summary:focus-visible {
   max-width: 455px;
 }
 
+/* Wider screens: tuck it toward the right edge, halving the empty space
+   between it and the edge of the page. */
+@media (min-width: 641px) {
+  .illustration-slot.story-vignette {
+    margin-right: calc((100% - 100vw) / 4);
+  }
+}
+
 /* On narrow screens, stack the photo above the text. */
 @media (max-width: 640px) {
   .story-moment {
