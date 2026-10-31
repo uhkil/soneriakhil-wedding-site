@@ -1661,6 +1661,9 @@ summary:focus-visible {
   line-height: 0;
   position: relative;
   top: 0.06em; /* centered on the S and A (measured) */
+  /* Pull the S and A in closer (the left side of the script "&" has more
+     built-in space than the right, so it's trimmed more). */
+  margin: 0 -0.12em 0 -0.22em;
 }
 
 [data-design='honey'] .navbar-links {
