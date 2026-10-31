@@ -1,7 +1,8 @@
 // The Home banner for the House of Honey design: huge bold names with a
 // flowing script ampersand, the date and place on the left, a welcome on the
-// right, then a full-width photo carousel.
-import PhotoCarousel from './PhotoCarousel.jsx'
+// right, then the animation of the two of them dancing and waving hello.
+// (The photo carousel it used before is still in PhotoCarousel.jsx.)
+import HoneyDance from './HoneyDance.jsx'
 
 export default function HoneyBanner({ welcome }) {
   return (
@@ -27,7 +28,7 @@ export default function HoneyBanner({ welcome }) {
           </p>
         </div>
       </div>
-      <PhotoCarousel />
+      <HoneyDance />
     </div>
   )
 }

@@ -15,14 +15,14 @@
 //     copied exactly from frame 1, so redrawn texture doesn't flicker.
 //   - "tween-…" frames are blends between two close poses (1 and 3, 3 and 2,
 //     8 and 9), so the sway and the wave move in smaller steps.
-import { useEffect, useState } from 'react'
+import { useFrameSequence } from './useFrameSequence.js'
 
 const base = import.meta.env.BASE_URL + 'assets/hero-dance/'
 const NAMES = [
   'frame-1', 'frame-2', 'frame-3', 'frame-4', 'frame-5', 'frame-6', 'frame-7', 'frame-8', 'frame-9',
   'tween-1-3-a', 'tween-1-3-b', 'tween-3-2-a', 'tween-3-2-b', 'tween-8-9-a', 'tween-8-9-b',
 ]
-const src = (name) => `${base}${name}.webp`
+const SOURCES = Object.fromEntries(NAMES.map((name) => [name, `${base}${name}.webp`]))
 
 // The order the frames play in: [frame, how long it stays up (ms), how long
 // it takes to fade in over the last one (ms)]. Edit these to change the pacing.
@@ -72,65 +72,11 @@ const SEQUENCE = [
   ...WAVE.slice(0, 3),
   ['frame-9', 0, QUICK], // stop here
 ]
-const WAVE_FRAME = 'frame-8'
-const LAST_FRAME = 'frame-9'
-
-function prefersReducedMotion() {
-  return window.matchMedia('(prefers-reduced-motion: reduce)').matches
-}
+// The bubbles appear as the wave starts: the first time frame 8 shows.
+const TALK_AT = SEQUENCE.findIndex(([name]) => name === 'frame-8')
 
 export default function HeroDance() {
-  const stillOnly = prefersReducedMotion()
-  const [frame, setFrame] = useState(stillOnly ? LAST_FRAME : SEQUENCE[0][0])
-  const [previous, setPrevious] = useState(null) // the frame fading out underneath
-  const [fade, setFade] = useState(160) // how long the current frame takes to fade in
-  const [talking, setTalking] = useState(stillOnly) // are the bubbles showing?
-
-  useEffect(() => {
-    if (stillOnly) return
-
-    let cancelled = false
-    const timers = []
-
-    // Load every frame before starting, so nothing flickers mid-dance.
-    const loads = NAMES.map((name) => {
-      const img = new Image()
-      img.src = src(name)
-      return img.decode().catch(() => {}) // if one fails, play anyway
-    })
-
-    Promise.all(loads).then(() => {
-      let elapsed = 0
-      let shown = SEQUENCE[0][0]
-      SEQUENCE.forEach(([n, duration, fadeMs], i) => {
-        if (i > 0) {
-          timers.push(
-            setTimeout(() => {
-              if (cancelled) return
-              setPrevious(shown)
-              setFade(fadeMs)
-              setFrame(n)
-              shown = n
-              if (n === WAVE_FRAME) setTalking(true)
-            }, elapsed)
-          )
-        }
-        elapsed += duration
-      })
-    })
-
-    return () => {
-      cancelled = true
-      timers.forEach(clearTimeout)
-    }
-  }, [stillOnly])
-
-  // Once the new frame has faded in, hide the old one underneath.
-  useEffect(() => {
-    if (previous === null) return
-    const t = setTimeout(() => setPrevious(null), fade + 20)
-    return () => clearTimeout(t)
-  }, [previous, frame, fade])
+  const { frame, previous, fade, talking } = useFrameSequence(SOURCES, SEQUENCE, TALK_AT)
 
   return (
     <div className={talking ? 'hero-dance talking' : 'hero-dance'}>
@@ -144,7 +90,7 @@ export default function HeroDance() {
           return (
             <img
               key={name}
-              src={src(name)}
+              src={SOURCES[name]}
               alt=""
               className={state}
               style={{ '--fade': `${fade}ms` }}
