@@ -1016,6 +1016,11 @@ summary:focus-visible {
   margin-right: 0;
 }
 
+/* The coffee-date drawing: 1.75× the usual small size (260px → 455px). */
+.illustration-slot.story-vignette {
+  max-width: 455px;
+}
+
 /* On narrow screens, stack the photo above the text. */
 @media (max-width: 640px) {
   .story-moment {
