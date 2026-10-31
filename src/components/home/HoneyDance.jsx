@@ -3,9 +3,10 @@
 // lands, each says hello in a speech bubble.
 //
 // The six frames are vector drawings (public/assets/hero-honey/). They were
-// prepared so they line up exactly: cropped to the same window around the
-// couple, and frames 5 and 6 (drawn slightly bigger) scaled to match the rest.
-// The see-through parts (skin, background) show the page's blue behind them.
+// prepared so they match: cropped to the same window around the couple,
+// frames 5 and 6 nudged so their heads and feet line up with the dancing
+// frames, and every light area (skin, eyes, highlights) made see-through, so
+// the page's blue shows through in every frame.
 import { useFrameSequence } from './useFrameSequence.js'
 
 const base = import.meta.env.BASE_URL + 'assets/hero-honey/'
@@ -20,11 +21,13 @@ const SEQUENCE = [
   ['frame-3', 460, 140], // the big step
   ['frame-2', 420, 140], // stepping back
   ['frame-1', 440, 140],
-  ['frame-4', 520, 220], // a close moment
-  ['frame-5', 480, 220], // turning toward you
-  ['frame-6', 380, 160], // waving
-  ['frame-5', 340, 160],
-  ['frame-6', 0, 160], // waving again, and stopping here
+  // From here the poses change more, so the fades are short: a long fade
+  // would briefly show both poses at once.
+  ['frame-4', 520, 100], // a close moment
+  ['frame-5', 480, 80], // turning toward you
+  ['frame-6', 380, 70], // waving
+  ['frame-5', 340, 70],
+  ['frame-6', 0, 70], // waving again, and stopping here
 ]
 const TALK_AT = SEQUENCE.length - 1 // the bubbles appear with the last wave
 
