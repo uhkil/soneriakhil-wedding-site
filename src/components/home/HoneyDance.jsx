@@ -6,13 +6,17 @@
 // prepared so they match: cropped to the same window around the couple,
 // frames 5 and 6 nudged so their heads and feet line up with the dancing
 // frames, and every light area (skin, eyes, highlights) made see-through, so
-// the page's blue shows through in every frame.
+// the page's blue shows through in every frame. Frame 6 is frame 5 with only
+// the waving arm swapped in, so nothing but the arm moves during the wave.
 // The couple is drawn in the page's text color (--ink in index.css): each
 // frame's shape is filled with that color, so they always match the text.
 import { useFrameSequence } from './useFrameSequence.js'
 
 const base = import.meta.env.BASE_URL + 'assets/hero-honey/'
-const SOURCES = Object.fromEntries([1, 2, 3, 4, 5, 6].map((n) => [`frame-${n}`, `${base}frame-${n}.svg`]))
+// Bump VERSION whenever the frame files change, so browsers fetch the new
+// ones instead of reusing old saved copies.
+const VERSION = 3
+const SOURCES = Object.fromEntries([1, 2, 3, 4, 5, 6].map((n) => [`frame-${n}`, `${base}frame-${n}.svg?v=${VERSION}`]))
 
 // [frame, how long it stays up (ms), how long it fades in over the last one (ms)].
 // The dance steps are quick; the turn and the wave are a little slower.
