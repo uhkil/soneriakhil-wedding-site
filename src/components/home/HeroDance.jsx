@@ -5,42 +5,75 @@
 //   3. They wave: frames 8 and 9 (back and forth), stopping on frame 9.
 // As the wave starts, two speech bubbles fade in, one from each of them.
 //
-// All nine frames are the same size with the couple in the same spot, so
+// All the frames are the same size with the couple in the same spot, so
 // they're simply stacked on top of each other and shown one at a time.
 // The frames are see-through around the couple, so any background works.
 // With "reduce motion" on, guests see only frame 9, with both bubbles.
+//
+// To make it smoother, the frames in public/assets/hero-dance/ were prepared:
+//   - Anything that shouldn't move (her skirt, their legs when still...) is
+//     copied exactly from frame 1, so redrawn texture doesn't flicker.
+//   - "tween-…" frames are blends between two close poses (1 and 3, 3 and 2,
+//     8 and 9), so the sway and the wave move in smaller steps.
 import { useEffect, useState } from 'react'
 
 const base = import.meta.env.BASE_URL + 'assets/hero-dance/'
-const FRAMES = [1, 2, 3, 4, 5, 6, 7, 8, 9].map((n) => `${base}frame-${n}.webp`)
+const NAMES = [
+  'frame-1', 'frame-2', 'frame-3', 'frame-4', 'frame-5', 'frame-6', 'frame-7', 'frame-8', 'frame-9',
+  'tween-1-3-a', 'tween-1-3-b', 'tween-3-2-a', 'tween-3-2-b', 'tween-8-9-a', 'tween-8-9-b',
+]
+const src = (name) => `${base}${name}.webp`
 
 // The order the frames play in: [frame, how long it stays up (ms), how long
 // it takes to fade in over the last one (ms)]. Edit these to change the pacing.
-//   - The dance sways back and forth through frames 1, 3, 2, 3 (the three
-//     closest poses), so it never jumps.
-//   - Frame 4 (leaning in) is redrawn more than the others, so it's used once,
-//     held a little longer and faded in slowly, as a quiet moment.
+// Main poses stay up a little longer; in-between frames pass quickly.
+const KEY = 260 // a main pose
+const STEP = 80 // an in-between frame
+const QUICK = 50 // fade for small steps
+
+// One sway: 1 → 3 → 2 → 3 → back toward 1, through the in-betweens.
 const SWAY = [
-  [1, 420, 160],
-  [3, 420, 160],
-  [2, 420, 160],
-  [3, 420, 160],
+  ['frame-1', KEY, QUICK],
+  ['tween-1-3-a', STEP, QUICK],
+  ['tween-1-3-b', STEP, QUICK],
+  ['frame-3', KEY, QUICK],
+  ['tween-3-2-a', STEP, QUICK],
+  ['tween-3-2-b', STEP, QUICK],
+  ['frame-2', KEY, QUICK],
+  ['tween-3-2-b', STEP, QUICK],
+  ['tween-3-2-a', STEP, QUICK],
+  ['frame-3', KEY, QUICK],
+  ['tween-1-3-b', STEP, QUICK],
+  ['tween-1-3-a', STEP, QUICK],
 ]
+
+// One wave: 8 → 9 → back toward 8, through the in-betweens.
+const WAVE = [
+  ['frame-8', 200, QUICK],
+  ['tween-8-9-a', 70, QUICK],
+  ['tween-8-9-b', 70, QUICK],
+  ['frame-9', 200, QUICK],
+  ['tween-8-9-b', 70, QUICK],
+  ['tween-8-9-a', 70, QUICK],
+]
+
 const SEQUENCE = [
   ...SWAY,
   ...SWAY,
-  [1, 420, 160],
-  [4, 1100, 420], // leaning in
-  [5, 380, 360], // turning toward you
-  [6, 340, 160],
-  [7, 380, 200],
-  [8, 380, 240], // the wave (the bubbles appear here)
-  [9, 360, 160],
-  [8, 360, 160],
-  [9, 0, 160], // stop here
+  ['frame-1', 360, QUICK],
+  // The bigger moves can't be blended cleanly, so they fade in slowly instead.
+  ['frame-4', 1100, 420], // leaning in
+  ['frame-5', 380, 360], // turning toward you
+  ['frame-6', 340, 200],
+  ['frame-7', 420, 260],
+  ['frame-8', 200, 280], // the wave starts (the bubbles appear here)
+  ...WAVE.slice(1),
+  ...WAVE,
+  ...WAVE.slice(0, 3),
+  ['frame-9', 0, QUICK], // stop here
 ]
-const WAVE_FRAME = 8
-const LAST_FRAME = 9
+const WAVE_FRAME = 'frame-8'
+const LAST_FRAME = 'frame-9'
 
 function prefersReducedMotion() {
   return window.matchMedia('(prefers-reduced-motion: reduce)').matches
@@ -48,7 +81,7 @@ function prefersReducedMotion() {
 
 export default function HeroDance() {
   const stillOnly = prefersReducedMotion()
-  const [frame, setFrame] = useState(stillOnly ? LAST_FRAME : 1)
+  const [frame, setFrame] = useState(stillOnly ? LAST_FRAME : SEQUENCE[0][0])
   const [previous, setPrevious] = useState(null) // the frame fading out underneath
   const [fade, setFade] = useState(160) // how long the current frame takes to fade in
   const [talking, setTalking] = useState(stillOnly) // are the bubbles showing?
@@ -60,9 +93,9 @@ export default function HeroDance() {
     const timers = []
 
     // Load every frame before starting, so nothing flickers mid-dance.
-    const loads = FRAMES.map((src) => {
+    const loads = NAMES.map((name) => {
       const img = new Image()
-      img.src = src
+      img.src = src(name)
       return img.decode().catch(() => {}) // if one fails, play anyway
     })
 
@@ -106,13 +139,12 @@ export default function HeroDance() {
         role="img"
         aria-label="An illustration of Soneri and Akhil dancing, then turning to wave hello"
       >
-        {FRAMES.map((src, i) => {
-          const n = i + 1
-          const state = n === frame ? 'current' : n === previous ? 'previous' : ''
+        {NAMES.map((name) => {
+          const state = name === frame ? 'current' : name === previous ? 'previous' : ''
           return (
             <img
-              key={src}
-              src={src}
+              key={name}
+              src={src(name)}
               alt=""
               className={state}
               style={{ '--fade': `${fade}ms` }}
