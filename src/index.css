@@ -2434,3 +2434,186 @@ summary:focus-visible {
     border-radius: 200px 200px 18px 18px;
   }
 }
+
+/* =====================================================================
+   Cream design: everything below applies only when <html data-design="cream">.
+   Pressed paper's layout, type, and rust ink on a light cream background,
+   with the animated couple (HeroDance.jsx) at the top of Home.
+   ===================================================================== */
+
+:root[data-design='cream'] {
+  --paper: #fbf7ef;        /* light cream background */
+  --paper-light: #fffdf8;  /* cards, inputs, speech bubbles */
+  --paper-tinted: #f5efe4; /* the Events section */
+  --line: #e5dbcc;
+}
+
+/* Flat cream: no paper grain. */
+:root[data-design='cream'] body {
+  background-image: none;
+}
+
+[data-design='cream'] .navbar {
+  background: rgba(251, 247, 239, 0.94);
+}
+
+/* ----- The animated couple ----- */
+
+/* The stage is sized by height (so the text below still fits on one screen)
+   and keeps the frames' 896 × 1200 shape. The speech bubbles are placed
+   relative to it, beside each of their heads. */
+.hero-dance {
+  --stage-h: min(60dvh, 620px);
+  position: relative;
+  width: calc(var(--stage-h) * 896 / 1200);
+  margin: 24px auto 8px;
+}
+
+.hero-dance-frames {
+  position: relative;
+  aspect-ratio: 896 / 1200;
+}
+
+/* All nine frames sit in exactly the same place; only one shows at a time. */
+.hero-dance-frames img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  opacity: 0;
+  user-select: none;
+}
+
+/* The old frame stays put underneath while the new one fades in on top. */
+.hero-dance-frames img.previous {
+  opacity: 1;
+  z-index: 1;
+}
+
+.hero-dance-frames img.current {
+  opacity: 1;
+  z-index: 2;
+  animation: frame-in var(--fade) linear;
+}
+
+@keyframes frame-in {
+  from { opacity: 0; }
+}
+
+/* ----- Speech bubbles ----- */
+
+.hero-bubble {
+  position: absolute;
+  z-index: 3;
+  width: max-content;
+  max-width: 15em;
+  margin: 0;
+  padding: 12px 20px;
+  background: var(--paper-light);
+  border: 1px solid var(--line);
+  border-radius: 22px;
+  box-shadow: 0 8px 22px rgba(61, 52, 48, 0.1);
+  font-family: var(--font-body);
+  font-style: italic;
+  font-size: 1.15rem;
+  line-height: 1.3;
+  color: var(--rust);
+  text-align: center;
+  /* Hidden until the wave starts. */
+  opacity: 0;
+  translate: 0 8px;
+  transition: opacity 0.7s ease, translate 0.7s ease;
+}
+
+/* The bubble's little tail: a small square turned 45°, showing two borders. */
+.hero-bubble::after {
+  content: '';
+  position: absolute;
+  width: 12px;
+  height: 12px;
+  background: var(--paper-light);
+  border: 1px solid var(--line);
+  border-top: none;
+  border-left: none;
+}
+
+/* His bubble: to the left of his head, its tail pointing toward him. */
+.hero-bubble-him {
+  right: 82%;
+  top: 2%;
+}
+
+.hero-bubble-him::after {
+  right: 22px;
+  bottom: -7px;
+  rotate: 45deg;
+}
+
+/* Her bubble: to the right of her head, its tail pointing toward her. */
+.hero-bubble-her {
+  left: 76%;
+  top: 15%;
+}
+
+.hero-bubble-her::after {
+  left: -7px;
+  top: 50%;
+  margin-top: -6px;
+  rotate: 135deg;
+}
+
+/* As the wave starts: his bubble fades in, then hers. */
+.hero-dance.talking .hero-bubble {
+  opacity: 1;
+  translate: 0 0;
+}
+
+.hero-dance.talking .hero-bubble-her {
+  transition-delay: 0.7s;
+}
+
+/* Phones: no room beside them, so both bubbles sit above, his on the left,
+   hers on the right, tails pointing down at each of them. */
+@media (max-width: 760px) {
+  .hero-dance {
+    --stage-h: min(50dvh, 420px, calc(76vw * 1200 / 896));
+    padding-top: 74px;
+  }
+  .hero-bubble {
+    max-width: 8.6em;
+    padding: 8px 12px;
+    font-size: 0.92rem;
+    line-height: 1.22;
+    border-radius: 18px;
+  }
+  .hero-bubble-him {
+    right: auto;
+    left: -10%;
+    top: 0;
+  }
+  .hero-bubble-her {
+    left: auto;
+    right: -10%;
+    top: 20px;
+  }
+  .hero-bubble-him::after {
+    right: 30%;
+  }
+  .hero-bubble-her::after {
+    left: 30%;
+    top: auto;
+    bottom: -7px;
+    margin-top: 0;
+    rotate: 45deg;
+  }
+}
+
+/* Reduce motion: frame 9 only (set in HeroDance.jsx), bubbles shown, no fades. */
+@media (prefers-reduced-motion: reduce) {
+  .hero-dance-frames img.current {
+    animation: none;
+  }
+  .hero-bubble {
+    transition: none;
+  }
+}

@@ -6,6 +6,9 @@
 //               with a script ampersand, and a photo carousel.
 //   'cobalt'  — Dance floor: warm ivory and cobalt blue, an elegant serif,
 //               and the illustration of the two of them dancing.
+//   'cream'   — Cream: Pressed paper's layout and type on a light cream
+//               background, with an animation of the two of them dancing,
+//               turning, and waving hello.
 //
 // The choice is stored on the <html> element as data-design="...", which the
 // CSS uses to switch styles, and remembered in this browser.
@@ -15,6 +18,7 @@ export const DESIGNS = [
   { id: 'pressed', label: 'Pressed paper' },
   { id: 'honey', label: 'House of Honey' },
   { id: 'cobalt', label: 'Dance floor' },
+  { id: 'cream', label: 'Cream' },
 ]
 
 // The design the public site uses. (Only the local preview shows a switch.)
