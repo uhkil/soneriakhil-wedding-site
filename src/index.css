@@ -1757,7 +1757,7 @@ summary:focus-visible {
   font-size: 1.9em;
   line-height: 0;
   position: relative;
-  top: 0.1em;
+  top: 0; /* centered on the capital letters (measured), not hanging below them */
 }
 
 /* Two lines of serif capitals under the names: date and place, then the welcome. */
@@ -1793,7 +1793,7 @@ summary:focus-visible {
     width: 100%;
     text-align: center;
     line-height: 0.7;
-    top: 0.05em;
+    top: 0.02em; /* evenly spaced between SONERI and AKHIL */
   }
   .honey-details {
     font-size: 0.95rem;
