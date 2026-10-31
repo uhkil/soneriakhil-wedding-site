@@ -62,8 +62,8 @@ export default function HoneyDance() {
 
         {/* Real text, so it's crisp and read by screen readers. Soneri is on
             the left, Akhil on the right. */}
-        <p className="honey-bubble honey-bubble-her">We’re excited to celebrate with you</p>
-        <p className="honey-bubble honey-bubble-him">Welcome to our wedding website</p>
+        <p className="honey-bubble honey-bubble-her">we’re excited to celebrate with you :-)</p>
+        <p className="honey-bubble honey-bubble-him">welcome to our wedding website!</p>
       </div>
     </div>
   )

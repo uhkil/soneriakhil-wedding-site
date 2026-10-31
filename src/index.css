@@ -2717,8 +2717,9 @@ summary:focus-visible {
   animation: frame-in var(--fade) linear;
 }
 
-/* Speech bubbles: clean, modern chat bubbles. White, rounded, a soft shadow,
-   and one squared-off corner pointing toward whoever is speaking. */
+/* Speech bubbles: clean, modern chat bubbles. See-through with a thin dark
+   blue outline, rounded, and one squared-off corner pointing toward whoever
+   is speaking. */
 .honey-bubble {
   position: absolute;
   z-index: 3;
@@ -2727,9 +2728,9 @@ summary:focus-visible {
   margin: 0;
   padding: 12px 18px;
   text-wrap: balance; /* phones: even line lengths when the text wraps */
-  background: #fff;
+  background: transparent;
+  border: 1.5px solid var(--ink);
   border-radius: 20px;
-  box-shadow: 0 10px 30px rgba(0, 52, 89, 0.14), 0 1px 3px rgba(0, 52, 89, 0.08);
   font-family: var(--font-ui);
   font-size: 1rem;
   font-weight: 500;
