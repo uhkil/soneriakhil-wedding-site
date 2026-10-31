@@ -13,9 +13,10 @@
 
 const art = {
   storyVignette: {
-    src: '',
-    ratio: '1 / 1',
-    note: 'Small couple vignette (e.g. coffee together)',
+    src: 'assets/art/coffee-date.svg',
+    ratio: '963 / 754',
+    tint: true,
+    note: 'The two of us on a coffee date, playing cards',
   },
   transitionWalk: {
     src: '',
