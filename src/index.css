@@ -1576,7 +1576,7 @@ summary:focus-visible {
 :root[data-design='honey'] {
   --paper: #cae9ff;        /* super light blue background */
   --paper-light: #e2f3ff;  /* cards and inputs: a touch lighter */
-  --paper-tinted: #b9e0fb; /* the Events section: a touch deeper */
+  --paper-tinted: #cae9ff; /* the Events section: same as the page */
   --line: #93c3e4;         /* hairlines and borders */
   --rust: #003459;         /* headings: dark blue */
   --cocoa: #003459;        /* small labels: the same dark blue */
