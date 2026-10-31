@@ -1577,7 +1577,7 @@ summary:focus-visible {
   --stem: #e2f3ff;
   --ink: #003459;          /* body text: dark blue */
   --font-display: 'Archivo', 'Arial Black', Helvetica, sans-serif;
-  --font-script: 'Pinyon Script', 'Snell Roundhand', cursive;
+  --font-script: 'Parisienne', 'Snell Roundhand', cursive; /* the ampersand */
   --font-ui: 'Archivo', Helvetica, Arial, sans-serif;
   --nav-height: 46px;      /* a slimmer nav, so the names and photo sit higher */
 }
@@ -1754,7 +1754,7 @@ summary:focus-visible {
   font-stretch: 100%;
   text-transform: none;
   letter-spacing: 0;
-  font-size: 1.9em;
+  font-size: 1.7em;
   line-height: 0;
   position: relative;
   top: 0.1em;
