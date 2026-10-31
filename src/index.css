@@ -2688,25 +2688,30 @@ summary:focus-visible {
 }
 
 .honey-frames,
-.honey-frames img {
+.honey-frames > div {
   position: absolute;
   inset: 0;
   width: 100%;
   height: 100%;
 }
 
-/* One frame shows at a time; the old one stays underneath while the new one fades in. */
-.honey-frames img {
+/* Each frame: the text color (--ink), cut into that frame's shape.
+   One frame shows at a time; the old one stays underneath while the new one fades in. */
+.honey-frames > div {
   opacity: 0;
-  user-select: none;
+  background: var(--ink);
+  -webkit-mask-size: 100% 100%;
+  mask-size: 100% 100%;
+  -webkit-mask-repeat: no-repeat;
+  mask-repeat: no-repeat;
 }
 
-.honey-frames img.previous {
+.honey-frames > div.previous {
   opacity: 1;
   z-index: 1;
 }
 
-.honey-frames img.current {
+.honey-frames > div.current {
   opacity: 1;
   z-index: 2;
   animation: frame-in var(--fade) linear;
@@ -2798,7 +2803,7 @@ summary:focus-visible {
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .honey-frames img.current {
+  .honey-frames > div.current {
     animation: none;
   }
   .honey-bubble {

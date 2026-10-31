@@ -7,6 +7,8 @@
 // frames 5 and 6 nudged so their heads and feet line up with the dancing
 // frames, and every light area (skin, eyes, highlights) made see-through, so
 // the page's blue shows through in every frame.
+// The couple is drawn in the page's text color (--ink in index.css): each
+// frame's shape is filled with that color, so they always match the text.
 import { useFrameSequence } from './useFrameSequence.js'
 
 const base = import.meta.env.BASE_URL + 'assets/hero-honey/'
@@ -16,17 +18,17 @@ const SOURCES = Object.fromEntries([1, 2, 3, 4, 5, 6].map((n) => [`frame-${n}`, 
 // The dance steps are quick; the turn and the wave are a little slower.
 // Edit these to change the pacing.
 const SEQUENCE = [
-  ['frame-1', 420, 140], // dancing
-  ['frame-2', 420, 140], // stepping out
-  ['frame-3', 460, 140], // the big step
-  ['frame-2', 420, 140], // stepping back
-  ['frame-1', 440, 140],
+  ['frame-1', 560, 160], // dancing
+  ['frame-2', 560, 160], // stepping out
+  ['frame-3', 620, 160], // the big step
+  ['frame-2', 560, 160], // stepping back
+  ['frame-1', 600, 160],
   // From here the poses change more, so the fades are short: a long fade
   // would briefly show both poses at once.
-  ['frame-4', 520, 100], // a close moment
-  ['frame-5', 480, 80], // turning toward you
-  ['frame-6', 380, 70], // waving
-  ['frame-5', 340, 70],
+  ['frame-4', 720, 100], // a close moment
+  ['frame-5', 640, 80], // turning toward you
+  ['frame-6', 520, 70], // waving
+  ['frame-5', 460, 70],
   ['frame-6', 0, 70], // waving again, and stopping here
 ]
 const TALK_AT = SEQUENCE.length - 1 // the bubbles appear with the last wave
@@ -45,13 +47,10 @@ export default function HoneyDance() {
           {Object.entries(SOURCES).map(([name, src]) => {
             const state = name === frame ? 'current' : name === previous ? 'previous' : ''
             return (
-              <img
+              <div
                 key={name}
-                src={src}
-                alt=""
                 className={state}
-                style={{ '--fade': `${fade}ms` }}
-                draggable="false"
+                style={{ '--fade': `${fade}ms`, WebkitMaskImage: `url(${src})`, maskImage: `url(${src})` }}
               />
             )
           })}
