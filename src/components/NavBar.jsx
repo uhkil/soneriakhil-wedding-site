@@ -53,7 +53,8 @@ export default function NavBar({ onLogout }) {
   return (
     <nav className="navbar">
       <a className="navbar-brand" href="#home">
-        S &amp; A
+        {/* The "&" has its own tag so a design can style it (House of Honey uses its script "&"). */}
+        S <span className="navbar-and">&amp;</span> A
       </a>
 
       {/* Only visible on phones (the CSS hides it on bigger screens). */}

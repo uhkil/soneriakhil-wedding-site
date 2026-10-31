@@ -1652,6 +1652,17 @@ summary:focus-visible {
   font-size: 1.05rem;
 }
 
+/* The logo's "&" matches the script ampersand in the big names. */
+[data-design='honey'] .navbar-and {
+  font-family: var(--font-script);
+  font-weight: 400;
+  font-stretch: 100%;
+  font-size: 1.9em;
+  line-height: 0;
+  position: relative;
+  top: 0.06em; /* centered on the S and A (measured) */
+}
+
 [data-design='honey'] .navbar-links {
   flex: 1;
   gap: 24px;
