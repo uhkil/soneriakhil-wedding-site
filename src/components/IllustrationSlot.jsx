@@ -1,5 +1,6 @@
 // A spot for an illustration. Looks up the art by name in src/data/art.js.
-//   - If that art has a file ("src"), it shows the image.
+//   - If that art has a file ("src"), it shows the image (or, with "tint",
+//     the drawing in the page's text color).
 //   - If not, it shows a labeled placeholder in the right shape, so we can
 //     judge size and placement before the real art exists.
 // Usage: <IllustrationSlot name="heroCouple" size="large" />
@@ -14,7 +15,17 @@ export default function IllustrationSlot({ name, size = 'medium', className = ''
       className={`illustration-slot size-${size} ${className}`}
       style={{ aspectRatio: item.ratio }}
     >
-      {item.src ? (
+      {item.src && item.tint ? (
+        // The text color, cut into the drawing's shape (see "tint" in art.js).
+        <div
+          className="illustration-tint"
+          aria-hidden="true"
+          style={{
+            WebkitMaskImage: `url(${import.meta.env.BASE_URL + item.src})`,
+            maskImage: `url(${import.meta.env.BASE_URL + item.src})`,
+          }}
+        />
+      ) : item.src ? (
         // import.meta.env.BASE_URL adds the site's folder name when it's online
         // (e.g. /soneriakhil-wedding-site/), so image paths work everywhere.
         // alt="" tells screen readers this art is decorative.

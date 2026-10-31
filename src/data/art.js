@@ -8,6 +8,8 @@
 //
 // "ratio" is the shape of the spot (width / height). Final art should
 // roughly match it. "note" describes what the art is meant to show.
+// "tint: true" draws a one-color drawing in the page's text color instead of
+// its own colors, so it matches every design (its see-through parts stay see-through).
 
 const art = {
   storyVignette: {
@@ -21,9 +23,10 @@ const art = {
     note: 'Tiny couple walking hand in hand',
   },
   'event-ceremony': {
-    src: '',
-    ratio: '1 / 1',
-    note: 'Intimate Ceremony vibe',
+    src: 'assets/art/ceremony.svg',
+    ratio: '614 / 1040',
+    tint: true,
+    note: 'The two of us at the civil ceremony (with a basketball)',
   },
   'event-sangeet': {
     src: '',
