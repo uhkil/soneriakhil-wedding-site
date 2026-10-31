@@ -2820,3 +2820,154 @@ summary:focus-visible {
     transition: none;
   }
 }
+
+/* ----- House of Honey: the first screen, then the countdown ----- */
+
+/* The names and the dancing couple share exactly the first screen. */
+.honey-screen {
+  min-height: calc(100dvh - var(--nav-height));
+  display: flex;
+  flex-direction: column;
+}
+
+/* Text only screen readers hear (e.g. "182 days until the wedding"). */
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+/* The countdown: about 40% of the page wide, with plenty of space above it
+   (so the couple gets the spotlight) and below it. */
+.countdown {
+  position: relative;
+  width: 40%;
+  min-width: min(340px, calc(100% - 32px));
+  margin: clamp(96px, 22vh, 240px) auto clamp(80px, 16vh, 180px);
+  color: var(--ink);
+}
+
+.countdown-units {
+  display: flex;
+  justify-content: space-between;
+}
+
+.countdown-unit {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+}
+
+/* The numbers: the same bold, wide face as the names, airy spacing, and
+   equal-width digits so they don't wobble as they tick. */
+.countdown-value {
+  font-family: var(--font-display);
+  font-weight: 900;
+  font-stretch: 125%;
+  font-size: clamp(1.7rem, 3.4vw, 3.2rem);
+  line-height: 1;
+  letter-spacing: 0.08em;
+  font-variant-numeric: tabular-nums;
+}
+
+.countdown-label {
+  font-family: var(--font-ui);
+  font-size: 0.72rem;
+  font-weight: 500;
+  letter-spacing: 0.32em;
+  text-transform: uppercase;
+  margin-right: -0.32em; /* keeps the spaced-out word centered */
+}
+
+/* ----- The butterfly beside the countdown ----- */
+
+.butterfly {
+  position: absolute;
+  right: -96px;
+  top: -64px;
+  width: 58px;
+  color: var(--ink);
+}
+
+.butterfly svg {
+  display: block;
+  width: 100%;
+  overflow: visible;
+}
+
+.butterfly-wing path,
+.butterfly-body {
+  fill: currentColor;
+}
+
+.butterfly-spot {
+  fill: var(--paper); /* little light spots on the wings */
+}
+
+.butterfly-antenna {
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linecap: round;
+}
+
+/* The wings fold toward the body (squeezing sideways) in quick bursts of
+   flaps, then rest, like a real butterfly. */
+.butterfly-pivot {
+  fill: none;
+}
+
+.butterfly-wing {
+  transform-box: fill-box; /* the invisible box around the body sets the fold line */
+  transform-origin: 50% 50%;
+  animation: butterfly-flap 2.4s ease-in-out infinite;
+}
+
+@keyframes butterfly-flap {
+  0%, 36%, 100% { transform: scaleX(1); }
+  6%, 18%, 30%  { transform: scaleX(0.18); }
+  12%, 24%      { transform: scaleX(1); }
+  60%           { transform: scaleX(0.85); }
+  70%           { transform: scaleX(1); }
+}
+
+/* The whole butterfly drifts in a small, lazy loop. */
+.butterfly-drift {
+  animation: butterfly-drift 7s ease-in-out infinite;
+}
+
+@keyframes butterfly-drift {
+  0%, 100% { transform: translate(0, 0) rotate(-10deg); }
+  30%      { transform: translate(-12px, -16px) rotate(4deg); }
+  55%      { transform: translate(8px, -8px) rotate(12deg); }
+  80%      { transform: translate(-4px, 6px) rotate(-4deg); }
+}
+
+/* Phones: the countdown spans most of the width; the butterfly sits above its right end. */
+@media (max-width: 720px) {
+  .countdown {
+    width: calc(100% - 32px);
+    margin-top: 96px;
+  }
+  .countdown-label {
+    font-size: 0.62rem;
+    letter-spacing: 0.2em;
+    margin-right: -0.2em;
+  }
+  .butterfly {
+    right: 4px;
+    top: -76px;
+    width: 46px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .butterfly-wing,
+  .butterfly-drift {
+    animation: none;
+  }
+}
