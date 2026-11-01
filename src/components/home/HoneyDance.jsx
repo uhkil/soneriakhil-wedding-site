@@ -56,7 +56,7 @@ const VERSIONS = {
     ],
   },
   2: {
-    sources: frameFiles('hero-honey-2', 7, 2),
+    sources: frameFiles('hero-honey-2', 7, 3),
     // The dissolves are fairly long (see .honey-frames in index.css): the new
     // pose fades in over the first half, the old one fades out over the second,
     // so moving limbs blend instead of jumping.
