@@ -1016,16 +1016,18 @@ summary:focus-visible {
   margin-right: 0;
 }
 
-/* The coffee-date drawing: 1.75× the usual small size (260px → 455px). */
+/* The coffee-date drawing: 455px → 70% of that. */
 .illustration-slot.story-vignette {
-  max-width: 455px;
+  max-width: 320px;
 }
 
 /* Wider screens: tuck it toward the right edge, halving the empty space
-   between it and the edge of the page. */
+   between it and the edge of the page — but always keep at least 200px of
+   space on its right. On smaller laptops that means it stays lined up with
+   the text instead of crowding the edge. */
 @media (min-width: 641px) {
   .illustration-slot.story-vignette {
-    margin-right: calc((100% - 100vw) / 4);
+    margin-right: max(calc((100% - 100vw) / 4), min(0px, calc((100% - 100vw) / 2 + 200px)));
   }
 }
 
