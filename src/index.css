@@ -2827,6 +2827,58 @@ summary:focus-visible {
   }
 }
 
+/* Animation 2's bubbles: filled with the dark blue, light blue text, and a
+   small rounded tail pointing at whoever is speaking. A soft shadow lifts
+   them off the page. */
+.honey-hero-2 .honey-bubble {
+  padding: 12px 20px;
+  background: var(--ink);
+  border: none;
+  border-radius: 22px;
+  color: var(--paper);
+  letter-spacing: 0.01em;
+  box-shadow: 0 8px 22px rgba(0, 52, 89, 0.18);
+}
+
+.honey-hero-2 .honey-bubble::after {
+  content: '';
+  position: absolute;
+  bottom: -6px;
+  width: 16px;
+  height: 16px;
+  background: inherit;
+  border-radius: 3px;
+  rotate: 45deg;
+}
+
+.honey-hero-2 .honey-bubble-her::after {
+  right: 26px;
+}
+
+.honey-hero-2 .honey-bubble-him::after {
+  left: 26px;
+}
+
+@media (max-width: 720px) {
+  .honey-hero-2 .honey-bubble {
+    padding: 9px 14px;
+    border-radius: 18px;
+  }
+  .honey-hero-2 .honey-bubble::after {
+    width: 12px;
+    height: 12px;
+    bottom: -5px;
+  }
+  .honey-hero-2 .honey-bubble-her::after {
+    right: auto;
+    left: 30px;
+  }
+  .honey-hero-2 .honey-bubble-him::after {
+    left: auto;
+    right: 30px;
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .honey-frames > div.current {
     animation: none;

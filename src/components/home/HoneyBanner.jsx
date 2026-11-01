@@ -5,8 +5,11 @@
 // (The photo carousel it used before is still in PhotoCarousel.jsx.)
 import HoneyDance from './HoneyDance.jsx'
 import Countdown from './Countdown.jsx'
+import { useHoneyHero } from '../../design/useDesign.js'
 
 export default function HoneyBanner({ welcome }) {
+  const [hero] = useHoneyHero()
+
   return (
     <div className="honey">
       {/* The first screen: the names, then the dancing couple filling the rest. */}
@@ -32,7 +35,8 @@ export default function HoneyBanner({ welcome }) {
             </p>
           </div>
         </div>
-        <HoneyDance />
+        {/* key: switching versions starts the new one from the beginning. */}
+        <HoneyDance key={hero} version={hero} />
       </div>
       {/* Below the first screen: some breathing room, then the countdown. */}
       <Countdown />
