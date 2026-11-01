@@ -53,20 +53,20 @@ const VERSIONS = {
   },
   2: {
     sources: frameFiles('hero-honey-2', 7, 1),
+    // The dissolves are fairly long (see .honey-frames in index.css): the new
+    // pose fades in over the first half, the old one fades out over the second,
+    // so moving limbs blend instead of jumping.
     sequence: [
-      ['frame-1', 600, 170], // dancing
-      ['frame-2', 580, 170], // stepping out
-      ['frame-3', 660, 170], // the big step
-      ['frame-2', 580, 170], // stepping back
-      ['frame-1', 640, 170],
-      // Bigger changes from here, so shorter fades (a long one would show
-      // both poses at once).
-      ['frame-4', 820, 110], // a close moment, eyes closed
-      ['frame-5', 700, 100], // turning toward you, hand coming up
-      // Only his arm moves in these, so a slightly softer fade reads as motion.
-      ['frame-6', 560, 110], // waving
-      ['frame-5', 460, 110],
-      ['frame-7', 0, 140], // arm down, settled, and stopping here
+      ['frame-1', 640, 280], // dancing
+      ['frame-2', 620, 280], // stepping out
+      ['frame-3', 700, 280], // the big step
+      ['frame-2', 620, 280], // stepping back
+      ['frame-1', 680, 280],
+      ['frame-4', 880, 260], // a close moment, eyes closed
+      ['frame-5', 740, 240], // turning toward you, hand coming up
+      ['frame-6', 620, 220], // waving (only his arm moves in these)
+      ['frame-5', 520, 220],
+      ['frame-7', 0, 260], // arm down, settled, and stopping here
     ],
   },
 }

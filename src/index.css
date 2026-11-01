@@ -2728,17 +2728,35 @@ summary:focus-visible {
   mask-size: 100% 100%;
   -webkit-mask-repeat: no-repeat;
   mask-repeat: no-repeat;
+  /* Keep every frame ready for fading, so the edges don't shimmer as a fade
+     starts and stops. */
+  will-change: opacity;
 }
 
+/* A smooth dissolve in two halves: the new frame fades in over the first
+   half while the old one stays solid underneath, then the old one fades out
+   over the second half. Whatever both frames share stays solid the whole
+   time; only the parts that move blend, and nothing pops away at the end. */
 .honey-frames > div.previous {
-  opacity: 1;
+  opacity: 0;
   z-index: 1;
+  animation: frame-out var(--fade) ease-in-out;
 }
 
 .honey-frames > div.current {
   opacity: 1;
   z-index: 2;
-  animation: frame-in var(--fade) linear;
+  animation: frame-in calc(var(--fade) / 2) ease-in-out;
+}
+
+@keyframes frame-out {
+  0%,
+  50% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+  }
 }
 
 /* Speech bubbles: clean, modern chat bubbles. See-through with a thin dark
