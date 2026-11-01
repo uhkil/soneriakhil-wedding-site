@@ -1294,13 +1294,21 @@ img.nugget-photo {
 
 /* ---------- Memories: film strip view ---------- */
 
+/* The strip runs the full width of the page; photos at the edges get cut
+   off and the guest scrolls sideways for the rest. */
+#memories {
+  overflow-x: clip; /* the full-width strip never makes the page scroll sideways */
+}
+
 .filmstrip {
+  width: 100vw;
+  margin-left: calc(50% - 50vw);
+  box-sizing: border-box;
   display: flex;
   gap: 12px;
   overflow-x: auto;      /* scroll sideways through the frames */
   background: var(--ink);
   padding: 20px 12px;
-  border-radius: 4px;
   /* Dashed borders top and bottom stand in for the film's sprocket holes. */
   border-top: 8px dashed var(--paper);
   border-bottom: 8px dashed var(--paper);
@@ -1653,9 +1661,9 @@ img.nugget-photo {
 .attire-note {
   position: relative;
   display: block;
-  margin-top: 2px;
+  margin-top: -5px; /* sits snug under the attire (whose icon makes its line a bit taller) */
   font-size: 0.85rem;
-  font-style: italic;
+  line-height: 1.35;
 }
 
 /* A button that looks like a text link. */

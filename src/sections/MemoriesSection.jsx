@@ -1,8 +1,8 @@
 // A collection of photos, viewable three ways:
-//   - "Film strip": all photos in a row you can scroll sideways
+//   - "Film strip": all photos in a row across the whole page, scrolling sideways
+//   - "Camera" (shown first): one photo at a time on the screen of a drawn
+//     camera; its left and right arrows step through them
 //   - "Grid": all photos at once, in rows
-//   - "Camera": one photo at a time on the screen of a drawn camera; its
-//     left and right arrows step through them
 import Section from '../components/Section.jsx'
 import { useState } from 'react'
 import PhotoSlot from '../components/PhotoSlot.jsx'
@@ -18,14 +18,14 @@ const photos = [
 
 const VIEWS = [
   { id: 'filmstrip', label: 'Film strip' },
-  { id: 'grid', label: 'Grid' },
   { id: 'camera', label: 'Camera' },
+  { id: 'grid', label: 'Grid' },
 ]
 
 export default function MemoriesSection() {
   // "useState" lets a component remember something that can change.
   // view = which view is showing; setView = the function that changes it.
-  const [view, setView] = useState('filmstrip')
+  const [view, setView] = useState('camera')
   const viewIndex = VIEWS.findIndex((v) => v.id === view)
 
   return (
