@@ -4,7 +4,6 @@
 // DecorativeTransitions are small illustrated pauses BETWEEN sections.
 // They aren't in the nav; delete a line to remove one.
 import NavBar from './components/NavBar.jsx'
-import DecorativeTransition from './components/DecorativeTransition.jsx'
 import HomeSection from './sections/HomeSection.jsx'
 import OurStorySection from './sections/OurStorySection.jsx'
 import MemoriesSection from './sections/MemoriesSection.jsx'
@@ -15,6 +14,7 @@ import FaqSection from './sections/FaqSection.jsx'
 import RsvpSection from './sections/RsvpSection.jsx'
 import LoginPage from './components/login/LoginPage.jsx'
 import DesignToggle from './design/DesignToggle.jsx'
+import Toaster from './components/Toast.jsx'
 import { useGuest } from './guest/GuestProvider.jsx'
 import { isPractice } from './api/rsvpApi.js'
 
@@ -25,6 +25,7 @@ export default function App() {
   return (
     <>
       <DesignToggle />
+      <Toaster />
       {isPractice && (
         <p className="practice-banner">
           Practice mode: fake guests. Try “Jordan Lee” with passcode CELEBRATE.
@@ -41,7 +42,6 @@ export default function App() {
             <MemoriesSection />
             {/* Only the events this party is invited to, with details from the Sheet. */}
             <EventsSection events={party.events} />
-            <DecorativeTransition art="indianAttire" size="medium" />
             <TravelSection />
             <RegistrySection />
             <FaqSection />

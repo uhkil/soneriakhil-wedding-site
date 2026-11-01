@@ -1,9 +1,20 @@
 // ONE event on the timeline: the details, a dot on the timeline line,
 // and the event's artwork on the opposite side.
 // "flipped" swaps which side the details and the artwork are on.
+// The details come from the Sheet, filled in by src/data/events.js (which
+// also adds the map pin, the moodboard icon, and any note under the attire).
+import { useEffect, useRef, useState } from 'react'
 import IllustrationSlot from './IllustrationSlot.jsx'
+import { showToast } from './Toast.jsx'
 
 export default function EventBlock({ event, flipped }) {
+  const facts = [
+    ['Time', event.time],
+    ['Location', event.location],
+    ['Address', event.address && <Address event={event} />],
+    ['Attire', event.attire && <Attire event={event} />],
+  ]
+
   return (
     <div id={event.id} className={flipped ? 'timeline-item flipped' : 'timeline-item'}>
       <div className="event-details">
@@ -12,14 +23,9 @@ export default function EventBlock({ event, flipped }) {
         </p>
         <h3>{event.name}</h3>
         {/* A "definition list": pairs of labels (dt) and values (dd).
-            Rows the Sheet leaves blank are skipped. */}
+            Rows left blank are skipped. */}
         <dl className="event-facts">
-          {[
-            ['Time', event.time],
-            ['Location', event.location],
-            ['Address', event.address],
-            ['Attire', event.attire],
-          ]
+          {facts
             .filter(([, value]) => value)
             .map(([label, value]) => (
               <div key={label} className="event-fact">
@@ -36,5 +42,113 @@ export default function EventBlock({ event, flipped }) {
       {/* Each event's art is listed in src/data/art.js as "event-<id>". */}
       <IllustrationSlot name={`event-${event.id}`} size="small" className="timeline-art" />
     </div>
+  )
+}
+
+// The address, with a pin that opens it in Google Maps.
+function Address({ event }) {
+  return (
+    <span className="fact-with-icon">
+      {event.address}
+      {event.mapUrl && (
+        <a
+          className="fact-icon"
+          href={event.mapUrl}
+          target="_blank"
+          rel="noreferrer"
+          aria-label={`Open ${event.location || 'the address'} in Google Maps`}
+          title="Open in Google Maps"
+        >
+          <PinIcon />
+        </a>
+      )}
+    </span>
+  )
+}
+
+// The attire, with a moodboard icon, and an optional note underneath.
+function Attire({ event }) {
+  const label = `${event.name} attire moodboard`
+  return (
+    <>
+      <span className="fact-with-icon">
+        {event.attire}
+        {'moodboard' in event &&
+          (event.moodboard ? (
+            <a className="fact-icon" href={event.moodboard} target="_blank" rel="noreferrer" aria-label={label} title="Moodboard">
+              <MoodboardIcon />
+            </a>
+          ) : (
+            <button
+              type="button"
+              className="fact-icon"
+              aria-label={label}
+              title="Moodboard"
+              onClick={() => showToast('Moodboard coming soon!')}
+            >
+              <MoodboardIcon />
+            </button>
+          ))}
+      </span>
+      {event.attireNote && <AttireNote note={event.attireNote} popup={event.attirePopup} />}
+    </>
+  )
+}
+
+// e.g. "bonus points if you wear a cowboys jersey", where "cowboys jersey"
+// opens a little card (a photo). Clicking outside it or pressing Escape closes it.
+function AttireNote({ note, popup }) {
+  const [open, setOpen] = useState(false)
+  const ref = useRef(null)
+
+  useEffect(() => {
+    if (!open) return
+    const onClick = (e) => !ref.current?.contains(e.target) && setOpen(false)
+    const onKey = (e) => e.key === 'Escape' && setOpen(false)
+    document.addEventListener('pointerdown', onClick)
+    document.addEventListener('keydown', onKey)
+    return () => {
+      document.removeEventListener('pointerdown', onClick)
+      document.removeEventListener('keydown', onKey)
+    }
+  }, [open])
+
+  return (
+    <span className="attire-note" ref={ref}>
+      {note.before}
+      <button type="button" className="link-button" aria-expanded={open} onClick={() => setOpen(!open)}>
+        {note.link}
+      </button>
+      {note.after}
+      {open && popup && (
+        <span className="attire-popup" role="dialog" aria-label={popup.alt}>
+          {popup.image ? (
+            <img src={import.meta.env.BASE_URL + popup.image} alt={popup.alt} />
+          ) : (
+            <span className="attire-popup-placeholder">{popup.caption}</span>
+          )}
+        </span>
+      )}
+    </span>
+  )
+}
+
+function PinIcon() {
+  return (
+    <svg viewBox="0 0 24 24" aria-hidden="true">
+      <path d="M12 21s-6.5-5.6-6.5-11a6.5 6.5 0 0 1 13 0c0 5.4-6.5 11-6.5 11z" />
+      <circle cx="12" cy="10" r="2.4" />
+    </svg>
+  )
+}
+
+// A little collage: a tall picture beside two small ones.
+function MoodboardIcon() {
+  return (
+    <svg viewBox="0 0 24 24" aria-hidden="true">
+      <rect x="3.5" y="3.5" width="8" height="17" rx="1.5" />
+      <rect x="14" y="3.5" width="6.5" height="7.5" rx="1.5" />
+      <rect x="14" y="13" width="6.5" height="7.5" rx="1.5" />
+    </svg>
   )
 }

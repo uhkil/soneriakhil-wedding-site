@@ -13,6 +13,8 @@
 // "nugget" is a little extra about us that pops up when a guest hovers over
 // (or taps) the drawing: an optional heading, some text, and an optional
 // list of links. A link with an empty href shows as plain text until it has one.
+// Also optional: "gap" (space between the drawing and the card, in px),
+// "width" (the card's width, e.g. '20em'), "oneLine" (keep it on one line).
 
 const art = {
   storyVignette: {
@@ -21,6 +23,8 @@ const art = {
     tint: true,
     note: 'The two of us on a coffee date, playing cards',
     nugget: {
+      gap: 40,
+      width: '20em', // two lines of text
       heading: 'games we love',
       text: 'Placeholder: links to the games we like to play together are coming soon.',
     },
@@ -31,6 +35,7 @@ const art = {
     tint: true,
     note: 'The two of us at a museum, looking at a painting',
     nugget: {
+      gap: 40,
       heading: 'museums we’ve enjoyed',
       text: 'Go see them for yourself:',
       links: [
@@ -46,6 +51,7 @@ const art = {
     tint: true,
     note: 'The two of us playing basketball',
     nugget: {
+      oneLine: true,
       // (non-breaking hyphens keep “p-i-g” on one line)
       text: 'fun fact: soneri has beat akhil in p\u2011i\u2011g 3 times!',
     },

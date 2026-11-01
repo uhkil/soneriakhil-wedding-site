@@ -1069,15 +1069,6 @@ summary:focus-visible {
   outline: none;
 }
 
-.illustration-slot.has-nugget .illustration-tint {
-  transition: transform 0.3s ease;
-}
-
-.illustration-slot.has-nugget:hover .illustration-tint,
-.illustration-slot.has-nugget:focus-within .illustration-tint {
-  transform: translateY(-4px);
-}
-
 .illustration-slot.has-nugget:focus-visible .illustration-tint {
   outline: 2px solid var(--ink);
   outline-offset: 8px;
@@ -1087,16 +1078,25 @@ summary:focus-visible {
 .nugget {
   position: absolute;
   z-index: 20;
-  top: 12%;
+  top: 50%;
   right: 100%;
+  translate: 0 -50%; /* centered on the drawing, top to bottom */
   width: max-content;
-  max-width: min(280px, 70vw);
-  padding: 0 16px; /* see-through bridge, so moving onto the card keeps it open */
+  /* See-through space between the drawing and the card (--nugget-gap, set
+     per drawing in art.js). Being part of the hover area, it keeps the card
+     open while the pointer moves across to it. */
+  padding: 0 var(--nugget-gap, 16px);
   opacity: 0;
   visibility: hidden;
   transform: translateY(6px);
   transition: opacity 0.25s ease, transform 0.25s ease, visibility 0s 0.25s;
   cursor: auto;
+}
+
+/* A nugget short enough to sit on one line ("oneLine" in art.js). */
+.nugget.one-line .nugget-card {
+  max-width: none;
+  white-space: nowrap;
 }
 
 .corner-art-left .nugget {
@@ -1113,11 +1113,12 @@ summary:focus-visible {
 }
 
 .nugget-card {
+  box-sizing: border-box;
+  max-width: var(--nugget-width, min(280px, 70vw));
   padding: 14px 18px;
-  border: 1.5px solid var(--ink);
   border-radius: 18px;
-  background: var(--paper);
-  color: var(--ink);
+  background: var(--ink);
+  color: var(--paper);
   font: 400 0.95rem/1.45 var(--font-ui);
   text-align: left;
 }
@@ -1155,16 +1156,16 @@ summary:focus-visible {
     translate: -50% 0;
     padding: 10px 0 0;
   }
+  .nugget-card,
+  .nugget.one-line .nugget-card {
+    max-width: min(var(--nugget-width, 280px), calc(100vw - 32px));
+    white-space: normal;
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .illustration-slot.has-nugget .illustration-tint,
   .nugget {
     transition: none;
-  }
-  .illustration-slot.has-nugget:hover .illustration-tint,
-  .illustration-slot.has-nugget:focus-within .illustration-tint {
-    transform: none;
   }
 }
 
@@ -1402,6 +1403,148 @@ summary:focus-visible {
 /* Each label/value pair sits in the grid's two columns. */
 .event-fact {
   display: contents;
+}
+
+/* A value with a small icon link after it (the map pin, the moodboard). */
+.fact-with-icon {
+  display: inline;
+}
+
+.fact-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  margin: -4px 0 -4px 6px;
+  padding: 0;
+  vertical-align: middle;
+  border: none;
+  border-radius: 50%;
+  background: transparent;
+  color: inherit;
+  cursor: pointer;
+  transition: background 0.2s ease, color 0.2s ease;
+}
+
+.fact-icon svg {
+  width: 17px;
+  height: 17px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.7;
+  stroke-linejoin: round;
+}
+
+.fact-icon:hover,
+.fact-icon:focus-visible {
+  background: var(--ink);
+  color: var(--paper);
+}
+
+/* A small line under the attire, e.g. "bonus points if you wear a cowboys jersey". */
+.attire-note {
+  position: relative;
+  display: block;
+  margin-top: 2px;
+  font-size: 0.85rem;
+  font-style: italic;
+}
+
+/* A button that looks like a text link. */
+.link-button {
+  padding: 0;
+  border: none;
+  background: none;
+  font: inherit;
+  color: inherit;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  cursor: pointer;
+}
+
+/* The card that the link opens: a photo (or its placeholder). */
+.attire-popup {
+  position: absolute;
+  z-index: 20;
+  left: 0;
+  top: calc(100% + 8px);
+  display: block;
+  width: 200px;
+  padding: 8px;
+  border-radius: 14px;
+  background: var(--ink);
+  color: var(--paper);
+  font-style: normal;
+  animation: pop-in 0.2s ease;
+}
+
+.attire-popup img,
+.attire-popup-placeholder {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  aspect-ratio: 4 / 5;
+  border-radius: 8px;
+  object-fit: cover;
+}
+
+.attire-popup-placeholder {
+  box-sizing: border-box;
+  padding: 16px;
+  border: 1.5px dashed currentColor;
+  font-size: 0.85rem;
+  text-align: center;
+}
+
+@keyframes pop-in {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+}
+
+/* ----- Toast: a short message at the bottom of the screen (Toast.jsx) ----- */
+.toast-area {
+  position: fixed;
+  z-index: 60;
+  left: 50%;
+  bottom: calc(24px + env(safe-area-inset-bottom, 0px));
+  translate: -50% 0;
+  pointer-events: none;
+}
+
+.toast {
+  margin: 0;
+  padding: 10px 18px;
+  border-radius: 999px;
+  background: var(--ink);
+  color: var(--paper);
+  font: 500 0.9rem/1.2 var(--font-ui);
+  white-space: nowrap;
+  animation: toast-in 0.3s ease, toast-out 0.3s ease 2.5s forwards;
+}
+
+@keyframes toast-in {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+}
+
+@keyframes toast-out {
+  to {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .toast,
+  .attire-popup {
+    animation: none;
+  }
 }
 
 .timeline-dot {

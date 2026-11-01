@@ -4,13 +4,22 @@
 // to use fake guests instead of the real Sheet. Handy for testing.
 import { RSVP_API_URL } from '../config.js'
 import { handlePractice } from './practiceApi.js'
+import { withEventDetails } from '../data/events.js'
 
 export const isPractice = new URLSearchParams(window.location.search).has('practice')
 
 // Sends one request and returns the reply, or throws an Error whose
 // message is safe to show to guests.
 async function call(action, data) {
-  const request = { action, ...data }
+  const reply = await send({ action, ...data })
+  // Fill in each event's details (times, places, links) from src/data/events.js.
+  if (reply.party?.events) {
+    reply.party = { ...reply.party, events: reply.party.events.map(withEventDetails) }
+  }
+  return reply
+}
+
+async function send(request) {
   if (isPractice) return handlePractice(request)
 
   let response

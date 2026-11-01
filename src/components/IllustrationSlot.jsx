@@ -54,7 +54,14 @@ export default function IllustrationSlot({ name, size = 'medium', className = ''
 // pointer can travel from the drawing onto the card without it closing.
 function Nugget({ nugget }) {
   return (
-    <div className="nugget" role="note">
+    <div
+      className={nugget.oneLine ? 'nugget one-line' : 'nugget'}
+      role="note"
+      style={{
+        '--nugget-gap': nugget.gap && `${nugget.gap}px`,
+        '--nugget-width': nugget.width,
+      }}
+    >
       <div className="nugget-card">
         {nugget.heading && <p className="nugget-heading">{nugget.heading}</p>}
         {nugget.text && <p>{nugget.text}</p>}
