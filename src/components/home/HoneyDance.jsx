@@ -109,18 +109,19 @@ function Dance({ version, onReplay }) {
             the left, Akhil on the right. */}
         <p className="honey-bubble honey-bubble-her">we’re excited to celebrate with you :-)</p>
         <p className="honey-bubble honey-bubble-him">welcome to our wedding website!</p>
-
-        {/* Shows once the animation has finished. */}
-        {!stillOnly && talking && (
-          <button type="button" className="honey-replay" aria-label="Play the animation again" onClick={onReplay}>
-            <svg className="honey-replay-icon" viewBox="0 0 24 24" aria-hidden="true">
-              <path d="M20 12a8 8 0 1 1-2.34-5.66" />
-              <path d="M20 4v5h-5" />
-            </svg>
-            <span className="honey-replay-label" aria-hidden="true">play again</span>
-          </button>
-        )}
       </div>
+
+      {/* Once the animation has finished: shows in the bottom-right corner
+          while the pointer is over this area (always, on touch screens). */}
+      {!stillOnly && talking && (
+        <button type="button" className="honey-replay" aria-label="Play the animation again" onClick={onReplay}>
+          <svg className="honey-replay-icon" viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M20 12a8 8 0 1 1-2.34-5.66" />
+            <path d="M20 4v5h-5" />
+          </svg>
+          <span className="honey-replay-label" aria-hidden="true">play again</span>
+        </button>
+      )}
     </div>
   )
 }

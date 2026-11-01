@@ -2845,27 +2845,39 @@ summary:focus-visible {
   }
 }
 
-/* "play again": a small outlined button under the couple's feet, fading in
-   a moment after the speech bubbles. */
+/* "play again": plain text with a circular arrow, in the bottom-right
+   corner of the area around the couple (which spans the page's width and
+   ends at the bottom of the first screen). Once the animation has finished,
+   it fades in while the pointer is over that area, or when it has keyboard
+   focus. On touch screens, which have no hovering, it simply shows. */
 .honey-replay {
   position: absolute;
   z-index: 3;
-  left: 100%;
-  bottom: 2%;
+  right: 16px;
+  bottom: 0;
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  padding: 7px 14px;
-  border: 1.5px solid var(--ink);
-  border-radius: 999px;
+  padding: 8px 4px;
+  border: none;
   background: transparent;
   color: var(--ink);
   font: 500 0.85rem/1 var(--font-ui);
   letter-spacing: 0.02em;
   white-space: nowrap;
   cursor: pointer;
-  animation: replay-in 0.5s ease 1.6s both;
-  transition: background 0.2s ease, color 0.2s ease;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.honey-stage-wrap:hover .honey-replay,
+.honey-replay:focus-visible {
+  opacity: 1;
+}
+
+.honey-replay:hover .honey-replay-label {
+  text-decoration: underline;
+  text-underline-offset: 3px;
 }
 
 .honey-replay-icon {
@@ -2878,32 +2890,9 @@ summary:focus-visible {
   stroke-linejoin: round;
 }
 
-.honey-replay:hover,
-.honey-replay:focus-visible {
-  background: var(--ink);
-  color: var(--paper);
-}
-
-@keyframes replay-in {
-  from {
-    opacity: 0;
-    transform: translateY(4px);
-  }
-}
-
-/* Phones: just a small round ↻ beside his shoes, so it fits on screen. */
-@media (max-width: 720px) {
+@media (hover: none) {
   .honey-replay {
-    left: auto;
-    right: -6%;
-    bottom: 0;
-    width: 38px;
-    height: 38px;
-    justify-content: center;
-    padding: 0;
-  }
-  .honey-replay-label {
-    display: none;
+    opacity: 1;
   }
 }
 
