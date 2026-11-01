@@ -11,6 +11,7 @@
 //   previous  — the frame underneath, while the new one fades in over it (or null)
 //   fade      — how long the current frame's fade-in lasts (ms)
 //   talking   — true once the speech bubbles should show
+//   step      — which step of the sequence is showing (0 = first)
 //
 // With "reduce motion" on, it jumps straight to the last frame, bubbles showing.
 import { useEffect, useState } from 'react'
@@ -26,6 +27,7 @@ export function useFrameSequence(sources, sequence, talkAt) {
   const [previous, setPrevious] = useState(null)
   const [fade, setFade] = useState(sequence[0][2])
   const [talking, setTalking] = useState(stillOnly)
+  const [step, setStep] = useState(stillOnly ? sequence.length - 1 : 0)
 
   useEffect(() => {
     if (stillOnly) return
@@ -51,6 +53,7 @@ export function useFrameSequence(sources, sequence, talkAt) {
               setPrevious(shown)
               setFade(fadeMs)
               setFrame(name)
+              setStep(i)
               shown = name
               if (i === talkAt) setTalking(true)
             }, elapsed)
@@ -73,5 +76,5 @@ export function useFrameSequence(sources, sequence, talkAt) {
     return () => clearTimeout(t)
   }, [previous, frame, fade])
 
-  return { frame, previous, fade, talking }
+  return { frame, previous, fade, talking, step }
 }
