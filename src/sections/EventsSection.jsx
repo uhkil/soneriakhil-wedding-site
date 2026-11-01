@@ -5,11 +5,14 @@
 // Sheet after login, only for the events this party is invited to. They are
 // not stored in the website's code.
 import Section from '../components/Section.jsx'
+import IllustrationSlot from '../components/IllustrationSlot.jsx'
 import EventBlock from '../components/EventBlock.jsx'
 
 export default function EventsSection({ events }) {
   return (
     <Section id="events" className="section-field">
+      {/* Corner art just above the title (see "corner-art" in index.css). */}
+      <IllustrationSlot name="eventsVignette" size="small" className="corner-art corner-art-left" />
       <h2>Events</h2>
       <div className="timeline">
         {events.map((event, index) => {

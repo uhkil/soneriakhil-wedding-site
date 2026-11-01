@@ -39,7 +39,6 @@ export default function App() {
             <HomeSection />
             <OurStorySection />
             <MemoriesSection />
-            <DecorativeTransition art="transitionWalk" motion="walk" />
             {/* Only the events this party is invited to, with details from the Sheet. */}
             <EventsSection events={party.events} />
             <DecorativeTransition art="indianAttire" size="medium" />

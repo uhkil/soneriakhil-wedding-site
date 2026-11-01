@@ -18,6 +18,12 @@ const art = {
     tint: true,
     note: 'The two of us on a coffee date, playing cards',
   },
+  eventsVignette: {
+    src: 'assets/art/museum-date.svg',
+    ratio: '597 / 784',
+    tint: true,
+    note: 'The two of us at a museum, looking at a painting',
+  },
   travelVignette: {
     src: 'assets/art/basketball-date.svg',
     ratio: '1015 / 775',
