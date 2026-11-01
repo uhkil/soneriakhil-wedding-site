@@ -10,6 +10,9 @@
 // roughly match it. "note" describes what the art is meant to show.
 // "tint: true" draws a one-color drawing in the page's text color instead of
 // its own colors, so it matches every design (its see-through parts stay see-through).
+// "nugget" is a little extra about us that pops up when a guest hovers over
+// (or taps) the drawing: an optional heading, some text, and an optional
+// list of links. A link with an empty href shows as plain text until it has one.
 
 const art = {
   storyVignette: {
@@ -17,18 +20,35 @@ const art = {
     ratio: '963 / 754',
     tint: true,
     note: 'The two of us on a coffee date, playing cards',
+    nugget: {
+      heading: 'games we love',
+      text: 'Placeholder: links to the games we like to play together are coming soon.',
+    },
   },
   eventsVignette: {
     src: 'assets/art/museum-date.svg',
     ratio: '597 / 784',
     tint: true,
     note: 'The two of us at a museum, looking at a painting',
+    nugget: {
+      heading: 'museums we’ve enjoyed',
+      text: 'Go see them for yourself:',
+      links: [
+        { label: 'Placeholder museum one', href: '' },
+        { label: 'Placeholder museum two', href: '' },
+        { label: 'Placeholder museum three', href: '' },
+      ],
+    },
   },
   travelVignette: {
     src: 'assets/art/basketball-date.svg',
     ratio: '1015 / 775',
     tint: true,
     note: 'The two of us playing basketball',
+    nugget: {
+      // (non-breaking hyphens keep “p-i-g” on one line)
+      text: 'fun fact: soneri has beat akhil in p\u2011i\u2011g 3 times!',
+    },
   },
   transitionWalk: {
     src: '',

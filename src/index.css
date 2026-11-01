@@ -1058,6 +1058,116 @@ summary:focus-visible {
   }
 }
 
+/* ----- Nuggets: a little card about us that pops up beside a drawing
+   when a guest hovers over it, taps it, or tabs to it (see "nugget" in
+   src/data/art.js). It opens toward the middle of the page: to the left of
+   drawings on the right, to the right of drawings on the left, and below the
+   drawing on phones. ----- */
+.illustration-slot.has-nugget {
+  position: relative;
+  cursor: pointer;
+  outline: none;
+}
+
+.illustration-slot.has-nugget .illustration-tint {
+  transition: transform 0.3s ease;
+}
+
+.illustration-slot.has-nugget:hover .illustration-tint,
+.illustration-slot.has-nugget:focus-within .illustration-tint {
+  transform: translateY(-4px);
+}
+
+.illustration-slot.has-nugget:focus-visible .illustration-tint {
+  outline: 2px solid var(--ink);
+  outline-offset: 8px;
+  border-radius: 8px;
+}
+
+.nugget {
+  position: absolute;
+  z-index: 20;
+  top: 12%;
+  right: 100%;
+  width: max-content;
+  max-width: min(280px, 70vw);
+  padding: 0 16px; /* see-through bridge, so moving onto the card keeps it open */
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(6px);
+  transition: opacity 0.25s ease, transform 0.25s ease, visibility 0s 0.25s;
+  cursor: auto;
+}
+
+.corner-art-left .nugget {
+  right: auto;
+  left: 100%;
+}
+
+.illustration-slot.has-nugget:hover .nugget,
+.illustration-slot.has-nugget:focus-within .nugget {
+  opacity: 1;
+  visibility: visible;
+  transform: none;
+  transition: opacity 0.25s ease, transform 0.25s ease, visibility 0s;
+}
+
+.nugget-card {
+  padding: 14px 18px;
+  border: 1.5px solid var(--ink);
+  border-radius: 18px;
+  background: var(--paper);
+  color: var(--ink);
+  font: 400 0.95rem/1.45 var(--font-ui);
+  text-align: left;
+}
+
+.nugget-card p {
+  margin: 0;
+}
+
+.nugget-card .nugget-heading {
+  margin-bottom: 4px;
+  font-weight: 600;
+}
+
+.nugget-card ul {
+  margin: 8px 0 0;
+  padding-left: 1.1em;
+}
+
+.nugget-card li + li {
+  margin-top: 2px;
+}
+
+.nugget-card a {
+  color: inherit;
+  text-underline-offset: 3px;
+}
+
+/* Phones: the drawing is centered, so the card opens just below it. */
+@media (max-width: 640px) {
+  .nugget,
+  .corner-art-left .nugget {
+    top: 100%;
+    right: auto;
+    left: 50%;
+    translate: -50% 0;
+    padding: 10px 0 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .illustration-slot.has-nugget .illustration-tint,
+  .nugget {
+    transition: none;
+  }
+  .illustration-slot.has-nugget:hover .illustration-tint,
+  .illustration-slot.has-nugget:focus-within .illustration-tint {
+    transform: none;
+  }
+}
+
 /* On narrow screens, stack the photo above the text. */
 @media (max-width: 640px) {
   .story-moment {
@@ -2920,73 +3030,33 @@ summary:focus-visible {
   }
 }
 
-/* Animation 2's bubbles: a soft, lighter blue than the page with dark blue
-   text, and a small tail pointing toward the speaker's face. The tail is a
-   little triangle attached at its base to the bubble's edge (--tail-x,
-   --tail-y) and turned to aim at the face (--tail-angle: 0deg points right,
-   90deg points down). A soft shadow lifts the bubble off the page. */
+/* Animation 2's bubbles: the same thin dark blue outline with the text
+   inside, fully rounded, with no tail. */
 .honey-hero-2 .honey-bubble {
-  padding: 12px 20px;
-  background: var(--paper-light);
-  border: none;
-  border-radius: 22px;
-  color: var(--ink);
-  letter-spacing: 0.01em;
-  filter: drop-shadow(0 6px 14px rgba(0, 52, 89, 0.14));
+  border-radius: 999px;
 }
 
-.honey-hero-2 .honey-bubble::after {
-  content: '';
-  position: absolute;
-  left: var(--tail-x);
-  top: var(--tail-y);
-  width: 26px;
-  height: 20px;
-  margin-top: -10px; /* center the base on --tail-y */
-  background: inherit;
-  clip-path: polygon(0 0, 100% 50%, 0 100%);
-  transform-origin: 0 50%;
-  /* Turn it, then slide it back along its own direction so the base sits
-     inside the bubble (its rounded edge curves away from the box). */
-  transform: rotate(var(--tail-angle)) translateX(-12px);
-}
-
-/* Hers: off the bubble's right side, aimed down-right toward her face. */
+/* Hers sits a little further out, so it never touches her hair. */
 .honey-hero-2 .honey-bubble-her {
-  --tail-x: 100%;
-  --tail-y: 66%;
-  --tail-angle: 50deg;
+  right: 80%;
+  top: 5%;
 }
 
-/* His: off the bubble's left side, aimed down-left toward his face. */
-.honey-hero-2 .honey-bubble-him {
-  --tail-x: 0%;
-  --tail-y: 66%;
-  --tail-angle: 148deg;
-}
-
-/* Phones: the bubbles sit above their heads, so the tails come off the
-   bottom, aimed down toward each face. */
 @media (max-width: 720px) {
   .honey-hero-2 .honey-bubble {
-    padding: 9px 14px;
     border-radius: 18px;
   }
-  .honey-hero-2 .honey-bubble::after {
-    width: 20px;
-    height: 15px;
-    margin-top: -7.5px;
-    transform: rotate(var(--tail-angle)) translateX(-9px);
-  }
+  /* Side by side above their heads, meeting near the middle (so they never
+     run into each other), high enough to stay clear of their hair. */
   .honey-hero-2 .honey-bubble-her {
-    --tail-x: 72%;
-    --tail-y: 100%;
-    --tail-angle: 85deg;
+    left: auto;
+    right: 52%;
+    top: -66px;
   }
   .honey-hero-2 .honey-bubble-him {
-    --tail-x: 30%;
-    --tail-y: 100%;
-    --tail-angle: 135deg;
+    right: auto;
+    left: 52%;
+    top: -62px;
   }
 }
 

@@ -3,16 +3,22 @@
 //     the drawing in the page's text color).
 //   - If not, it shows a labeled placeholder in the right shape, so we can
 //     judge size and placement before the real art exists.
+//   - If the art has a "nugget", hovering over the drawing (or tapping it, or
+//     tabbing to it) pops up that little extra about us.
 // Usage: <IllustrationSlot name="heroCouple" size="large" />
 // size: "small", "medium", or "large" (sets the maximum width).
 import art from '../data/art.js'
 
 export default function IllustrationSlot({ name, size = 'medium', className = '' }) {
   const item = art[name]
+  const nugget = item.nugget
 
   return (
     <div
-      className={`illustration-slot size-${size} ${className}`}
+      className={`illustration-slot size-${size} ${className}${nugget ? ' has-nugget' : ''}`}
+      // With a nugget, it can be reached with the keyboard (and tapped on phones).
+      tabIndex={nugget ? 0 : undefined}
+      aria-label={nugget ? `${item.note}. ${nugget.heading ?? 'A fun fact'}` : undefined}
       // --art-width: the drawing's own width, so drawings in a group (e.g.
       // "corner-art" in index.css) can share one scale.
       style={{ aspectRatio: item.ratio, '--art-width': parseFloat(item.ratio) }}
@@ -39,6 +45,35 @@ export default function IllustrationSlot({ name, size = 'medium', className = ''
           <span className="slot-ratio">{item.ratio.replace(' / ', ':')}</span>
         </div>
       )}
+      {nugget && <Nugget nugget={nugget} />}
+    </div>
+  )
+}
+
+// The pop-up card. The outer layer is see-through and slightly bigger, so the
+// pointer can travel from the drawing onto the card without it closing.
+function Nugget({ nugget }) {
+  return (
+    <div className="nugget" role="note">
+      <div className="nugget-card">
+        {nugget.heading && <p className="nugget-heading">{nugget.heading}</p>}
+        {nugget.text && <p>{nugget.text}</p>}
+        {nugget.links && (
+          <ul>
+            {nugget.links.map((link) => (
+              <li key={link.label}>
+                {link.href ? (
+                  <a href={link.href} target="_blank" rel="noreferrer">
+                    {link.label}
+                  </a>
+                ) : (
+                  link.label
+                )}
+              </li>
+            ))}
+          </ul>
+        )}
+      </div>
     </div>
   )
 }
