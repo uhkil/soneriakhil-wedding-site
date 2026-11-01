@@ -5,6 +5,7 @@ import Section from '../components/Section.jsx'
 import { useState } from 'react'
 import PhotoSlot from '../components/PhotoSlot.jsx'
 import Doodle from '../components/Doodle.jsx'
+import IllustrationSlot from '../components/IllustrationSlot.jsx'
 
 // For now these are just labels. Later each will point to a real photo file.
 const photos = [
@@ -30,6 +31,8 @@ export default function MemoriesSection() {
 
   return (
     <Section id="memories">
+      {/* Corner art just above the title (see "corner-art" in index.css). */}
+      <IllustrationSlot name="storyVignette" size="small" className="corner-art corner-art-right" />
       <h2>
         Memories <Doodle type="heart" size={28} />
       </h2>

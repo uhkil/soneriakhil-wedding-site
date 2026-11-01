@@ -13,7 +13,9 @@ export default function IllustrationSlot({ name, size = 'medium', className = ''
   return (
     <div
       className={`illustration-slot size-${size} ${className}`}
-      style={{ aspectRatio: item.ratio }}
+      // --art-width: the drawing's own width, so drawings in a group (e.g.
+      // "corner-art" in index.css) can share one scale.
+      style={{ aspectRatio: item.ratio, '--art-width': parseFloat(item.ratio) }}
     >
       {item.src && item.tint ? (
         // The text color, cut into the drawing's shape (see "tint" in art.js).

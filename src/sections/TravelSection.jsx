@@ -2,10 +2,13 @@
 import Section from '../components/Section.jsx'
 import Doodle from '../components/Doodle.jsx'
 import PhotoSlot from '../components/PhotoSlot.jsx'
+import IllustrationSlot from '../components/IllustrationSlot.jsx'
 
 export default function TravelSection() {
   return (
     <Section id="travel">
+      {/* Corner art just above the title (see "corner-art" in index.css). */}
+      <IllustrationSlot name="travelVignette" size="small" className="corner-art corner-art-right" />
       <h2>Travel &amp; Accommodations</h2>
 
       {/* A dotted flight path with a little plane at the end (decorative). */}

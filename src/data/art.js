@@ -18,6 +18,12 @@ const art = {
     tint: true,
     note: 'The two of us on a coffee date, playing cards',
   },
+  travelVignette: {
+    src: 'assets/art/basketball-date.svg',
+    ratio: '1015 / 775',
+    tint: true,
+    note: 'The two of us playing basketball',
+  },
   transitionWalk: {
     src: '',
     ratio: '3 / 1',

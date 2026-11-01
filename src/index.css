@@ -1011,23 +1011,49 @@ summary:focus-visible {
   order: 2;
 }
 
-.story-vignette {
-  margin-top: 16px;
+/* ----- Corner art: the small drawings of the two of us (coffee date,
+   basketball, ...) that sit at the top of a section, just above its title, tucked toward the
+   left or right edge. They all share one scale and one placement rule, so
+   change them here and every drawing in the group follows.
+   Use: <IllustrationSlot ... className="corner-art corner-art-right" /> (or -left). ----- */
+
+/* Scale: drawing units → pixels. 0.3323 makes the coffee date 320px wide;
+   each drawing's width comes from its own size (--art-width, from art.js),
+   so the people in every drawing come out the same size. */
+.illustration-slot.corner-art {
+  --corner-art-scale: 0.3323;
+  max-width: calc(var(--art-width) * var(--corner-art-scale) * 1px);
+  /* It's the first thing in its section, just above the title. */
+  margin-top: 0;
+  margin-bottom: 48px;
+}
+
+.illustration-slot.corner-art-right {
   margin-right: 0;
 }
 
-/* The coffee-date drawing: 455px → 70% of that. */
-.illustration-slot.story-vignette {
-  max-width: 320px;
+.illustration-slot.corner-art-left {
+  margin-left: 0;
 }
 
-/* Wider screens: tuck it toward the right edge, halving the empty space
-   between it and the edge of the page — but always keep at least 200px of
-   space on its right. On smaller laptops that means it stays lined up with
-   the text instead of crowding the edge. */
+/* Wider screens: tuck it toward the edge, halving the empty space between it
+   and the edge of the page — but always keep at least 200px of space between
+   it and the edge. On smaller laptops that means it stays lined up with the
+   text instead of crowding the edge. */
 @media (min-width: 641px) {
-  .illustration-slot.story-vignette {
+  .illustration-slot.corner-art-right {
     margin-right: max(calc((100% - 100vw) / 4), min(0px, calc((100% - 100vw) / 2 + 200px)));
+  }
+  .illustration-slot.corner-art-left {
+    margin-left: max(calc((100% - 100vw) / 4), min(0px, calc((100% - 100vw) / 2 + 200px)));
+  }
+}
+
+/* Phones: centered. */
+@media (max-width: 640px) {
+  .illustration-slot.corner-art {
+    margin-left: auto;
+    margin-right: auto;
   }
 }
 
@@ -1040,9 +1066,6 @@ summary:focus-visible {
   }
   .story-moment:nth-of-type(even) .photo-slot {
     order: 0;
-  }
-  .story-vignette {
-    margin-right: auto;
   }
 }
 

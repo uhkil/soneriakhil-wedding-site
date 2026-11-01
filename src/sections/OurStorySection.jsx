@@ -1,7 +1,6 @@
 // Our story, told in short moments. Each moment has some text and a photo.
 import Section from '../components/Section.jsx'
 import PhotoSlot from '../components/PhotoSlot.jsx'
-import IllustrationSlot from '../components/IllustrationSlot.jsx'
 import ScrollReveal from '../components/ScrollReveal.jsx'
 
 // Edit this list to add, remove, or reorder moments.
@@ -32,7 +31,6 @@ export default function OurStorySection() {
           </div>
         </ScrollReveal>
       ))}
-      <IllustrationSlot name="storyVignette" size="small" className="story-vignette" />
     </Section>
   )
 }
