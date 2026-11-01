@@ -19,6 +19,7 @@
 // every frame has the same dash-style eyes.
 // The couple is drawn in the page's text color (--ink in index.css): each
 // frame's shape is filled with that color, so they always match the text.
+import { useState } from 'react'
 import { useFrameSequence } from './useFrameSequence.js'
 
 function frameFiles(folder, count, version) {
@@ -72,9 +73,17 @@ const VERSIONS = {
 }
 
 export default function HoneyDance({ version = 2 }) {
+  // Each replay remounts the animation, so it starts again from frame 1.
+  const [runs, setRuns] = useState(0)
+  return <Dance key={runs} version={version} onReplay={() => setRuns((n) => n + 1)} />
+}
+
+function Dance({ version, onReplay }) {
   const { sources, sequence } = VERSIONS[version] ?? VERSIONS[2]
   const talkAt = sequence.length - 1 // the bubbles appear with the last frame
   const { frame, previous, fade, talking } = useFrameSequence(sources, sequence, talkAt)
+  // With "reduce motion" on, there's only the still picture, so nothing to replay.
+  const [stillOnly] = useState(() => window.matchMedia('(prefers-reduced-motion: reduce)').matches)
 
   return (
     <div className={`honey-stage-wrap honey-hero-${version}`}>
@@ -100,6 +109,17 @@ export default function HoneyDance({ version = 2 }) {
             the left, Akhil on the right. */}
         <p className="honey-bubble honey-bubble-her">we’re excited to celebrate with you :-)</p>
         <p className="honey-bubble honey-bubble-him">welcome to our wedding website!</p>
+
+        {/* Shows once the animation has finished. */}
+        {!stillOnly && talking && (
+          <button type="button" className="honey-replay" aria-label="Play the animation again" onClick={onReplay}>
+            <svg className="honey-replay-icon" viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M20 12a8 8 0 1 1-2.34-5.66" />
+              <path d="M20 4v5h-5" />
+            </svg>
+            <span className="honey-replay-label" aria-hidden="true">play again</span>
+          </button>
+        )}
       </div>
     </div>
   )

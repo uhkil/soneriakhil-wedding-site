@@ -2845,6 +2845,68 @@ summary:focus-visible {
   }
 }
 
+/* "play again": a small outlined button under the couple's feet, fading in
+   a moment after the speech bubbles. */
+.honey-replay {
+  position: absolute;
+  z-index: 3;
+  left: 100%;
+  bottom: 2%;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 7px 14px;
+  border: 1.5px solid var(--ink);
+  border-radius: 999px;
+  background: transparent;
+  color: var(--ink);
+  font: 500 0.85rem/1 var(--font-ui);
+  letter-spacing: 0.02em;
+  white-space: nowrap;
+  cursor: pointer;
+  animation: replay-in 0.5s ease 1.6s both;
+  transition: background 0.2s ease, color 0.2s ease;
+}
+
+.honey-replay-icon {
+  width: 15px;
+  height: 15px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2.2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.honey-replay:hover,
+.honey-replay:focus-visible {
+  background: var(--ink);
+  color: var(--paper);
+}
+
+@keyframes replay-in {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+}
+
+/* Phones: just a small round ↻ beside his shoes, so it fits on screen. */
+@media (max-width: 720px) {
+  .honey-replay {
+    left: auto;
+    right: -6%;
+    bottom: 0;
+    width: 38px;
+    height: 38px;
+    justify-content: center;
+    padding: 0;
+  }
+  .honey-replay-label {
+    display: none;
+  }
+}
+
 /* Animation 2's bubbles: filled with the dark blue, light blue text, and a
    small rounded tail pointing at whoever is speaking. A soft shadow lifts
    them off the page. */
