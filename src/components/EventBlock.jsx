@@ -48,8 +48,7 @@ export default function EventBlock({ event, flipped }) {
 // The address, with a pin that opens it in Google Maps.
 function Address({ event }) {
   return (
-    <span className="fact-with-icon">
-      {event.address}
+    <TextWithIcon text={event.address}>
       {event.mapUrl && (
         <a
           className="fact-icon"
@@ -62,6 +61,21 @@ function Address({ event }) {
           <PinIcon />
         </a>
       )}
+    </TextWithIcon>
+  )
+}
+
+// Text with a small icon after it. The last word and the icon are kept
+// together, so the icon never ends up on a line by itself.
+function TextWithIcon({ text, children }) {
+  const cut = text.lastIndexOf(' ') + 1
+  return (
+    <span className="fact-with-icon">
+      {text.slice(0, cut)}
+      <span className="keep-together">
+        {text.slice(cut)}
+        {children}
+      </span>
     </span>
   )
 }
@@ -71,8 +85,7 @@ function Attire({ event }) {
   const label = `${event.name} attire moodboard`
   return (
     <>
-      <span className="fact-with-icon">
-        {event.attire}
+      <TextWithIcon text={event.attire}>
         {'moodboard' in event &&
           (event.moodboard ? (
             <a className="fact-icon" href={event.moodboard} target="_blank" rel="noreferrer" aria-label={label} title="Moodboard">
@@ -89,7 +102,7 @@ function Attire({ event }) {
               <MoodboardIcon />
             </button>
           ))}
-      </span>
+      </TextWithIcon>
       {event.attireNote && <AttireNote note={event.attireNote} popup={event.attirePopup} />}
     </>
   )
@@ -100,6 +113,19 @@ function Attire({ event }) {
 function AttireNote({ note, popup }) {
   const [open, setOpen] = useState(false)
   const ref = useRef(null)
+  const popupRef = useRef(null)
+
+  // If the card opens past the bottom of the screen, scroll down just enough
+  // to show all of it (plus a little room).
+  useEffect(() => {
+    if (!open) return
+    const bottom = popupRef.current?.getBoundingClientRect().bottom ?? 0
+    const overflow = bottom + 24 - window.innerHeight
+    if (overflow > 0) {
+      const smooth = !window.matchMedia('(prefers-reduced-motion: reduce)').matches
+      window.scrollBy({ top: overflow, behavior: smooth ? 'smooth' : 'auto' })
+    }
+  }, [open])
 
   useEffect(() => {
     if (!open) return
@@ -121,7 +147,7 @@ function AttireNote({ note, popup }) {
       </button>
       {note.after}
       {open && popup && (
-        <span className="attire-popup" role="dialog" aria-label={popup.alt}>
+        <span className="attire-popup" role="dialog" aria-label={popup.alt} ref={popupRef}>
           {popup.image ? (
             <img src={import.meta.env.BASE_URL + popup.image} alt={popup.alt} />
           ) : (

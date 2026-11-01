@@ -1619,6 +1619,10 @@ img.nugget-photo {
   display: inline;
 }
 
+.keep-together {
+  white-space: nowrap;
+}
+
 .fact-icon {
   position: relative;
   top: -2px; /* vertical-align: middle sits a touch low; this centers it on the text */
@@ -1678,16 +1682,19 @@ img.nugget-photo {
   cursor: pointer;
 }
 
-/* The card that the link opens: a photo (or its placeholder). */
+/* The card that the link opens: a photo (or its placeholder), framed by the
+   dark card. The photo is 250px wide (3:4, like a phone photo). */
 .attire-popup {
   position: absolute;
   z-index: 20;
   left: 0;
   top: calc(100% + 8px);
   display: block;
-  width: 200px;
+  width: min(266px, calc(100vw - 32px));
+  box-sizing: border-box;
   padding: 8px;
-  border-radius: 14px;
+  border-radius: 16px;
+  box-shadow: 0 12px 30px rgba(0, 52, 89, 0.25);
   background: var(--ink);
   color: var(--paper);
   font-style: normal;
@@ -1700,8 +1707,8 @@ img.nugget-photo {
   align-items: center;
   justify-content: center;
   width: 100%;
-  aspect-ratio: 4 / 5;
-  border-radius: 8px;
+  aspect-ratio: 3 / 4;
+  border-radius: 10px;
   object-fit: cover;
 }
 
@@ -1711,6 +1718,15 @@ img.nugget-photo {
   border: 1.5px dashed currentColor;
   font-size: 0.85rem;
   text-align: center;
+}
+
+/* Phones: line the card up with the right edge of the text instead, so it
+   stays on screen. */
+@media (max-width: 640px) {
+  .attire-popup {
+    left: auto;
+    right: 0;
+  }
 }
 
 @keyframes pop-in {

@@ -50,7 +50,11 @@ const eventDetails = {
     attire: 'Indian clothes or western formal',
     moodboard: '',
     attireNote: { before: 'bonus points if you wear a ', link: 'cowboys jersey', after: '' },
-    attirePopup: { image: '', alt: 'Suraj wearing a Dallas Cowboys jersey', caption: 'Photo coming soon: Suraj in his Cowboys jersey' },
+    attirePopup: {
+      image: 'assets/photos/cowboys-jersey.jpg',
+      alt: 'Suraj and friends in Cowboys jerseys at AT&T Stadium',
+      caption: '',
+    },
     description: 'Join the couple for a traditional Indian wedding ceremony, followed by lunch.',
   },
   reception: {
