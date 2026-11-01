@@ -1040,13 +1040,20 @@ summary:focus-visible {
 /* Wider screens: tuck it toward the edge, halving the empty space between it
    and the edge of the page — but always keep at least 200px of space between
    it and the edge. On smaller laptops that means it stays lined up with the
-   text instead of crowding the edge. */
+   text instead of crowding the edge. Measured from the screen's edge (using
+   the usual 980px page width), so it lands in the same place even in the
+   narrower sections like Registry. */
 @media (min-width: 641px) {
+  .illustration-slot.corner-art {
+    --page-gutter: calc((100vw - min(980px, 100vw - 48px)) / 2);
+    --edge-gap: max(calc(var(--page-gutter) / 2), min(var(--page-gutter), 200px));
+    --own-gutter: calc((100vw - 100%) / 2);
+  }
   .illustration-slot.corner-art-right {
-    margin-right: max(calc((100% - 100vw) / 4), min(0px, calc((100% - 100vw) / 2 + 200px)));
+    margin-right: calc(var(--edge-gap) - var(--own-gutter));
   }
   .illustration-slot.corner-art-left {
-    margin-left: max(calc((100% - 100vw) / 4), min(0px, calc((100% - 100vw) / 2 + 200px)));
+    margin-left: calc(var(--edge-gap) - var(--own-gutter));
   }
 }
 
@@ -1141,6 +1148,30 @@ summary:focus-visible {
   margin-top: 2px;
 }
 
+/* A row of small photos (or placeholder squares, for now). */
+.nugget-gallery {
+  display: grid;
+  grid-template-columns: repeat(3, 72px);
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.nugget-photo {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  aspect-ratio: 1;
+  border: 1.5px dashed currentColor;
+  border-radius: 8px;
+  font-size: 0.7rem;
+  object-fit: cover;
+}
+
+img.nugget-photo {
+  width: 100%;
+  border: none;
+}
+
 .nugget-card a {
   color: inherit;
   text-underline-offset: 3px;
@@ -1183,32 +1214,62 @@ summary:focus-visible {
 
 /* ---------- Memories: view toggle ---------- */
 
+/* One pill split into equal parts; a filled highlight slides behind the
+   chosen one (--index: 0, 1, 2 — set in MemoriesSection.jsx). */
 .view-toggle {
-  display: flex;
-  justify-content: center;
-  gap: 8px;
-  margin-bottom: 24px;
+  position: relative;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  width: fit-content;
+  margin: 0 auto 24px;
+  padding: 3px;
+  border: 1.5px solid var(--ink);
+  border-radius: 999px;
 }
 
-.view-toggle button,
-.camera-controls button {
-  font: inherit;
-  font-size: 0.75rem;
-  font-weight: 500;
-  letter-spacing: 0.16em;
-  text-transform: uppercase;
-  padding: 6px 20px;
-  border: 1px solid var(--cocoa);
-  border-radius: 0;
+.view-toggle::before {
+  content: '';
+  position: absolute;
+  top: 3px;
+  bottom: 3px;
+  left: 3px;
+  width: calc((100% - 6px) / 3);
+  border-radius: 999px;
+  background: var(--ink);
+  translate: calc(100% * var(--index, 0)) 0;
+  transition: translate 0.3s cubic-bezier(0.3, 0.8, 0.3, 1);
+}
+
+.view-toggle button {
+  position: relative; /* above the highlight */
+  min-width: 7.5em;
+  padding: 8px 18px;
+  border: none;
+  border-radius: 999px;
   background: transparent;
-  color: var(--cocoa);
+  color: var(--ink);
+  font: 500 0.75rem/1 var(--font-ui);
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
   cursor: pointer;
+  transition: color 0.3s ease;
 }
 
 .view-toggle button.selected {
-  background: var(--rust);
   color: var(--paper);
-  border-color: var(--rust);
+}
+
+@media (max-width: 400px) {
+  .view-toggle button {
+    min-width: 0;
+    padding: 8px 12px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .view-toggle::before {
+    transition: none;
+  }
 }
 
 /* ---------- Memories: shared sizing ---------- */
@@ -1249,35 +1310,173 @@ summary:focus-visible {
   flex: 0 0 auto; /* frames keep their size and don't shrink */
 }
 
+/* ---------- Memories: grid view ---------- */
+
+.memory-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 12px;
+}
+
+.memory-grid .memory-photo.photo-slot {
+  width: 100%;
+}
+
+@media (max-width: 640px) {
+  .memory-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 8px;
+  }
+}
+
 /* ---------- Memories: camera view ---------- */
 
+/* The drawn camera (camera.svg, 879 × 542) in the text color. Positions
+   below are percentages of the drawing, measured from the file: the screen,
+   the dial, and the two arrows on it. Its screen shows a photo at the same
+   size the photos have elsewhere (about 320px wide). */
 .camera {
-  width: fit-content; /* hugs the screen inside it */
+  width: min(660px, 100%);
   margin: 0 auto;
-  border-radius: 2px;
-  padding: 24px;
-  background: var(--rust); /* camera body */
-  box-shadow: 0 10px 24px rgba(61, 52, 48, 0.25);
 }
 
-.camera-screen {
-  border: 6px solid var(--ink);
-  border-radius: 6px;
+.camera-body {
+  position: relative;
+  aspect-ratio: 879 / 542;
+}
+
+.camera-drawing {
+  position: absolute;
+  inset: 0;
   background: var(--ink);
+  -webkit-mask-size: 100% 100%;
+  mask-size: 100% 100%;
+  -webkit-mask-repeat: no-repeat;
+  mask-repeat: no-repeat;
+  pointer-events: none;
 }
 
-.camera-controls {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-top: 16px;
-  color: var(--paper);
-  font-weight: 600;
+/* The screen: under the drawing, a hair bigger than its opening so the
+   edges tuck under the outline. */
+.camera-screen {
+  position: absolute;
+  left: 11.15%;
+  top: 31.92%;
+  width: 49.49%;
+  height: 53.51%;
+  overflow: hidden;
+  background: #f7fbff;
 }
 
-.camera-controls button {
-  border-color: var(--paper);
+.camera-photo.photo-slot {
+  width: 100%;
+  height: 100%;
+  padding: 0;
+  background: none;
+  box-shadow: none;
+}
+
+.camera-photo img,
+.camera-photo .photo-placeholder {
+  width: 100%;
+  height: 100%;
+  aspect-ratio: auto;
+  object-fit: cover;
+}
+
+/* Placeholder for now: near-white, so the screen reads as a photo. */
+.camera-photo .photo-placeholder {
+  background: #f7fbff;
+  color: var(--dust);
+  font-family: var(--font-ui);
+  font-size: 0.8rem;
+}
+
+/* The round dial on the right; the arrows sit at its left and right edges. */
+.camera-dial {
+  position: absolute;
+  left: 73.55%;
+  top: 52.4%;
+  width: 17.52%;
+  height: 28.41%;
+  border-radius: 50%;
+}
+
+.camera-arrow {
+  position: absolute;
+  top: 49.7%;
+  width: 34%;
+  aspect-ratio: 1;
+  translate: -50% -50%;
+  display: grid;
+  place-items: center;
+  padding: 0;
+  border: none;
+  border-radius: 50%;
+  background: transparent;
   color: var(--paper);
+  cursor: pointer;
+}
+
+.camera-arrow-left {
+  left: 13.6%;
+}
+
+.camera-arrow-right {
+  left: 85.4%;
+}
+
+/* The arrow: the page color, just covering the arrow in the drawing, so
+   it can pulse outward from it. */
+.camera-arrow svg {
+  width: 44%;
+  fill: currentColor;
+  animation: arrow-pulse 2.2s ease-in-out infinite;
+}
+
+.camera-arrow-right svg {
+  animation-delay: 0.15s;
+}
+
+@keyframes arrow-pulse {
+  0%,
+  60%,
+  100% {
+    transform: scale(1);
+  }
+  30% {
+    transform: scale(1.3);
+  }
+}
+
+/* Once the pointer is on the dial (or an arrow has keyboard focus), they
+   clearly know it works: stop pulsing. */
+.camera-dial:hover .camera-arrow svg,
+.camera-dial:focus-within .camera-arrow svg {
+  animation: none;
+}
+
+.camera-arrow:hover svg {
+  transform: scale(1.15);
+}
+
+.camera-arrow:focus-visible {
+  outline: 2px solid var(--paper);
+  outline-offset: -2px;
+}
+
+.camera-count {
+  margin: 8px 0 0;
+  text-align: center;
+  font: 500 0.8rem/1 var(--font-ui);
+  letter-spacing: 0.14em;
+  color: var(--ink);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .camera-arrow svg {
+    animation: none;
+  }
 }
 
 /* ---------- Decorative transitions (between sections) ---------- */
@@ -1405,41 +1604,49 @@ summary:focus-visible {
   display: contents;
 }
 
-/* A value with a small icon link after it (the map pin, the moodboard). */
+/* A value with a small icon link after it (the map pin, the moodboard):
+   a filled dark circle with the icon in the page color, centered on the
+   line of text beside it. */
 .fact-with-icon {
   display: inline;
 }
 
 .fact-icon {
+  position: relative;
+  top: -2px; /* vertical-align: middle sits a touch low; this centers it on the text */
+  margin-left: 8px;
+  vertical-align: middle;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 26px;
-  height: 26px;
-  margin: -4px 0 -4px 6px;
+  width: 22px;
+  height: 22px;
   padding: 0;
-  vertical-align: middle;
   border: none;
   border-radius: 50%;
-  background: transparent;
-  color: inherit;
+  background: var(--ink);
+  color: var(--paper);
   cursor: pointer;
-  transition: background 0.2s ease, color 0.2s ease;
+  transition: transform 0.2s ease;
 }
 
 .fact-icon svg {
-  width: 17px;
-  height: 17px;
+  width: 13px;
+  height: 13px;
   fill: none;
   stroke: currentColor;
-  stroke-width: 1.7;
+  stroke-width: 2;
   stroke-linejoin: round;
 }
 
 .fact-icon:hover,
 .fact-icon:focus-visible {
-  background: var(--ink);
-  color: var(--paper);
+  transform: scale(1.12);
+}
+
+.fact-icon:focus-visible {
+  outline: 2px solid var(--ink);
+  outline-offset: 2px;
 }
 
 /* A small line under the attire, e.g. "bonus points if you wear a cowboys jersey". */

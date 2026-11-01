@@ -14,7 +14,9 @@
 // (or taps) the drawing: an optional heading, some text, and an optional
 // list of links. A link with an empty href shows as plain text until it has one.
 // Also optional: "gap" (space between the drawing and the card, in px),
-// "width" (the card's width, e.g. '20em'), "oneLine" (keep it on one line).
+// "width" (the card's width, e.g. '20em'), "oneLine" (keep it on one line),
+// "gallery" (small photos: a label string is a placeholder square; later use
+// { src: 'assets/...', alt: '...' }).
 
 const art = {
   storyVignette: {
@@ -43,6 +45,19 @@ const art = {
         { label: 'Placeholder museum two', href: '' },
         { label: 'Placeholder museum three', href: '' },
       ],
+    },
+  },
+  registryVignette: {
+    src: 'assets/art/pottery-date.svg',
+    ratio: '885 / 1017',
+    tint: true,
+    note: 'The two of us at a pottery class',
+    nugget: {
+      gap: 40,
+      heading: 'things we’ve made',
+      text: 'Pieces from our pottery classes together:',
+      // Placeholder photo spots for now; later each gets an image.
+      gallery: ['Piece 1', 'Piece 2', 'Piece 3'],
     },
   },
   travelVignette: {

@@ -65,6 +65,19 @@ function Nugget({ nugget }) {
       <div className="nugget-card">
         {nugget.heading && <p className="nugget-heading">{nugget.heading}</p>}
         {nugget.text && <p>{nugget.text}</p>}
+        {nugget.gallery && (
+          <div className="nugget-gallery">
+            {nugget.gallery.map((piece) =>
+              typeof piece === 'string' ? (
+                <span key={piece} className="nugget-photo">
+                  {piece}
+                </span>
+              ) : (
+                <img key={piece.src} className="nugget-photo" src={import.meta.env.BASE_URL + piece.src} alt={piece.alt} />
+              )
+            )}
+          </div>
+        )}
         {nugget.links && (
           <ul>
             {nugget.links.map((link) => (
