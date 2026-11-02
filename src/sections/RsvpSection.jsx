@@ -12,7 +12,7 @@
 // and a message by the button says what to do. The red goes away as each one
 // is fixed. Problems saving (no internet, a logged-out invitation) show by
 // the button too, and nothing they've typed is lost.
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import Section from '../components/Section.jsx'
 import IllustrationSlot from '../components/IllustrationSlot.jsx'
 import { useGuest } from '../guest/GuestProvider.jsx'
@@ -21,6 +21,23 @@ import FormMessage from '../components/FormMessage.jsx'
 
 // The same check the Sheet does, so a typo is caught before sending.
 const EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+// PREVIEW ONLY: other looks for the form to compare (see "RSVP style options"
+// in index.css). On the local preview a small switch in the corner flips
+// between them; the live site always uses the first. Delete once one is chosen.
+const STYLES = [
+  ['outlined', 'Outlined'],
+  ['filled', 'Filled cards'],
+  ['open', 'Open rows'],
+  ['tickets', 'Tickets'],
+]
+function useRsvpStyle() {
+  const [style, setStyle] = useState(() => (import.meta.env.DEV && localStorage.getItem('rsvp-style')) || 'outlined')
+  useEffect(() => {
+    if (import.meta.env.DEV) localStorage.setItem('rsvp-style', style)
+  }, [style])
+  return [style, setStyle]
+}
+
 // The Sheet's reply when the saved login no longer works (e.g. the passcode changed).
 const LOGGED_OUT = 'Please find your invitation again.'
 
@@ -42,6 +59,7 @@ const blankContact = { email: '', phone: '', note: '' }
 
 export default function RsvpSection() {
   const { party, token, setParty, logout } = useGuest()
+  const [style, setStyle] = useRsvpStyle()
   const [answers, setAnswers] = useState(() => savedAnswers(party))
   const [contact, setContact] = useState(blankContact)
   const [status, setStatus] = useState('editing') // 'editing' | 'saving' | 'saved'
@@ -137,7 +155,17 @@ export default function RsvpSection() {
           : 'Let us know who’s coming. One form covers everyone on your invitation.'}
       </p>
 
-      <form onSubmit={save} noValidate>
+      {import.meta.env.DEV && (
+        <div className="rsvp-style-switch" role="group" aria-label="Preview RSVP style">
+          {STYLES.map(([id, label]) => (
+            <button key={id} type="button" className={id === style ? 'selected' : ''} onClick={() => setStyle(id)}>
+              {label}
+            </button>
+          ))}
+        </div>
+      )}
+
+      <form onSubmit={save} noValidate data-style={style}>
         {party.guests.map((g) => {
           const a = answers[g.guestId]
           return (
