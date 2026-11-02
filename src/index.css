@@ -737,8 +737,7 @@ summary:focus-visible {
 .title-photographer,
 .title-subject {
   position: absolute;
-  top: 50%;
-  translate: 0 -50%;
+  bottom: 0.19em; /* their feet line up with the bottom of the letters */
   height: 1.425em;
   background: var(--ink);
 }
@@ -846,24 +845,65 @@ h2:hover .title-berry.mirrored {
   }
 }
 
-.story-moment {
-  display: grid;
-  grid-template-columns: 1fr 1.2fr;
-  gap: 56px;
-  align-items: center;
-  margin: 64px 0;
+/* The moments: a numbered list, each moment a photo beside its text, with
+   the sides swapping every other moment. Flat photos with rounded corners
+   (no tilt, no print border); a small spaced-out number above each title. */
+.story-list {
+  margin: 56px 0 0;
+  padding: 0;
+  list-style: none;
 }
 
-.story-moment .photo-slot {
+.story-moment {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 64px;
+  align-items: center;
+  margin: 0 0 72px;
+}
+
+.story-moment:last-child {
+  margin-bottom: 0;
+}
+
+.story-photo.photo-slot {
   width: 100%;
-  max-width: 380px;
-  box-sizing: border-box;
-  justify-self: center;
+  padding: 0;
+  box-shadow: none;
+  background: none;
+}
+
+.story-photo img,
+.story-photo .photo-placeholder {
+  aspect-ratio: 4 / 3;
+  border-radius: 20px;
 }
 
 /* Every other moment flips: text on the left, photo on the right. */
-.story-moment:nth-of-type(even) .photo-slot {
+.story-moment:nth-child(even) .story-photo {
   order: 2;
+}
+
+.story-number {
+  margin: 0 0 10px;
+  font-family: var(--font-ui);
+  font-size: 0.75rem;
+  font-weight: 500;
+  letter-spacing: 0.2em;
+}
+
+.section .story-text h3 { /* ".section" so it wins over the general h3 style */
+  margin: 0 0 12px;
+  font-family: var(--font-display);
+  font-weight: 900;
+  font-stretch: 125%;
+  font-size: clamp(1.35rem, 2.4vw, 1.9rem);
+  line-height: 1.1;
+  color: var(--ink);
+}
+
+.story-text p {
+  margin: 0;
 }
 
 /* ----- Corner art: the small drawings of the two of us (coffee date,
@@ -1059,10 +1099,10 @@ img.nugget-photo {
 @media (max-width: 640px) {
   .story-moment {
     grid-template-columns: 1fr;
-    gap: 24px;
-    margin: 40px 0;
+    gap: 20px;
+    margin-bottom: 48px;
   }
-  .story-moment:nth-of-type(even) .photo-slot {
+  .story-moment:nth-child(even) .story-photo {
     order: 0;
   }
 }
@@ -1995,59 +2035,102 @@ img.nugget-photo {
 
 /* ---------- Travel ---------- */
 
-/* The dotted flight path. */
-.route-line path {
-  fill: none;
-  stroke: var(--rust);
-  stroke-width: 2;
-  stroke-dasharray: 2 9;
-  stroke-linecap: round;
-  opacity: 0.6;
-  vector-effect: non-scaling-stroke;
-}
-
-/* The dotted flight path with a plane at the end. */
-.travel-route {
-  position: relative;
-  max-width: 520px;
-  height: 60px;
-  margin: -16px auto 40px;
-}
-
-.route-line {
-  width: 100%;
-  height: 100%;
-}
-
-.travel-plane {
-  position: absolute;
-  right: -8px;
-  top: -14px;
-  rotate: -15deg;
-}
-
-.travel-columns {
+/* Two dark-blue cards side by side (like the RSVP cards), stacked on
+   phones. Each title sits in a light-blue pill; the details are rows of a
+   small spaced-out label and its value. */
+.travel-cards {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 56px;
+  gap: 24px;
+  margin-top: 56px; /* the two cards match in height */
 }
 
-.travel-columns h3 {
-  display: flex;
-  align-items: center;
-  gap: 10px;
+.travel-card {
+  padding: 32px 28px 30px;
+  border-radius: 24px;
+  background: var(--ink);
+  color: var(--paper);
 }
 
-.hotel-photo {
-  max-width: 320px;
-  box-sizing: border-box;
-  margin: 16px 0;
+.travel-card .card-pill {
+  width: fit-content;
+  margin: 0 0 24px;
+  padding: 9px 20px 8px;
+  border-radius: 999px;
+  background: var(--paper);
+  color: var(--ink);
+  font-family: var(--font-display);
+  font-weight: 900;
+  font-stretch: 125%;
+  font-size: 1.05rem;
+  line-height: 1.2;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
 }
 
-@media (max-width: 640px) {
-  .travel-columns {
+.travel-photo.photo-slot {
+  padding: 0;
+  margin: 0 0 24px;
+  box-shadow: none;
+  background: none;
+}
+
+.travel-photo img,
+.travel-photo .photo-placeholder {
+  aspect-ratio: 3 / 2;
+  border-radius: 14px;
+}
+
+.travel-photo .photo-placeholder {
+  background: rgba(202, 233, 255, 0.14);
+  color: var(--paper);
+}
+
+.travel-facts {
+  display: grid;
+  gap: 0;
+  margin: 0;
+}
+
+.travel-facts > div {
+  display: grid;
+  grid-template-columns: 9.5em 1fr;
+  gap: 12px;
+  padding: 14px 0;
+  border-top: 1px solid rgba(202, 233, 255, 0.25);
+}
+
+.travel-facts > div:first-child {
+  border-top: none;
+  padding-top: 0;
+}
+
+.travel-facts dt {
+  padding-top: 0.2em;
+  font-family: var(--font-ui);
+  font-size: 0.68rem;
+  font-weight: 500;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+}
+
+.travel-facts dd {
+  margin: 0;
+}
+
+@media (max-width: 760px) {
+  .travel-cards {
     grid-template-columns: 1fr;
-    gap: 32px;
+  }
+}
+
+@media (max-width: 420px) {
+  .travel-card {
+    padding: 24px 20px;
+  }
+  .travel-facts > div {
+    grid-template-columns: 1fr;
+    gap: 4px;
   }
 }
 

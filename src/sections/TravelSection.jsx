@@ -1,8 +1,21 @@
-// Getting there and where to stay.
+// Getting there and where to stay: two dark-blue cards side by side (stacked
+// on phones), each with its title in a light-blue pill and a few details.
 import Section from '../components/Section.jsx'
-import Doodle from '../components/Doodle.jsx'
 import PhotoSlot from '../components/PhotoSlot.jsx'
 import IllustrationSlot from '../components/IllustrationSlot.jsx'
+
+// Edit these to fill in the details. Each line is [label, what to show].
+const gettingThere = [
+  ['Fly into', 'Details to come'],
+  ['From the airport', 'Details to come'],
+  ['Getting around', 'Details to come'],
+]
+
+const whereToStay = [
+  ['Hotel', 'Details to come'],
+  ['Room block', 'Details to come'],
+  ['Book by', 'Details to come'],
+]
 
 export default function TravelSection() {
   return (
@@ -11,30 +24,30 @@ export default function TravelSection() {
       <IllustrationSlot name="travelVignette" size="small" className="corner-art corner-art-right" />
       <h2>Travel &amp; Accommodations</h2>
 
-      {/* A dotted flight path with a little plane at the end (decorative). */}
-      <div className="travel-route" aria-hidden="true">
-        <svg className="route-line" viewBox="0 0 400 60" preserveAspectRatio="none">
-          <path d="M5 50 C 80 50, 110 10, 190 25 S 320 45, 370 18" />
-        </svg>
-        <Doodle type="plane" size={48} className="travel-plane" />
-      </div>
-
-      <div className="travel-columns">
-        <div>
-          <h3>
-            <Doodle type="plane" size={30} /> Getting There
-          </h3>
-          <p>Placeholder: nearest airport and transportation info.</p>
-        </div>
-
-        <div>
-          <h3>
-            <Doodle type="suitcase" size={30} /> Where to Stay
-          </h3>
-          <PhotoSlot label="Hotel photo" tilt={1.5} className="hotel-photo" />
-          <p>Placeholder: hotel name, room block details, booking link.</p>
-        </div>
+      <div className="travel-cards">
+        <TravelCard title="Getting there" details={gettingThere} />
+        <TravelCard title="Where to stay" details={whereToStay}>
+          {/* The hotel's photo: add it as src="assets/travel/hotel.jpg". */}
+          <PhotoSlot label="Hotel photo" alt="The hotel" className="travel-photo" />
+        </TravelCard>
       </div>
     </Section>
+  )
+}
+
+function TravelCard({ title, details, children }) {
+  return (
+    <article className="travel-card">
+      <h3 className="card-pill">{title}</h3>
+      {children}
+      <dl className="travel-facts">
+        {details.map(([label, value]) => (
+          <div key={label}>
+            <dt>{label}</dt>
+            <dd>{value}</dd>
+          </div>
+        ))}
+      </dl>
+    </article>
   )
 }
