@@ -83,10 +83,12 @@ const art = {
     note: 'The two of us at the civil ceremony (with a basketball)',
   },
   'event-sangeet': {
-    src: '',
-    ratio: '600 / 1100', // about the shape of the other event drawings
-    note: 'Welcome Night / Sangeet vibe',
+    src: 'assets/art/sangeet-outfit.svg',
+    ratio: '750 / 1183',
+    tint: true,
+    note: 'The two of us dressed for the sangeet, with dandiya sticks',
   },
+
   'event-indian-wedding': {
     src: 'assets/art/indian-outfit.svg',
     ratio: '657 / 1136',
