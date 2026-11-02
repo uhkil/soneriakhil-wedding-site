@@ -11,10 +11,19 @@ const gettingThere = [
   ['Getting around', 'Details to come'],
 ]
 
+const ROOM_BLOCK = 'https://www.loewshotels.com/arlington-hotel/wedding-soneri-akhil-patel-wedding-room-block'
+
 const whereToStay = [
-  ['Hotel', 'Details to come'],
-  ['Room block', 'Details to come'],
-  ['Book by', 'Details to come'],
+  ['Hotel', 'Loews Arlington'],
+  [
+    'Room block',
+    // Opens the hotel's booking page in a new tab.
+    <a className="external-link" href={ROOM_BLOCK} target="_blank" rel="noreferrer">
+      Soneri &amp; Akhil room block
+      <ExternalIcon />
+    </a>,
+  ],
+  ['Book by', 'March 1, 2027'],
 ]
 
 export default function TravelSection() {
@@ -53,5 +62,14 @@ function TravelCard({ title, details, children }) {
         ))}
       </dl>
     </article>
+  )
+}
+
+// A small arrow out of a box: "this opens another website".
+function ExternalIcon() {
+  return (
+    <svg className="external-icon" viewBox="0 0 24 24" aria-hidden="true">
+      <path d="M14 4h6v6M20 4l-9 9M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5" />
+    </svg>
   )
 }

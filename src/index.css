@@ -2128,6 +2128,31 @@ img.nugget-photo {
   margin: 0;
 }
 
+/* A link to another website, with a small arrow-out-of-a-box icon after it
+   (kept on the same line as the last word). Underlined on hover. */
+.external-link {
+  color: inherit;
+  text-decoration: none;
+}
+
+.external-link:hover,
+.external-link:focus-visible {
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.external-icon {
+  width: 0.95em;
+  height: 0.95em;
+  margin-left: 0.3em;
+  vertical-align: -0.1em;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
 @media (max-width: 760px) {
   .travel-cards {
     grid-template-columns: 1fr;
