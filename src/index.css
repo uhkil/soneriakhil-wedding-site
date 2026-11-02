@@ -728,34 +728,51 @@ summary:focus-visible {
   text-align: center;
 }
 
-/* ---------- Memories: Akhil photographing Soneri, across the title ---------- */
+/* ---------- The two of us on either side of a title (Memories, FAQ) ---------- */
 
-/* Small accents (much smaller than the corner drawings): him on the left of
-   the word with his camera, her on the right, so he's taking her picture
-   across it. The word stays centered on the page. Both drawings are cut from
-   the same picture at the same scale, so they're the same size. */
-.title-photographer,
-.title-subject {
+/* Small accents (much smaller than the corner drawings): one of us on the
+   left of the word, the other on the right, feet level with the bottom of
+   the letters. The word stays centered on the page. Each pair is cut from one
+   picture at the same scale, so both people are the same size. */
+.title-side {
   position: absolute;
   bottom: 0.19em; /* their feet line up with the bottom of the letters */
   height: 1.425em;
   background: var(--ink);
+  -webkit-mask: var(--art) center / contain no-repeat;
+  mask: var(--art) center / contain no-repeat;
 }
 
-.title-photographer {
+.title-left {
   right: 100%;
   margin-right: 0.4em;
+}
+
+.title-right {
+  left: 100%;
+  margin-left: 0.4em;
+}
+
+/* Memories: Akhil taking a photo of Soneri across the word. */
+.title-photographer {
   aspect-ratio: 571 / 753;
-  -webkit-mask: url('/assets/art/photoshoot-boy.svg') center / contain no-repeat;
-  mask: url('/assets/art/photoshoot-boy.svg') center / contain no-repeat;
+  --art: url('/assets/art/photoshoot-boy.svg');
 }
 
 .title-subject {
-  left: 100%;
-  margin-left: 0.4em;
   aspect-ratio: 425 / 753;
-  -webkit-mask: url('/assets/art/photoshoot-girl.svg') center / contain no-repeat;
-  mask: url('/assets/art/photoshoot-girl.svg') center / contain no-repeat;
+  --art: url('/assets/art/photoshoot-girl.svg');
+}
+
+/* FAQ: Akhil being silly, Soneri looking his way through binoculars. */
+.title-faq-boy {
+  aspect-ratio: 577 / 750;
+  --art: url('/assets/art/faq-boy.svg');
+}
+
+.title-faq-girl {
+  aspect-ratio: 552 / 750;
+  --art: url('/assets/art/faq-girl.svg');
 }
 
 /* ---------- Events: a disco ball beside the title ---------- */

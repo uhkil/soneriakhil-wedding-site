@@ -44,9 +44,9 @@ export default function MemoriesSection() {
         {/* The word stays centered on the page, between the two of us: Akhil on
             the left taking a photo of Soneri on the right. */}
         <span className="title-word">
-          <span className="title-photographer" aria-hidden="true" />
+          <span className="title-side title-left title-photographer" aria-hidden="true" />
           Memories
-          <span className="title-subject" aria-hidden="true" />
+          <span className="title-side title-right title-subject" aria-hidden="true" />
         </span>
       </h2>
 

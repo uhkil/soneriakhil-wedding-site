@@ -55,7 +55,16 @@ const faqs = [
 export default function FaqSection() {
   return (
     <Section id="faq">
-      <h2>FAQ</h2>
+      <h2>
+        {/* The word stays centered on the page, between the two of us (sized
+            and placed like the Memories title): Akhil on the left being
+            silly, Soneri on the right looking his way through binoculars. */}
+        <span className="title-word">
+          <span className="title-side title-left title-faq-boy" aria-hidden="true" />
+          FAQ
+          <span className="title-side title-right title-faq-girl" aria-hidden="true" />
+        </span>
+      </h2>
       <div className="faq-list">
         {faqs.map((faq) => (
           <details
