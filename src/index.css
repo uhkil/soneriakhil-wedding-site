@@ -1661,7 +1661,9 @@ img.nugget-photo {
    "grid-template-areas" names the columns so we can swap sides easily. */
 .timeline-item {
   display: grid;
-  grid-template-columns: 1fr 40px 1fr;
+  /* minmax(0, 1fr): the two sides stay equal even if something inside runs
+     wider (like a one-line event name), so the line stays centered */
+  grid-template-columns: minmax(0, 1fr) 40px minmax(0, 1fr);
   grid-template-areas: 'details dot art';
   align-items: center;
   gap: 24px;
@@ -2318,6 +2320,16 @@ img.nugget-photo {
   line-height: 1.1;
   letter-spacing: -0.005em;
   color: var(--ink);
+}
+
+/* On screens wide enough, each name stays on one line, running a little past
+   its column if it needs to (the long names are on the right side of the
+   timeline, where there's empty space). The details below keep their width.
+   Narrower screens wrap the name instead. */
+@media (min-width: 1120px) {
+  [data-design='honey'] .event-details h3 {
+    white-space: nowrap;
+  }
 }
 
 /* RSVP form: the same look as the rest of this design. Cards and boxes are
