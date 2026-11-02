@@ -1315,8 +1315,8 @@ img.nugget-photo {
 /* The strip runs the full width of the page and scrolls sideways. It's the
    drawn film frame (film-frame.svg, 412 × 369) repeated: each opening is a
    3:2 photo shape, as wide as the camera's screen (49.49% of the camera,
-   which is min(660px, the column) wide). The first photo lines up with the
-   left edge of the page's column; empty frames fill the screen around them. */
+   which is min(660px, the column) wide). The first photo starts at the left
+   edge of the screen. */
 #memories {
   overflow-x: clip; /* the full-width strip never makes the page scroll sideways */
 }
@@ -1366,24 +1366,13 @@ img.nugget-photo {
   pointer-events: none;
 }
 
-/* Empty frames: before the first photo (out to the screen's left edge, so the
-   first photo lines up with the page's column) and after the last (filling
-   whatever's left of the screen). Extra frames are simply cut off. */
-.film-lead,
+/* Empty frames, only if the photos don't reach across the screen: they fill
+   whatever's left (extra ones are cut off) and never make the strip longer. */
 .film-trail {
   display: flex;
   overflow: hidden;
-}
-
-.film-lead {
-  flex: none;
-  width: calc((100vw - 100cqw) / 2);
-  justify-content: flex-end;
-}
-
-.film-trail {
-  flex: 1 0 var(--film-w);
-  contain: inline-size; /* its spare frames don't make the strip longer */
+  flex: 1 0 0;
+  contain: inline-size;
 }
 
 /* The photo box, the size of the opening (plus a hair more, hidden under

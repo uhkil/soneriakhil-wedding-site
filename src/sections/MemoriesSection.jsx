@@ -89,9 +89,10 @@ function View({ id, view, children }) {
 }
 
 // The film strip: the drawn film frame (public/assets/art/film-frame.svg)
-// repeated side by side, one frame per photo, with empty frames filling out
-// the rest of the screen on both sides. Each photo sits in a box behind its
-// frame's opening, so it scrolls along with the film.
+// repeated side by side, one frame per photo, starting at the left edge of
+// the screen. Every frame holds a photo; only if there are too few photos to
+// reach across the screen do empty frames fill the rest. Each photo sits in a
+// box behind its frame's opening, so it scrolls along with the film.
 // Ways to move along it: a mouse wheel or trackpad (up/down scrolls it
 // sideways until either end, then the page carries on), clicking and dragging
 // the film, the thin scroll bar, or the arrow keys once it's been clicked.
@@ -146,11 +147,10 @@ function FilmStrip() {
       onDragStart={(e) => e.preventDefault()}
     >
       <div className="film-track">
-        <div className="film-lead">{empty(4)}</div>
         {photos.map((photo) => (
           <div key={photo.label} className="film-frame">
             <div className="film-photo">
-              <PhotoSlot {...photo} />
+              <PhotoSlot {...photo} loading="eager" />
             </div>
           </div>
         ))}

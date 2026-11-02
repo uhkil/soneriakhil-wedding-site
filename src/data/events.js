@@ -17,7 +17,7 @@
 // Use " | " between two parts of a name or place (e.g. a venue and its room).
 
 const LOEWS_ADDRESS = '1600 E Randol Mill Rd, Arlington, TX 76011'
-const LOEWS_MAP = 'https://share.google/6XwFvYhHYML7DQSGE'
+const LOEWS_MAP = 'https://maps.app.goo.gl/mwfHokVjNmsswHYw9'
 
 const eventDetails = {
   ceremony: {
@@ -25,7 +25,7 @@ const eventDetails = {
     time: '9:00 AM',
     location: 'Weston Gardens',
     address: '8101 Anglin Dr, Fort Worth, TX 76140',
-    mapUrl: 'https://share.google/6XTHf1bFIH6gOgH4F',
+    mapUrl: 'https://maps.app.goo.gl/9ukmWUF7erqTjdSNA',
     attire: 'Garden formal',
     moodboard: '',
     description: 'Join the couple for an intimate gathering as they read their vows to each other.',
