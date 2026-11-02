@@ -9,7 +9,6 @@
 import Section from '../components/Section.jsx'
 import { useEffect, useRef, useState } from 'react'
 import PhotoSlot from '../components/PhotoSlot.jsx'
-import Doodle from '../components/Doodle.jsx'
 import IllustrationSlot from '../components/IllustrationSlot.jsx'
 import Lightbox from '../components/Lightbox.jsx'
 
@@ -42,14 +41,12 @@ export default function MemoriesSection() {
       {/* Corner art just above the title (see "corner-art" in index.css). */}
       <IllustrationSlot name="storyVignette" size="small" className="corner-art corner-art-right" />
       <h2>
-        {/* The word stays centered on the page; a small drawing of the two of
-            us taking photos sits off its left side, the heart off its right. */}
+        {/* The word stays centered on the page, between the two of us: Akhil on
+            the left taking a photo of Soneri on the right. */}
         <span className="title-word">
-          <span className="title-photoshoot" aria-hidden="true" />
+          <span className="title-photographer" aria-hidden="true" />
           Memories
-          <span className="title-heart">
-            <Doodle type="heart" size={28} />
-          </span>
+          <span className="title-subject" aria-hidden="true" />
         </span>
       </h2>
 

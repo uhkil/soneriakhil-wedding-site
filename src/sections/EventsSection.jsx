@@ -13,7 +13,14 @@ export default function EventsSection({ events }) {
     <Section id="events" className="section-field">
       {/* Corner art just above the title (see "corner-art" in index.css). */}
       <IllustrationSlot name="eventsVignette" size="small" className="corner-art corner-art-left" />
-      <h2>Events</h2>
+      <h2>
+        {/* The word stays centered on the page; the disco ball hangs off its
+            right side (see .title-disco in index.css). */}
+        <span className="title-word">
+          Events
+          <span className="title-disco" aria-hidden="true" />
+        </span>
+      </h2>
       <div className="timeline">
         {events.map((event, index) => {
           // Is this the first event shown for its day? If so, show a day marker.

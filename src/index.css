@@ -728,31 +728,58 @@ summary:focus-visible {
   text-align: center;
 }
 
-/* ---------- Memories: a small drawing of us taking photos, beside the title ---------- */
+/* ---------- Memories: Akhil photographing Soneri, across the title ---------- */
 
-/* An accessory to the title (much smaller than the corner drawings): it hangs
-   off the left of the word, which stays centered on the page. The heart hangs
-   off the right the same way. */
-.title-photoshoot {
+/* Small accents (much smaller than the corner drawings): him on the left of
+   the word with his camera, her on the right, so he's taking her picture
+   across it. The word stays centered on the page. Both drawings are cut from
+   the same picture at the same scale, so they're the same size. */
+.title-photographer,
+.title-subject {
   position: absolute;
-  right: 100%;
   top: 50%;
   translate: 0 -50%;
   height: 0.95em;
-  aspect-ratio: 1286 / 761;
-  margin-right: 0.4em;
   background: var(--ink);
-  -webkit-mask: url('/assets/art/photoshoot.svg') center / contain no-repeat;
-  mask: url('/assets/art/photoshoot.svg') center / contain no-repeat;
 }
 
-.title-heart {
+.title-photographer {
+  right: 100%;
+  margin-right: 0.4em;
+  aspect-ratio: 571 / 753;
+  -webkit-mask: url('/assets/art/photoshoot-boy.svg') center / contain no-repeat;
+  mask: url('/assets/art/photoshoot-boy.svg') center / contain no-repeat;
+}
+
+.title-subject {
+  left: 100%;
+  margin-left: 0.4em;
+  aspect-ratio: 425 / 753;
+  -webkit-mask: url('/assets/art/photoshoot-girl.svg') center / contain no-repeat;
+  mask: url('/assets/art/photoshoot-girl.svg') center / contain no-repeat;
+}
+
+/* ---------- Events: a disco ball beside the title ---------- */
+
+/* 140% as tall as the capital letters, hanging off the right of the word
+   (which stays centered). It's taller than the letters, so the title gets
+   extra room below before the first date. */
+.title-disco {
   position: absolute;
   left: 100%;
   top: 50%;
   translate: 0 -50%;
+  height: 1em; /* older browsers: about 1.4 × the capital letters */
+  height: 1.4cap;
+  aspect-ratio: 758 / 721;
   margin-left: 0.3em;
-  line-height: 0;
+  background: var(--ink);
+  -webkit-mask: url('/assets/art/discoball.svg') center / contain no-repeat;
+  mask: url('/assets/art/discoball.svg') center / contain no-repeat;
+}
+
+#events h2 {
+  margin-bottom: 96px; /* the other titles have 56px */
 }
 
 /* ---------- Registry: two hands making a heart, beside the title ---------- */
