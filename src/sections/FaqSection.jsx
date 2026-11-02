@@ -4,14 +4,52 @@
 import Section from '../components/Section.jsx'
 import Doodle from '../components/Doodle.jsx'
 
-// Edit this list to add, remove, or change questions.
+// Edit this list to add, remove, or change questions. An answer can include
+// links: <a href="#events">…</a> jumps to a section of this page.
 const faqs = [
-  { question: 'What should I wear?', answer: 'Placeholder: attire for each event is listed in the Events section.' },
-  { question: 'Can I bring a plus-one?', answer: 'Placeholder answer.' },
-  { question: 'Are kids welcome?', answer: 'Placeholder answer.' },
-  { question: 'Where should I park?', answer: 'Placeholder answer.' },
-  { question: 'What will the weather be like in April?', answer: 'Placeholder answer about Arlington weather in April.' },
-  { question: 'When is the RSVP deadline?', answer: 'Placeholder answer.' },
+  {
+    question: 'What should I wear?',
+    answer: (
+      <>
+        Each event has its own dress code. You’ll find the attire for every event (and a moodboard for
+        inspiration) in the <a href="#events">Events section</a>.
+      </>
+    ),
+  },
+  {
+    question: 'Can I bring a plus-one?',
+    answer: 'If your invitation includes an additional guest, you’ll see a spot for them on your RSVP form.',
+  },
+  {
+    question: 'Are kids welcome?',
+    answer: 'If your children are listed on your RSVP form, they’re invited, and we can’t wait to see them!',
+  },
+  {
+    question: 'Where should I park?',
+    answer: 'More details to come. We’ll share parking information here closer to the wedding.',
+  },
+  {
+    question: 'What will the weather be like in Arlington, TX in April?',
+    answer: (
+      <>
+        April in Arlington is usually warm and pleasant, with daytime highs in the upper 70s °F and evenings in
+        the mid 50s. Spring showers and the occasional thunderstorm are common, so we’d suggest bringing a light
+        layer and an umbrella, just in case. You can{' '}
+        <a href="https://www.accuweather.com/en/us/arlington/76006/april-weather/331134?year=2027" target="_blank" rel="noreferrer">
+          check April weather in Arlington on AccuWeather
+        </a>
+        .
+      </>
+    ),
+  },
+  {
+    question: 'When is the RSVP deadline?',
+    answer: (
+      <>
+        Please RSVP by <strong>January 15, 2027</strong>. You can update your answers anytime before then.
+      </>
+    ),
+  },
 ]
 
 export default function FaqSection() {

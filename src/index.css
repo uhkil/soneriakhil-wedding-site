@@ -730,6 +730,41 @@ summary:focus-visible {
 
 /* ---------- Our Story: photo beside text ---------- */
 
+/* A blueberry sprig on each side of the title, leaning outward (the right
+   one is mirrored). They give a little wiggle when the pointer is over the
+   title. */
+.title-berry {
+  display: inline-block;
+  height: 0.85em;
+  aspect-ratio: 632 / 752;
+  margin: 0 0.3em;
+  vertical-align: -0.05em;
+  background: var(--ink);
+  -webkit-mask: url('/assets/art/blueberry.svg') center / contain no-repeat;
+  mask: url('/assets/art/blueberry.svg') center / contain no-repeat;
+  rotate: -14deg;
+  transition: rotate 0.4s cubic-bezier(0.3, 1.6, 0.5, 1);
+}
+
+.title-berry.mirrored {
+  scale: -1 1;
+  rotate: 14deg;
+}
+
+h2:hover .title-berry {
+  rotate: -4deg;
+}
+
+h2:hover .title-berry.mirrored {
+  rotate: 4deg;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .title-berry {
+    transition: none;
+  }
+}
+
 .story-moment {
   display: grid;
   grid-template-columns: 1fr 1.2fr;
@@ -960,7 +995,7 @@ img.nugget-photo {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
   width: fit-content;
-  margin: 0 auto 56px;
+  margin: 0 auto 96px;
   padding: 3px;
   border: 1.5px solid var(--ink);
   border-radius: 999px;

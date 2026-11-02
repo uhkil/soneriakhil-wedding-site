@@ -14,7 +14,12 @@ const moments = [
 export default function OurStorySection() {
   return (
     <Section id="story">
-      <h2>Our Story</h2>
+      <h2>
+        {/* Little blueberry sprigs on either side (see .title-berry in index.css). */}
+        <span className="title-berry" aria-hidden="true" />
+        Our Story
+        <span className="title-berry mirrored" aria-hidden="true" />
+      </h2>
       {moments.map((moment, index) => (
         // Each moment fades in as you scroll to it.
         <ScrollReveal key={moment.title} className="story-moment">
