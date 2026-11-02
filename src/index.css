@@ -3564,49 +3564,6 @@ img.nugget-photo {
   margin-right: -0.32em; /* keeps the spaced-out word centered */
 }
 
-/* ----- The flowers on either side of the countdown ----- */
-
-/* Each side's three flowers sit centered in the space between the numbers
-   and the edge of the screen, so there's equal room on either side of them.
-   They're 120% as tall as a number plus its label, every stem ending level
-   with the bottom of the labels. */
-.countdown-units {
-  position: relative;
-}
-
-.countdown-flowers {
-  position: absolute;
-  bottom: 0;
-  height: 120%;
-  width: calc((100vw - 100%) / 2);
-  display: flex;
-  align-items: flex-end;
-  justify-content: center;
-  gap: 0.6em; /* the space between flowers */
-  font-size: clamp(1.7rem, 3.4vw, 3.2rem); /* matches the numbers, so the gap grows with them */
-  pointer-events: none;
-}
-
-.countdown-flowers-left {
-  right: 100%;
-}
-
-.countdown-flowers-right {
-  left: 100%;
-}
-
-.countdown-flower {
-  display: block;
-  flex: none;
-  background: var(--ink);
-  -webkit-mask-size: 100% 100%;
-  mask-size: 100% 100%;
-}
-
-.countdown-flower.mirrored {
-  transform: scaleX(-1);
-}
-
 /* Phones: the countdown spans most of the width. */
 @media (max-width: 720px) {
   .countdown {
@@ -3617,19 +3574,6 @@ img.nugget-photo {
     font-size: 0.62rem;
     letter-spacing: 0.2em;
     margin-right: -0.2em;
-  }
-  /* No room beside the numbers on a phone, so each group stands just above
-     its half of the countdown instead, centered in that half. */
-  .countdown-flowers {
-    bottom: calc(100% + 14px);
-    width: 50%;
-    font-size: 1.7rem;
-  }
-  .countdown-flowers-left {
-    right: 50%;
-  }
-  .countdown-flowers-right {
-    left: 50%;
   }
 }
 
