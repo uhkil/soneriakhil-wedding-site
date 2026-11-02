@@ -1899,6 +1899,14 @@ img.nugget-photo {
   grid-area: art;
 }
 
+/* Every event's drawing is the same height (each as wide as its shape
+   needs), so the couple appears at the same size at every event. */
+.timeline-art.illustration-slot {
+  height: 440px;
+  width: auto;
+  max-width: 100%;
+}
+
 /* On phones: the line moves to the left edge, and each event
    stacks its artwork above its details, all on the right of the line. */
 @media (max-width: 700px) {
@@ -1923,6 +1931,10 @@ img.nugget-photo {
 
   .timeline-art {
     margin-left: 0;
+  }
+
+  .timeline-art.illustration-slot {
+    height: 320px;
   }
 
   .timeline-dot {

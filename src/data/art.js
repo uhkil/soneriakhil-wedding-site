@@ -84,18 +84,20 @@ const art = {
   },
   'event-sangeet': {
     src: '',
-    ratio: '1 / 1',
+    ratio: '600 / 1100', // about the shape of the other event drawings
     note: 'Welcome Night / Sangeet vibe',
   },
   'event-indian-wedding': {
-    src: '',
-    ratio: '1 / 1',
-    note: 'Indian Wedding vibe',
+    src: 'assets/art/indian-outfit.svg',
+    ratio: '657 / 1136',
+    tint: true,
+    note: 'The two of us dressed for the Indian wedding',
   },
   'event-reception': {
-    src: '',
-    ratio: '1 / 1',
-    note: 'Cocktail Hour + Reception vibe',
+    src: 'assets/art/reception-outfit.svg',
+    ratio: '561 / 1140',
+    tint: true,
+    note: 'The two of us dressed for the reception, raising a toast',
   },
   indianAttire: {
     src: '',
