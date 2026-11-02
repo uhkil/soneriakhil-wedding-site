@@ -1,5 +1,6 @@
 // A collection of photos, viewable three ways:
-//   - "Film strip": all photos in a row across the whole page, scrolling sideways
+//   - "Film strip": all photos in a row on a drawn film strip across the whole
+//     page, scrolling sideways
 //   - "Camera" (shown first): one photo at a time on the screen of a drawn
 //     camera; its left and right arrows step through them
 //   - "Grid": all photos at once, in rows
@@ -56,13 +57,7 @@ export default function MemoriesSection() {
           views never moves the title, the toggle, or anything else. */}
       <div className="memories-viewer">
         <View id="filmstrip" view={view}>
-          <div className="filmstrip">
-            {photos.map((photo) => (
-              <div key={photo} className="filmstrip-frame">
-                <PhotoSlot label={photo} className="memory-photo" />
-              </div>
-            ))}
-          </div>
+          <FilmStrip />
         </View>
         <View id="camera" view={view}>
           <Camera />
@@ -86,6 +81,28 @@ function View({ id, view, children }) {
   return (
     <div className={`memories-view memories-view-${id}${shown ? ' shown' : ''}`} inert={!shown} aria-hidden={!shown}>
       {children}
+    </div>
+  )
+}
+
+// The film strip: the drawn film frame (public/assets/art/film-frame.svg)
+// repeated side by side, one frame per photo, with more empty frames filling
+// out the rest of the screen on both sides. Each photo sits in a box behind
+// its frame's opening, so it scrolls along with the film.
+function FilmStrip() {
+  return (
+    <div className="filmstrip" tabIndex={0} role="region" aria-label="Photos on a film strip (scrolls sideways)">
+      <div className="film-track">
+        <div className="film-filler film-filler-start" />
+        {photos.map((photo) => (
+          <div key={photo} className="film-frame">
+            <div className="film-photo">
+              <PhotoSlot label={photo} />
+            </div>
+          </div>
+        ))}
+        <div className="film-filler film-filler-end" />
+      </div>
     </div>
   )
 }

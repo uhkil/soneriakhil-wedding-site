@@ -1221,7 +1221,7 @@ img.nugget-photo {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
   width: fit-content;
-  margin: 0 auto 24px;
+  margin: 0 auto 56px;
   padding: 3px;
   border: 1.5px solid var(--ink);
   border-radius: 999px;
@@ -1279,6 +1279,7 @@ img.nugget-photo {
    Each view starts just under the toggle; any spare room is below it. */
 .memories-viewer {
   display: grid;
+  container-type: inline-size; /* lets sizes below use "cqw" (1% of its width) */
 }
 
 .memories-view {
@@ -1311,28 +1312,116 @@ img.nugget-photo {
 
 /* ---------- Memories: film strip view ---------- */
 
-/* The strip runs the full width of the page; photos at the edges get cut
-   off and the guest scrolls sideways for the rest. */
+/* The strip runs the full width of the page and scrolls sideways. It's the
+   drawn film frame (film-frame.svg, 412 × 369) repeated: each opening is a
+   3:2 photo shape, as wide as the camera's screen (49.49% of the camera,
+   which is min(660px, the column) wide). The first photo lines up with the
+   left edge of the page's column; empty frames fill the screen around them. */
 #memories {
   overflow-x: clip; /* the full-width strip never makes the page scroll sideways */
 }
 
 .filmstrip {
+  /* One frame, rounded to whole pixels so the repeated empty frames line up
+     exactly with the photo frames. */
+  --film-w: round(calc(min(660px, 100cqw) * 0.4949 * 412 / 365), 1px);
+  --film-h: round(calc(var(--film-w) * 369 / 412), 1px);
   width: 100vw;
   margin-left: calc(50% - 50vw);
-  box-sizing: border-box;
-  display: flex;
-  gap: 12px;
-  overflow-x: auto;      /* scroll sideways through the frames */
-  background: var(--ink);
-  padding: 20px 12px;
-  /* Dashed borders top and bottom stand in for the film's sprocket holes. */
-  border-top: 8px dashed var(--paper);
-  border-bottom: 8px dashed var(--paper);
+  overflow-x: auto; /* scroll sideways through the frames */
+  padding-bottom: 10px; /* a little room between the film and its scroll bar */
+  outline-offset: -2px;
 }
 
-.filmstrip-frame {
-  flex: 0 0 auto; /* frames keep their size and don't shrink */
+.film-track {
+  position: relative;
+  display: flex;
+  width: max-content;
+  min-width: 100%;
+  height: var(--film-h);
+}
+
+/* The drawn film, in the text color, laid over the whole strip as one
+   repeating pattern, its frames lined up with the photo boxes underneath
+   (the frame's rounded openings shape the photos' corners). */
+.film-track::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: var(--ink);
+  -webkit-mask: url('/assets/art/film-frame.svg') repeat-x;
+  mask: url('/assets/art/film-frame.svg') repeat-x;
+  -webkit-mask-size: var(--film-w) 100%;
+  mask-size: var(--film-w) 100%;
+  -webkit-mask-position: calc((100vw - 100cqw) / 2) 0;
+  mask-position: calc((100vw - 100cqw) / 2) 0;
+  pointer-events: none;
+}
+
+/* One frame: a box holding its photo. */
+.film-frame {
+  position: relative;
+  flex: none;
+  width: var(--film-w);
+}
+
+/* The photo box, the size of the opening (plus a hair more, hidden under
+   the frame, so no gap shows at the edges). Opening: 23.5, 65, 365 × 243.3. */
+.film-photo {
+  position: absolute;
+  left: calc(5.704% - 1px);
+  top: calc(17.615% - 1px);
+  width: calc(88.592% + 2px);
+  height: calc(65.944% + 2px);
+}
+
+.film-photo .photo-slot {
+  height: 100%;
+  padding: 0;
+  box-shadow: none;
+}
+
+.film-photo .photo-slot img,
+.film-photo .photo-placeholder {
+  height: 100%;
+  aspect-ratio: auto;
+}
+
+/* Room for empty frames: before the first photo (out to the screen's left
+   edge) and after the last (filling whatever's left of the screen). */
+.film-filler-start {
+  flex: none;
+  width: calc((100vw - 100cqw) / 2);
+}
+
+.film-filler-end {
+  flex: 1 0 var(--film-w);
+}
+
+/* The scroll bar: hidden until the pointer is over the strip, then a thin
+   line in the text color. */
+.filmstrip {
+  scrollbar-width: thin;
+  scrollbar-color: transparent transparent;
+}
+
+.filmstrip:hover,
+.filmstrip:focus-visible {
+  scrollbar-color: var(--ink) transparent;
+}
+
+/* Safari draws scroll bars its own way. */
+.filmstrip::-webkit-scrollbar {
+  height: 6px;
+}
+
+.filmstrip::-webkit-scrollbar-thumb {
+  background: transparent;
+  border-radius: 999px;
+}
+
+.filmstrip:hover::-webkit-scrollbar-thumb {
+  background: var(--ink);
 }
 
 /* ---------- Memories: grid view ---------- */
@@ -3524,30 +3613,44 @@ img.nugget-photo {
 
 /* ----- The flowers on either side of the countdown ----- */
 
-/* Each side's flowers stand in a row as tall as a number plus its label,
-   their stems all ending level with the bottom of the labels. The font size
-   matches the numbers, so the "em" spaces between them grow and shrink with
-   the numbers. */
+/* Each side's row of flowers runs from beside the numbers out toward the
+   edge of the page (stopping 24px short). The row is 120% as tall as a number
+   plus its label, with every stem ending level with the bottom of the labels.
+   Flowers that don't fit wrap onto a second line, which is hidden, so only
+   whole flowers show. The font size matches the numbers, so the "em" spaces
+   between flowers grow and shrink with them. */
 .countdown-units {
   position: relative;
 }
 
 .countdown-flowers {
+  --beside: 1.1em; /* space between the numbers and the first flower */
   position: absolute;
-  top: 0;
   bottom: 0;
+  height: 120%;
+  width: calc((100vw - 100%) / 2 - var(--beside) - 24px);
   display: flex;
-  align-items: flex-end;
+  flex-wrap: wrap;
+  overflow: hidden;
   font-size: clamp(1.7rem, 3.4vw, 3.2rem);
   pointer-events: none;
 }
 
 .countdown-flowers-left {
-  right: calc(100% + 1.1em);
+  right: calc(100% + var(--beside));
+  flex-direction: row-reverse; /* starts beside the numbers, heads left */
 }
 
 .countdown-flowers-right {
-  left: calc(100% + 1.35em);
+  --beside: 1.35em;
+  left: calc(100% + var(--beside));
+}
+
+/* Each flower's spot is the full height of the row; the flower stands at its bottom. */
+.countdown-flower-spot {
+  display: flex;
+  align-items: flex-end;
+  height: 100%;
 }
 
 .countdown-flower {
@@ -3642,21 +3745,18 @@ img.nugget-photo {
     top: -76px;
     width: 46px;
   }
-  /* No room beside the numbers on a phone, so the flowers stand just above
-     the two ends of the countdown instead. */
+  /* No room beside the numbers on a phone, so each row stands just above
+     its half of the countdown instead, starting from the middle. */
   .countdown-flowers {
-    top: auto;
     bottom: calc(100% + 14px);
-    height: 100%; /* still as tall as a number plus its label */
+    width: calc(50% - 0.25em); /* a little space where the two rows meet */
     font-size: 1.7rem;
   }
   .countdown-flowers-left {
-    right: auto;
-    left: 0;
+    right: calc(50% + 0.25em);
   }
   .countdown-flowers-right {
-    left: auto;
-    right: 0;
+    left: calc(50% + 0.25em);
   }
 }
 
