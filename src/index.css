@@ -2066,7 +2066,6 @@ img.nugget-photo {
 
   .timeline-day {
     margin-left: 0;
-    padding-left: 0;
   }
 
   .timeline-item,
@@ -2545,6 +2544,21 @@ img.nugget-photo {
 [data-design='honey'] .button:hover {
   background: transparent;
   color: var(--ink);
+}
+
+/* Each day's date on the timeline: a dark-blue pill with light letters,
+   sitting on the line, so the start of each day stands out. */
+[data-design='honey'] .timeline-day {
+  padding: 10px 22px 9px;
+  border-radius: 999px;
+  background: var(--ink);
+  color: var(--paper);
+  font-family: var(--font-display);
+  font-weight: 900;
+  font-stretch: 125%;
+  font-size: 1rem;
+  line-height: 1;
+  letter-spacing: 0.12em;
 }
 
 /* Event names: the heavy, wide face of the section titles, so each event
