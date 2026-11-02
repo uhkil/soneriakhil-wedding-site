@@ -97,10 +97,11 @@ const art = {
     note: 'The two of us dressed for the reception, raising a toast',
   },
   rsvpCouple: {
-    // Top left of the RSVP section, beside the title (one of the corner drawings).
-    src: '',
-    ratio: '900 / 1000',
-    note: 'Drawing of couple looking eager',
+    // Top right of the RSVP section, above the title (one of the corner drawings).
+    src: 'assets/art/pool-date.svg',
+    ratio: '1200 / 896',
+    tint: true,
+    note: 'The two of us playing pool',
   },
 
 }

@@ -9,9 +9,13 @@ export default function LoginPage() {
   return (
     <main className="login-page">
       <div className="invitation-card">
+        {/* One line, like the names at the top of the site: bold capitals with
+            a flowing script "&". */}
         <p className="invitation-names">
-          Soneri
-          <span className="invitation-and">and</span>
+          Soneri{' '}
+          <span className="invitation-and" aria-label="and">
+            &amp;
+          </span>{' '}
           Akhil
         </p>
         <p className="invitation-details">April 9–10, 2027 · Arlington, TX</p>

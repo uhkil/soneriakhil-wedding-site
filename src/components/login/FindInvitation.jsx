@@ -1,5 +1,6 @@
 // "Find your invitation": the login form on the landing page.
-//   Step 1: type your first and last name.
+//   Step 1: type your first and last name, then press Enter (or the arrow
+//   button inside the box).
 //   (If several guests share that name, a popup asks which one you are.)
 //   Step 2: type the wedding passcode (the same for everyone, printed on the invitation).
 // If something's wrong (a blank box, a name that isn't on the list, the wrong
@@ -78,7 +79,7 @@ export default function FindInvitation() {
     <div className="find-invitation">
       {!guest ? (
         <form onSubmit={findName} noValidate>
-          <label htmlFor="guest-name">Find your invitation</label>
+          <label htmlFor="guest-name">Enter your name to find your invitation</label>
           <div className="field-row">
             <input
               ref={nameBox}
@@ -95,9 +96,7 @@ export default function FindInvitation() {
               aria-invalid={Boolean(error)}
               aria-describedby={error ? 'login-error' : undefined}
             />
-            <button className="button" type="submit" disabled={busy}>
-              {busy ? 'Searching…' : 'Continue'}
-            </button>
+            <SubmitArrow busy={busy} label="Find my invitation" />
           </div>
           {error && <FormMessage id="login-error">{error}</FormMessage>}
         </form>
@@ -125,9 +124,7 @@ export default function FindInvitation() {
               aria-invalid={Boolean(error)}
               aria-describedby={error ? 'login-error' : undefined}
             />
-            <button className="button" type="submit" disabled={busy}>
-              {busy ? 'Opening…' : 'Open invitation'}
-            </button>
+            <SubmitArrow busy={busy} label="Open my invitation" />
           </div>
           {error && <FormMessage id="login-error">{error}</FormMessage>}
           <button type="button" className="link-button" onClick={startOver}>
@@ -138,20 +135,39 @@ export default function FindInvitation() {
 
       {/* A built-in browser popup, shown when several guests share a name. */}
       <dialog ref={dialog} className="choose-dialog" aria-labelledby="choose-title">
+        <button type="button" className="dialog-close" aria-label="Close" onClick={() => dialog.current.close()}>
+          <svg viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M6 6l12 12M18 6 6 18" />
+          </svg>
+        </button>
         <h2 id="choose-title">Which one is you?</h2>
         <p>A few guests share this name. Pick the invitation that's yours.</p>
         <div className="choose-list">
-          {matches.map((m) => (
-            <button key={m.guestId} type="button" className="choose-option" onClick={() => choose(m)}>
+          {matches.map((m, i) => (
+            // The first choice gets the keyboard when the popup opens.
+            <button key={m.guestId} type="button" className="choose-option" autoFocus={i === 0} onClick={() => choose(m)}>
               <span className="choose-name">{m.name}</span>
               <span className="choose-party">{m.partyName}</span>
             </button>
           ))}
         </div>
-        <button type="button" className="link-button" onClick={() => dialog.current.close()}>
-          Cancel
-        </button>
       </dialog>
     </div>
+  )
+}
+
+// The small arrow button inside the box (pressing Enter does the same).
+// While it's working, the arrow becomes a little spinning ring.
+function SubmitArrow({ busy, label }) {
+  return (
+    <button type="submit" className="input-arrow" aria-label={busy ? 'Working…' : label} disabled={busy}>
+      {busy ? (
+        <span className="input-spinner" aria-hidden="true" />
+      ) : (
+        <svg viewBox="0 0 24 24" aria-hidden="true">
+          <path d="M5 12h13M13 6l6 6-6 6" />
+        </svg>
+      )}
+    </button>
   )
 }

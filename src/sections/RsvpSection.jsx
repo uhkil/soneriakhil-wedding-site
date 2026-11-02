@@ -158,7 +158,7 @@ export default function RsvpSection() {
   return (
     <Section id="rsvp" className="rsvp">
       {/* Corner art just above the title (see "corner-art" in index.css). */}
-      <IllustrationSlot name="rsvpCouple" size="small" className="corner-art corner-art-left" />
+      <IllustrationSlot name="rsvpCouple" size="small" className="corner-art corner-art-right" />
       <h2>RSVP</h2>
       <p className="rsvp-intro">
         {party.hasResponded

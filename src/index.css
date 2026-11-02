@@ -1657,7 +1657,7 @@ img.nugget-photo {
   top: 0;
   bottom: 0;
   left: 50%;
-  border-left: 1px solid rgba(130, 68, 44, 0.35);
+  border-left: 1px solid var(--ink); /* the timeline's line, in the dark blue */
 }
 
 /* A handwritten date sitting on the line at the start of each day. */
@@ -2719,15 +2719,89 @@ img.nugget-photo {
   text-transform: uppercase;
 }
 
-/* ----- Login form: pill boxes and button, like the RSVP form ----- */
+/* ----- Login page: the invitation card, in the site's style ----- */
+
+/* A wide card outlined in the dark blue (no shadow), rounded like the
+   site's other cards. */
+[data-design='honey'] .invitation-card {
+  width: min(680px, 100%);
+  padding: 64px 56px 52px;
+  background: transparent;
+  border: 1.5px solid var(--ink);
+  border-radius: 24px;
+  outline: none;
+  box-shadow: none;
+}
+
+/* The names on one line: bold, wide capitals with a script "&" between. */
+[data-design='honey'] .invitation-names {
+  display: block;
+  font-size: clamp(1.5rem, 5.6vw, 2.8rem);
+  line-height: 1;
+  letter-spacing: 0;
+  white-space: nowrap;
+  color: var(--ink);
+}
+
+[data-design='honey'] .invitation-and {
+  margin: 0 0.04em;
+  font-family: var(--font-script);
+  font-size: 1.15em;
+  font-style: normal;
+  font-weight: 400;
+  letter-spacing: 0;
+  text-transform: none;
+  color: var(--ink);
+}
+
+[data-design='honey'] .invitation-details {
+  margin-top: 20px;
+  font-family: var(--font-ui);
+  font-size: 0.72rem;
+  font-weight: 500;
+  letter-spacing: 0.22em;
+  color: var(--ink);
+}
+
+[data-design='honey'] .invitation-rule {
+  height: 1.5px;
+  margin: 36px auto;
+  background: var(--ink);
+  opacity: 1;
+}
+
+[data-design='honey'] .invitation-status {
+  font-family: var(--font-ui);
+  font-style: normal;
+  color: var(--ink);
+}
+
+/* The prompt above the box ("Enter your name to find your invitation"). */
+[data-design='honey'] .find-invitation label,
+[data-design='honey'] .find-invitation label[for='guest-name'] {
+  margin-bottom: 14px;
+  font-family: var(--font-body);
+  font-size: 1.1rem;
+  font-weight: 500;
+  letter-spacing: 0;
+  text-transform: none;
+  color: var(--ink);
+}
+
+/* The box, with its arrow button tucked inside on the right. */
+[data-design='honey'] .field-row {
+  position: relative;
+  flex-wrap: nowrap;
+}
 
 [data-design='honey'] .field-row input {
-  padding: 12px 18px;
+  flex: 1;
+  padding: 14px 60px 14px 18px; /* room on the right for the arrow */
   border: 1.5px solid var(--ink);
-  border-radius: 10px; /* inside the invitation card: gently rounded, not a pill */
+  border-radius: 12px;
   background: transparent;
   font-family: var(--font-ui);
-  font-size: 0.95rem;
+  font-size: 1rem;
 }
 
 [data-design='honey'] .field-row input::placeholder {
@@ -2740,10 +2814,171 @@ img.nugget-photo {
   outline-offset: 2px;
 }
 
-[data-design='honey'] .field-row .button {
-  padding: 12px 26px;
-  border-width: 1.5px;
-  border-radius: 10px;
+.input-arrow {
+  position: absolute;
+  right: 7px;
+  top: 50%;
+  translate: 0 -50%;
+  display: grid;
+  place-items: center;
+  width: 38px;
+  height: 38px;
+  padding: 0;
+  border: none;
+  border-radius: 8px; /* the box's 12px, less the gap around it */
+  background: var(--ink);
+  color: var(--paper);
+  cursor: pointer;
+  transition: transform 0.15s ease;
+}
+
+.input-arrow:hover:not(:disabled) {
+  transform: translateX(2px);
+}
+
+.input-arrow:focus-visible {
+  outline: 2px solid var(--ink);
+  outline-offset: 2px;
+}
+
+.input-arrow:disabled {
+  cursor: wait;
+}
+
+.input-arrow svg {
+  width: 18px;
+  height: 18px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2.2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+/* While it's looking: a small spinning ring in place of the arrow. */
+.input-spinner {
+  width: 16px;
+  height: 16px;
+  border: 2px solid rgba(202, 233, 255, 0.35);
+  border-top-color: var(--paper);
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+[data-design='honey'] .find-invitation .link-button {
+  margin-top: 14px;
+  font-family: var(--font-ui);
+  font-size: 0.85rem;
+  color: var(--ink);
+  text-underline-offset: 3px;
+}
+
+@media (max-width: 480px) {
+  [data-design='honey'] .invitation-card {
+    padding: 44px 22px 36px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .input-spinner {
+    animation-duration: 2s;
+  }
+}
+
+/* ----- "Which one is you?" popup: the same card style, with an × to close ----- */
+
+[data-design='honey'] .choose-dialog {
+  position: fixed;
+  width: min(440px, calc(100vw - 32px));
+  padding: 56px 28px 28px; /* room above the title for the × */
+  border: 1.5px solid var(--ink);
+  border-radius: 24px;
+  background: var(--paper);
+  color: var(--ink);
+  box-shadow: none;
+}
+
+[data-design='honey'] .choose-dialog::backdrop {
+  background: rgba(0, 52, 89, 0.35);
+}
+
+[data-design='honey'] .choose-dialog h2 {
+  margin-bottom: 10px;
+  font-size: 1.6rem;
+  line-height: 1.05;
+}
+
+[data-design='honey'] .choose-dialog p {
+  font-family: var(--font-body);
+  font-size: 1.02rem;
+}
+
+[data-design='honey'] .choose-option {
+  padding: 14px 18px;
+  border: 1.5px solid var(--ink);
+  border-radius: 12px;
+  background: transparent;
+  color: var(--ink);
+  transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+[data-design='honey'] .choose-option:hover,
+[data-design='honey'] .choose-option:focus-visible {
+  background: var(--ink);
+  color: var(--paper);
+  outline: none;
+}
+
+[data-design='honey'] .choose-name {
+  font-family: var(--font-ui);
+  font-weight: 600;
+  color: inherit;
+}
+
+[data-design='honey'] .choose-party {
+  font-family: var(--font-ui);
+  font-size: 0.68rem;
+  font-weight: 500;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: inherit;
+}
+
+.dialog-close {
+  position: absolute;
+  top: 14px;
+  right: 14px;
+  display: grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  border: none;
+  border-radius: 50%;
+  background: transparent;
+  color: var(--ink);
+  cursor: pointer;
+}
+
+.dialog-close:hover {
+  background: rgba(0, 52, 89, 0.1);
+}
+
+.dialog-close:focus-visible {
+  outline: 2px solid var(--ink);
+}
+
+.dialog-close svg {
+  width: 18px;
+  height: 18px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2.2;
+  stroke-linecap: round;
 }
 
 /* ----- Form messages and problems (login and RSVP) ----- */
