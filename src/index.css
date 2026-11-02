@@ -2174,16 +2174,25 @@ img.nugget-photo {
 /* ---------- Footer ---------- */
 
 .site-footer {
-  /* a line across the page's column, then the words centered below it */
-  width: min(980px, 100% - 48px);
-  margin: 0 auto;
-  padding: 40px 0 calc(48px + env(safe-area-inset-bottom, 0px));
-  border-top: 1.5px solid var(--ink);
+  /* a solid dark-blue stripe across the bottom of the page, with the
+     message centered in it in the page's light blue */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 120px;
+  padding: 32px 24px calc(32px + env(safe-area-inset-bottom, 0px));
+  box-sizing: border-box;
+  background: var(--ink);
+  color: var(--paper);
   text-align: center;
   font-family: var(--font-ui);
   font-size: 0.8rem;
   letter-spacing: 0.06em;
-  color: var(--ink);
+}
+
+.site-footer p {
+  margin: 0;
+  text-wrap: balance; /* on phones, two even lines instead of one long and one short */
 }
 
 /* =====================================================================

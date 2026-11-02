@@ -47,7 +47,9 @@ export default function App() {
             <FaqSection />
             <RsvpSection />
           </main>
-          <footer className="site-footer">this website was designed with luv by soneri and akhil</footer>
+          <footer className="site-footer">
+            <p>&lt;3&nbsp;this website was designed with luv by soneri and akhil&nbsp;&lt;3</p>
+          </footer>
         </>
       )}
     </>
