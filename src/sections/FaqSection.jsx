@@ -3,7 +3,6 @@
 // opening and closing on their own. Only one answer is open at a time:
 // opening one closes the others.
 import Section from '../components/Section.jsx'
-import Doodle from '../components/Doodle.jsx'
 
 // Edit this list to add, remove, or change questions. An answer can include
 // links: <a href="#events">…</a> jumps to a section of this page.
@@ -56,9 +55,7 @@ const faqs = [
 export default function FaqSection() {
   return (
     <Section id="faq">
-      <h2>
-        FAQ <Doodle type="sprig" size={36} />
-      </h2>
+      <h2>FAQ</h2>
       <div className="faq-list">
         {faqs.map((faq) => (
           <details

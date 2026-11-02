@@ -2035,6 +2035,14 @@ img.nugget-photo {
 
 /* ---------- Travel ---------- */
 
+/* "ACCOMMODATIONS" is wider than the page's column on laptops; letting the
+   title use the full page width keeps it centered over the cards (instead
+   of spilling off to the right). */
+#travel h2 {
+  width: 100vw;
+  margin-left: calc(50% - 50vw);
+}
+
 /* Two dark-blue cards side by side (like the RSVP cards), stacked on
    phones. Each title sits in a light-blue pill; the details are rows of a
    small spaced-out label and its value. */
@@ -2042,7 +2050,8 @@ img.nugget-photo {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 24px;
-  margin-top: 56px; /* the two cards match in height */
+  align-items: start; /* each card only as tall as its content */
+  margin-top: 56px;
 }
 
 .travel-card {
@@ -2077,8 +2086,19 @@ img.nugget-photo {
 
 .travel-photo img,
 .travel-photo .photo-placeholder {
-  aspect-ratio: 3 / 2;
+  aspect-ratio: 1000 / 747;
   border-radius: 14px;
+}
+
+/* The hotel drawing sits on light blue; a thin light-blue frame just
+   outside its edge sets it off from the dark card. */
+.travel-photo img {
+  outline: 1.5px solid var(--paper);
+  outline-offset: 5px;
+}
+
+.travel-photo.photo-slot {
+  margin: 6px 6px 30px;
 }
 
 .travel-photo .photo-placeholder {
