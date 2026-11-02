@@ -17,10 +17,13 @@ export default function OurStorySection() {
   return (
     <Section id="story">
       <h2>
-        {/* Little blueberry sprigs on either side (see .title-berry in index.css). */}
-        <Art file="blueberry.webp" className="title-berry" />
-        Our Story
-        <Art file="blueberry.webp" className="title-berry mirrored" />
+        {/* The words stay centered on the page, with a little cluster of
+            blueberries on either side (see .title-berry in index.css). */}
+        <span className="title-word">
+          <Art file="blueberry.webp" className="title-berry" />
+          Our Story
+          <Art file="blueberry.webp" className="title-berry mirrored" />
+        </span>
       </h2>
       <ol className="story-list">
         {moments.map((moment, index) => (
