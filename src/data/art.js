@@ -104,6 +104,16 @@ const art = {
     ratio: '799 / 1104',
     tint: true,
     note: 'The two of us out on a hike',
+    nugget: {
+      gap: 40,
+      heading: 'national parks we’ve explored',
+      text: 'Placeholder: the parks we’ve hiked together.',
+      links: [
+        { label: 'Placeholder park one', href: '' },
+        { label: 'Placeholder park two', href: '' },
+        { label: 'Placeholder park three', href: '' },
+      ],
+    },
   },
 
 }
