@@ -6,10 +6,23 @@
 // If something's wrong (a blank box, a name that isn't on the list, the wrong
 // passcode, no internet), a message appears under the box, the box is outlined
 // in red, and the cursor goes back into it so the guest can fix it.
+// Password managers are asked to leave these boxes alone (no filling in, no
+// offers to save): see "NO_AUTOFILL" below.
 import { useRef, useState } from 'react'
 import { searchGuests } from '../../api/rsvpApi.js'
 import { useGuest } from '../../guest/GuestProvider.jsx'
 import FormMessage from '../FormMessage.jsx'
+
+// Tells browsers and the common password managers (1Password, LastPass,
+// Bitwarden, Dashlane) not to fill in or offer to save these boxes. Each
+// manager listens for its own signal, so all of them are included.
+const NO_AUTOFILL = {
+  autoComplete: 'off',
+  'data-1p-ignore': true,
+  'data-lpignore': 'true',
+  'data-bwignore': true,
+  'data-form-type': 'other',
+}
 
 export default function FindInvitation() {
   const { login } = useGuest()
@@ -78,14 +91,14 @@ export default function FindInvitation() {
   return (
     <div className="find-invitation">
       {!guest ? (
-        <form onSubmit={findName} noValidate>
+        <form onSubmit={findName} noValidate autoComplete="off" data-1p-ignore data-lpignore="true" data-bwignore data-form-type="other">
           <label htmlFor="guest-name">Enter your name to find your invitation</label>
           <div className="field-row">
             <input
               ref={nameBox}
               id="guest-name"
               type="text"
-              autoComplete="name"
+              {...NO_AUTOFILL}
               placeholder="First and last name"
               value={name}
               onChange={(e) => {
@@ -101,7 +114,7 @@ export default function FindInvitation() {
           {error && <FormMessage id="login-error">{error}</FormMessage>}
         </form>
       ) : (
-        <form onSubmit={openInvitation} noValidate>
+        <form onSubmit={openInvitation} noValidate autoComplete="off" data-1p-ignore data-lpignore="true" data-bwignore data-form-type="other">
           <label htmlFor="invite-code">
             Hi, {guest.name.split(' ')[0]}! Enter the passcode from your invitation.
           </label>
@@ -110,7 +123,7 @@ export default function FindInvitation() {
               ref={codeBox}
               id="invite-code"
               type="text"
-              autoComplete="off"
+              {...NO_AUTOFILL}
               autoCapitalize="characters"
               spellCheck="false"
               placeholder="Passcode"

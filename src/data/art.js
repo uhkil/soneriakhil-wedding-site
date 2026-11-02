@@ -99,7 +99,7 @@ const art = {
   rsvpCouple: {
     // Top right of the RSVP section, above the title (one of the corner drawings).
     src: 'assets/art/pool-date.svg',
-    ratio: '1200 / 896',
+    ratio: '1310 / 962',
     tint: true,
     note: 'The two of us playing pool',
   },
