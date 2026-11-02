@@ -1,29 +1,29 @@
 /*
-  Site styles: a warm, hand-drawn, airy look (see the design system brief).
-  Cream paper dominates; color comes from art, photos, and small accents.
+  Site styles. The first part sets up the layout and the basic look of every
+  section; the "House of Honey" part further down sets the final look (light
+  blue and dark blue, bold wide titles), so check there first when restyling.
+  (The site always uses that design: index.html sets data-design="honey".)
 */
 
 /* ---------- Colors & fonts (change these to restyle the whole site) ---------- */
 
 :root {
-  /* Palette from the design system */
-  --paper: #f8f1e7;      /* main background */
-  --field: #f1e6d4;      /* occasional light background field */
-  --sand: #eadcc5;
-  --brown: #7a4b2e;      /* headings, lines, doodle outlines */
-  --olive: #5f6f4e;      /* buttons */
-  --sage: #8f9f7a;
-  --dusty-blue: #7b8faa;
-  --terracotta: #c97b5b;
-  --blush: #e8a7a1;
-  --ochre: #e3b05b;
-  --charcoal: #3f3a33;   /* body text */
-  --card: #fffcf6;       /* photo-print white */
+  /* Palette sampled from the inspiration image */
+  --paper: #dfdcd7;       /* main background: warm light gray paper */
+  --paper-light: #e9e6e1; /* cards, inputs, photo prints */
+  --paper-tinted: #dbd5cf; /* the Events section's slightly warmer paper */
+  --line: #c9c2ba;        /* hairline borders and dividers */
+  --rust: #82442c;        /* headings, names, buttons: the "ink" */
+  --cocoa: #7a5a4e;       /* small labels and secondary text */
+  --dust: #b9a69c;        /* placeholder outlines */
+  --rose-clay: #a8705c;   /* small accents: dots, underlines */
+  --petal: #decdc4;       /* soft blush, like the pressed petals */
+  --stem: #e1d4c5;        /* soft cream, like the pressed stems */
+  --ink: #3d3430;         /* body text */
 
-  /* Two voices: handwriting for feeling, serif for reading */
-  --font-hand: 'Caveat', 'Bradley Hand', cursive;
-  --font-title: 'Playfair Display', Georgia, serif;
-  --font-body: 'Lora', Georgia, serif;
+  /* Two voices: bold capitals for names and headings, a book serif for reading */
+  --font-display: 'Archivo', 'Arial Black', Helvetica, sans-serif;
+  --font-body: 'EB Garamond', Garamond, Georgia, serif;
 
   --nav-height: 60px;
 }
@@ -38,41 +38,51 @@ html {
 body {
   margin: 0;
   font-family: var(--font-body);
-  font-size: 17px;
-  line-height: 1.7;
-  color: var(--charcoal);
-  background: var(--paper);
+  font-size: 18px;
+  line-height: 1.65;
+  color: var(--ink);
+  /* Paper: the base color, a fine grain (generated noise), and a few soft blotches. */
+  background-color: var(--paper);
+  background-image:
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='220' height='220'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0.3 0 0 0 0 0.26 0 0 0 0 0.24 0 0 0 0.08 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E"),
+    radial-gradient(ellipse 60% 40% at 15% 20%, rgba(255, 255, 255, 0.28), transparent 70%),
+    radial-gradient(ellipse 50% 35% at 85% 65%, rgba(140, 128, 118, 0.12), transparent 70%);
+  background-size: 220px 220px, 1400px 1100px, 1400px 1100px;
 }
 
 h1,
 h2 {
-  font-family: var(--font-hand);
-  font-weight: 700;
-  color: var(--brown);
-  line-height: 1;
+  font-family: var(--font-display);
+  font-weight: 400;
+  color: var(--rust);
+  line-height: 1.1;
   margin: 0;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  text-wrap: balance;
 }
 
 /* clamp(smallest, preferred, largest): sizes shrink on narrow screens. */
 h1 {
-  font-size: clamp(3.5rem, 11vw, 6.5rem);
+  font-size: clamp(2.4rem, 7vw, 4rem);
 }
 
 h2 {
-  font-size: clamp(2.8rem, 8vw, 4rem);
+  font-size: clamp(1.25rem, 5vw, 2.6rem);
+  hyphens: auto; /* a very long word breaks with a hyphen instead of running off a phone screen */
   text-align: center;
-  margin-bottom: 48px;
+  margin-bottom: 56px;
 }
 
-/* A hand-drawn squiggle under each section heading. */
+/* A short hairline under each section heading. */
 h2::after {
   content: '';
   display: block;
-  width: 120px;
-  height: 14px;
-  margin: 6px auto 0;
-  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 120 14'%3E%3Cpath d='M3 9 C 20 3, 32 12, 50 7 S 85 3, 117 8' fill='none' stroke='%23c97b5b' stroke-width='2.5' stroke-linecap='round'/%3E%3C/svg%3E")
-    no-repeat center / contain;
+  width: 56px;
+  height: 1px;
+  margin: 24px auto 0;
+  background: var(--rust);
+  opacity: 0.5;
 }
 
 h2 .doodle {
@@ -80,41 +90,42 @@ h2 .doodle {
 }
 
 h3 {
-  font-family: var(--font-title);
-  font-weight: 600;
-  font-size: 1.5rem;
-  color: var(--brown);
+  font-family: var(--font-display);
+  font-weight: 400;
+  font-size: 1.35rem;
+  color: var(--rust);
   line-height: 1.25;
   margin: 0 0 8px;
 }
 
 a {
-  color: var(--brown);
+  color: var(--rust);
 }
 
 /* A link styled as a rounded button (e.g. "RSVP"). */
 .button {
   display: inline-block;
-  background: var(--olive);
-  color: var(--paper);
-  font-weight: 600;
-  letter-spacing: 0.08em;
+  background: transparent;
+  color: var(--rust);
+  font-weight: 500;
+  letter-spacing: 0.22em;
   text-transform: uppercase;
-  font-size: 0.85rem;
+  font-size: 0.78rem;
   text-decoration: none;
-  padding: 12px 32px;
-  border-radius: 999px;
-  border: 2px solid var(--olive);
+  padding: 14px 36px;
+  border-radius: 0;
+  border: 1px solid var(--rust);
 }
 
 .button:hover {
-  background: var(--charcoal);
-  border-color: var(--charcoal);
+  background: var(--rust);
+  border-color: var(--rust);
+  color: var(--paper);
 }
 
 .button-outline {
   background: transparent;
-  color: var(--olive);
+  color: var(--cocoa);
 }
 
 .button-outline:hover {
@@ -125,7 +136,7 @@ a {
 a:focus-visible,
 button:focus-visible,
 summary:focus-visible {
-  outline: 2px dashed var(--terracotta);
+  outline: 2px dashed var(--rose-clay);
   outline-offset: 4px;
 }
 
@@ -133,18 +144,18 @@ summary:focus-visible {
 
 .doodle {
   fill: none;
-  stroke: var(--brown);
-  stroke-width: 2;
+  stroke: var(--rust);
+  stroke-width: 1.5;
   stroke-linecap: round;
   stroke-linejoin: round;
   flex-shrink: 0;
 }
 
-.doodle .fill-blush { fill: var(--blush); }
-.doodle .fill-sage { fill: var(--sage); }
-.doodle .fill-ochre { fill: var(--ochre); }
-.doodle .fill-terracotta { fill: var(--terracotta); }
-.doodle .fill-paper { fill: var(--card); }
+.doodle .fill-blush { fill: var(--petal); }
+.doodle .fill-sage { fill: var(--dust); }
+.doodle .fill-ochre { fill: var(--stem); }
+.doodle .fill-terracotta { fill: var(--rose-clay); }
+.doodle .fill-paper { fill: var(--paper-light); }
 
 /* ---------- Illustration slots ---------- */
 
@@ -163,6 +174,15 @@ summary:focus-visible {
   object-fit: contain;
 }
 
+/* A one-color drawing in the text color (art with "tint" in art.js). */
+.illustration-tint {
+  width: 100%;
+  height: 100%;
+  background: currentColor;
+  -webkit-mask: center / contain no-repeat;
+  mask: center / contain no-repeat;
+}
+
 /* Until real art exists: a sketchy dashed box that says what goes here. */
 .slot-placeholder {
   height: 100%;
@@ -174,42 +194,44 @@ summary:focus-visible {
   gap: 2px;
   padding: 12px;
   text-align: center;
-  border: 2px dashed var(--sage);
-  border-radius: 28px;
+  border: 1px dashed var(--dust);
+  border-radius: 2px;
   background: repeating-linear-gradient(
     -45deg,
     transparent 0 14px,
-    rgba(143, 159, 122, 0.12) 14px 16px
+    rgba(130, 68, 44, 0.06) 14px 16px
   );
 }
 
 .slot-name {
-  font-family: var(--font-hand);
-  font-size: 1.5rem;
-  font-weight: 700;
-  color: var(--brown);
+  font-family: var(--font-display);
+  font-size: 0.95rem;
+  font-weight: 400;
+  color: var(--rust);
   line-height: 1.1;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
 }
 
 .slot-note {
   font-style: italic;
   font-size: 0.85rem;
-  color: var(--olive);
+  color: var(--cocoa);
   line-height: 1.3;
 }
 
 .slot-ratio {
   font-size: 0.75rem;
   letter-spacing: 0.1em;
-  color: var(--olive);
+  color: var(--cocoa);
 }
 
 /* ---------- Photo slots (styled like printed photos) ---------- */
 
 .photo-slot {
-  background: var(--card);
+  background: var(--paper-light);
   padding: 10px 10px 32px;
-  box-shadow: 0 6px 18px rgba(63, 58, 51, 0.12);
+  box-shadow: 0 6px 18px rgba(61, 52, 48, 0.12);
 }
 
 .photo-slot img,
@@ -218,16 +240,21 @@ summary:focus-visible {
   width: 100%;
   aspect-ratio: 4 / 3;
   object-fit: cover;
+  font-size: 0.8rem;
+  letter-spacing: 0.16em;
+  color: var(--cocoa);
+  text-transform: uppercase;
+  font-weight: 400;
 }
 
 .photo-placeholder {
   display: flex;
   align-items: center;
   justify-content: center;
-  background: var(--sand);
-  font-family: var(--font-hand);
+  background: var(--line);
+  font-family: var(--font-display);
   font-size: 1.3rem;
-  color: var(--brown);
+  color: var(--rust);
 }
 
 /* ---------- Scroll reveal (gentle fade-in) ---------- */
@@ -280,17 +307,19 @@ summary:focus-visible {
   grid-template-columns: 1fr auto 1fr;
   align-items: center;
   padding: 0 24px;
-  background: rgba(248, 241, 231, 0.94);
-  border-bottom: 1px solid var(--sand);
+  background: rgba(223, 220, 215, 0.94);
+  border-bottom: 1px solid var(--line);
 }
 
 .navbar-brand {
   justify-self: start;
-  font-family: var(--font-hand);
-  font-weight: 700;
-  font-size: 1.9rem;
-  color: var(--brown);
+  font-family: var(--font-display);
+  font-weight: 400;
+  font-size: 1.15rem;
+  color: var(--rust);
   text-decoration: none;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
 }
 
 .navbar-links {
@@ -299,24 +328,24 @@ summary:focus-visible {
 }
 
 .navbar-links a {
-  color: var(--charcoal);
+  color: var(--ink);
   text-decoration: none;
   text-transform: uppercase;
-  letter-spacing: 0.12em;
-  font-size: 0.75rem;
-  font-weight: 600;
+  letter-spacing: 0.2em;
+  font-size: 0.72rem;
+  font-weight: 500;
   padding: 4px 0;
   border-bottom: 2px solid transparent;
 }
 
 .navbar-links a:hover {
-  color: var(--brown);
+  color: var(--rust);
 }
 
 /* The link for the section you're currently looking at. */
 .navbar-links a.active {
-  color: var(--brown);
-  border-bottom-color: var(--terracotta);
+  color: var(--rust);
+  border-bottom-color: var(--rust);
 }
 
 /* The ☰ button is hidden on bigger screens... */
@@ -327,7 +356,7 @@ summary:focus-visible {
   font-size: 1.6rem;
   background: none;
   border: none;
-  color: var(--brown);
+  color: var(--rust);
   cursor: pointer;
 }
 
@@ -347,8 +376,8 @@ summary:focus-visible {
     flex-direction: column;
     gap: 0;
     background: var(--paper);
-    border-bottom: 1px solid var(--sand);
-    box-shadow: 0 8px 16px rgba(63, 58, 51, 0.1);
+    border-bottom: 1px solid var(--line);
+    box-shadow: 0 8px 16px rgba(61, 52, 48, 0.1);
   }
 
   .navbar-links.open {
@@ -358,12 +387,12 @@ summary:focus-visible {
   .navbar-links a {
     padding: 14px 24px;
     font-size: 0.85rem;
-    border-bottom: 1px solid var(--sand);
+    border-bottom: 1px solid var(--line);
   }
 
   .navbar-links a.active {
-    border-bottom-color: var(--sand);
-    background: var(--field);
+    border-bottom-color: var(--line);
+    background: var(--paper);
   }
 }
 
@@ -386,7 +415,7 @@ summary:focus-visible {
 
 /* An occasional light background field (cream stays dominant). */
 .section-field {
-  background: var(--field);
+  background: var(--paper-tinted);
 }
 
 /* Keeps content from stretching too wide on big screens. */
@@ -411,125 +440,782 @@ summary:focus-visible {
 
 /* ---------- Home (hero) ---------- */
 
+/* The hero spans the full screen width, so the photo runs edge to edge.
+   overflow-x: clip hides anything past the left/right edges without
+   creating a sideways scrollbar. */
+.hero {
+  padding: 0 0 48px;
+  overflow-x: clip;
+  justify-content: flex-start;
+}
+
 .hero .section-inner {
-  display: grid;
-  grid-template-columns: 1fr 1.2fr;
-  align-items: center;
-  gap: 48px;
+  max-width: none;
+  display: flex;
+  flex-direction: column;
+  flex: 1;
 }
 
 .hero-text {
   text-align: center;
+  padding: 0 24px;
 }
 
-.hero-heart {
-  vertical-align: top;
-  margin-left: 4px;
+.hero h1 {
+  font-size: clamp(1.6rem, 4.5vw, 2.4rem);
 }
 
 .hero-details {
-  font-family: var(--font-title);
+  font-family: var(--font-display);
   text-transform: uppercase;
-  letter-spacing: 0.25em;
-  font-size: 0.95rem;
-  color: var(--brown);
-  margin: 20px 0 32px;
+  letter-spacing: 0.3em;
+  font-size: 0.85rem;
+  color: var(--cocoa);
+  margin: 10px 0 24px;
 }
 
-/* On narrow screens, stack the names above the illustration. */
-@media (max-width: 800px) {
-  .hero .section-inner {
-    grid-template-columns: 1fr;
-    gap: 32px;
+/* ---------- Login page: an invitation card ---------- */
+
+.login-page {
+  min-height: 100dvh;
+  box-sizing: border-box;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 32px 16px;
+}
+
+/* A card with a thin border and a second, inset hairline frame. */
+.invitation-card {
+  width: min(520px, 100%);
+  box-sizing: border-box;
+  padding: 64px 40px 48px;
+  text-align: center;
+  background: var(--paper-light);
+  border: 1px solid var(--line);
+  outline: 1px solid var(--line);
+  outline-offset: -12px;
+  box-shadow: 0 18px 40px rgba(61, 52, 48, 0.12);
+}
+
+.invitation-names {
+  display: flex;
+  flex-direction: column;
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: clamp(2rem, 9vw, 3rem);
+  line-height: 1.15;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--rust);
+}
+
+.invitation-and {
+  margin: 6px 0;
+  font-family: var(--font-body);
+  font-style: italic;
+  font-size: 0.45em;
+  letter-spacing: 0;
+  text-transform: none;
+  color: var(--cocoa);
+}
+
+.invitation-details {
+  margin: 24px 0 0;
+  font-size: 0.78rem;
+  letter-spacing: 0.26em;
+  text-transform: uppercase;
+  color: var(--cocoa);
+}
+
+.invitation-rule {
+  width: 40px;
+  height: 1px;
+  margin: 32px auto;
+  background: var(--rust);
+  opacity: 0.5;
+}
+
+.invitation-status {
+  font-style: italic;
+  color: var(--cocoa);
+}
+
+@media (max-width: 480px) {
+  .invitation-card {
+    padding: 48px 24px 36px;
   }
+}
+
+/* ---------- Login: "Find your invitation" ---------- */
+
+.find-invitation {
+  max-width: 460px;
+  margin: 0 auto;
+}
+
+.find-invitation label {
+  display: block;
+  margin-bottom: 10px;
+  font-weight: 600;
+}
+
+/* The first step's label is a handwritten heading. */
+.find-invitation label[for='guest-name'] {
+  font-family: var(--font-display);
+  font-size: 1.05rem;
+  font-weight: 400;
+  color: var(--rust);
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+}
+
+.field-row {
+  display: flex;
+  flex-wrap: wrap; /* the button drops below the box on narrow phones */
+  justify-content: center;
+  gap: 8px;
+}
+
+.field-row input {
+  flex: 1 1 180px;
+  min-width: 0;
+  font: inherit;
+  padding: 10px 18px;
+  border: 1px solid var(--line);
+  border-radius: 0;
+  background: var(--paper-light);
+  color: var(--ink);
+}
+
+.field-row input:focus {
+  outline: none;
+  border-color: var(--rust);
+}
+
+.field-row .button {
+  flex: 0 0 auto;
+  cursor: pointer;
+}
+
+.button:disabled {
+  opacity: 0.6;
+  cursor: wait;
+}
+
+/* A button that looks like a small text link ("Search again", "Cancel"). */
+.link-button {
+  background: none;
+  border: none;
+  padding: 4px;
+  margin-top: 10px;
+  font: inherit;
+  font-size: 0.9rem;
+  color: var(--rust);
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+.form-error {
+  margin: 12px 0 0;
+  color: #8a2a18;
+  font-size: 0.95rem;
+}
+
+.hero-status {
+  font-style: italic;
+  color: var(--cocoa);
+}
+
+.hero-welcome {
+  font-family: var(--font-body);
+  font-size: 1.4rem;
+  font-weight: 400;
+  color: var(--rust);
+  margin: 0 0 16px;
+  font-style: italic;
+}
+
+/* The "Which one is you?" popup. */
+.choose-dialog {
+  border: none;
+  border-radius: 2px;
+  padding: 28px;
+  width: min(420px, calc(100vw - 32px));
+  box-sizing: border-box;
+  background: var(--paper);
+  color: var(--ink);
+  text-align: center;
+  box-shadow: 0 20px 50px rgba(61, 52, 48, 0.3);
+}
+
+.choose-dialog::backdrop {
+  background: rgba(61, 52, 48, 0.45);
+}
+
+.choose-dialog h2 {
+  font-size: 1.5rem;
+  margin-bottom: 12px;
+}
+
+.choose-dialog p {
+  margin: 0;
+}
+
+.choose-list {
+  display: grid;
+  gap: 10px;
+  margin: 20px 0 8px;
+}
+
+.choose-option {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2px;
+  padding: 12px 16px;
+  border: 1px solid var(--line);
+  border-radius: 2px;
+  background: var(--paper-light);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.choose-option:hover {
+  border-color: var(--rust);
+}
+
+.choose-name {
+  font-weight: 600;
+  color: var(--rust);
+}
+
+.choose-party {
+  font-size: 0.9rem;
+  color: var(--cocoa);
+}
+
+/* "Log out" in the nav bar, styled like the other nav links. */
+.navbar-logout {
+  background: none;
+  border: none;
+  padding: 4px 0;
+  font: inherit;
+  font-size: 0.72rem;
+  font-weight: 500;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--cocoa);
+  cursor: pointer;
+}
+
+@media (max-width: 768px) {
+  .navbar-logout {
+    padding: 14px 24px;
+    text-align: left;
+    font-size: 0.85rem;
+  }
+}
+
+/* A thin strip at the top of the page when using fake practice guests. */
+.practice-banner {
+  margin: 0;
+  padding: 6px 16px;
+  background: var(--ink);
+  color: var(--paper);
+  font-size: 0.8rem;
+  text-align: center;
+}
+
+/* ---------- The two of us on either side of a title (Memories, FAQ) ---------- */
+
+/* Small accents (much smaller than the corner drawings): one of us on the
+   left of the word, the other on the right, feet level with the bottom of
+   the letters. The word stays centered on the page. Each pair is cut from one
+   picture at the same scale, so both people are the same size. */
+.title-side {
+  position: absolute;
+  bottom: 0.19em; /* their feet line up with the bottom of the letters */
+  height: 1.425em;
+  background: var(--ink);
+  -webkit-mask: var(--art) center / contain no-repeat;
+  mask: var(--art) center / contain no-repeat;
+}
+
+.title-left {
+  right: 100%;
+  margin-right: 0.4em;
+}
+
+.title-right {
+  left: 100%;
+  margin-left: 0.4em;
+}
+
+/* Memories: Akhil taking a photo of Soneri across the word. */
+.title-photographer {
+  aspect-ratio: 571 / 753;
+  --art: url('/assets/art/photoshoot-boy.svg');
+}
+
+.title-subject {
+  aspect-ratio: 425 / 753;
+  --art: url('/assets/art/photoshoot-girl.svg');
+}
+
+/* FAQ: Akhil being silly, Soneri looking his way through binoculars. */
+.title-faq-boy {
+  aspect-ratio: 577 / 750;
+  --art: url('/assets/art/faq-boy.svg');
+}
+
+.title-faq-girl {
+  aspect-ratio: 552 / 750;
+  --art: url('/assets/art/faq-girl.svg');
+}
+
+/* ---------- Events: a disco ball beside the title ---------- */
+
+/* 2.8 times as tall as the capital letters, hanging off the right of the word
+   (which stays centered). It's taller than the letters, so the title gets
+   extra room below before the first date. */
+.title-disco {
+  position: absolute;
+  left: 100%;
+  top: 50%;
+  translate: 0 -50%;
+  height: 2em; /* older browsers: about 2.8 × the capital letters */
+  height: 2.8cap;
+  aspect-ratio: 758 / 721;
+  margin-left: 0.9em;
+  background: var(--ink);
+  -webkit-mask: url('/assets/art/discoball.svg') center / contain no-repeat;
+  mask: url('/assets/art/discoball.svg') center / contain no-repeat;
+}
+
+#events h2 {
+  margin-bottom: 96px; /* the other titles have 56px */
+}
+
+/* ---------- Registry: two hands making a heart, beside the title ---------- */
+
+/* The word "Registry" is centered on the page; the drawing hangs off its
+   right side, so it doesn't push the word off-center. */
+.title-word {
+  position: relative;
+  white-space: nowrap;
+}
+
+/* Plenty of room between the title and the note below it. */
+#registry h2 {
+  margin-bottom: 72px;
+}
+
+.title-hands {
+  position: absolute;
+  left: 100%;
+  top: 50%;
+  translate: 0 -50%;
+  height: 0.9em;
+  aspect-ratio: 1376 / 457;
+  margin-left: 0.35em;
+  background: var(--ink);
+  -webkit-mask: url('/assets/art/heart-hands.svg') center / contain no-repeat;
+  mask: url('/assets/art/heart-hands.svg') center / contain no-repeat;
 }
 
 /* ---------- Our Story: photo beside text ---------- */
 
-.story-moment {
-  display: grid;
-  grid-template-columns: 1fr 1.2fr;
-  gap: 56px;
-  align-items: center;
-  margin: 64px 0;
+/* A blueberry sprig on each side of the title, leaning outward (the right
+   one is mirrored). They give a little wiggle when the pointer is over the
+   title. */
+.title-berry {
+  display: inline-block;
+  height: 0.85em;
+  aspect-ratio: 632 / 752;
+  margin: 0 0.6em;
+  vertical-align: -0.05em;
+  background: var(--ink);
+  -webkit-mask: url('/assets/art/blueberry.svg') center / contain no-repeat;
+  mask: url('/assets/art/blueberry.svg') center / contain no-repeat;
+  rotate: -14deg;
+  transition: rotate 0.4s cubic-bezier(0.3, 1.6, 0.5, 1);
 }
 
-.story-moment .photo-slot {
+.title-berry.mirrored {
+  scale: -1 1;
+  rotate: 14deg;
+}
+
+h2:hover .title-berry {
+  rotate: -4deg;
+}
+
+h2:hover .title-berry.mirrored {
+  rotate: 4deg;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .title-berry {
+    transition: none;
+  }
+}
+
+/* The moments: a numbered list, each moment a photo beside its text, with
+   the sides swapping every other moment. Flat photos with rounded corners
+   (no tilt, no print border); a small spaced-out number above each title. */
+.story-list {
+  margin: 56px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.story-moment {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 64px;
+  align-items: center;
+  margin: 0 0 72px;
+}
+
+.story-moment:last-child {
+  margin-bottom: 0;
+}
+
+.story-photo.photo-slot {
   width: 100%;
-  max-width: 380px;
-  box-sizing: border-box;
-  justify-self: center;
+  padding: 0;
+  box-shadow: none;
+  background: none;
+}
+
+.story-photo img,
+.story-photo .photo-placeholder {
+  aspect-ratio: 4 / 3;
+  border-radius: 20px;
 }
 
 /* Every other moment flips: text on the left, photo on the right. */
-.story-moment:nth-of-type(even) .photo-slot {
+.story-moment:nth-child(even) .story-photo {
   order: 2;
 }
 
-.story-vignette {
-  margin-top: 16px;
+.story-number {
+  margin: 0 0 10px;
+  font-family: var(--font-ui);
+  font-size: 0.75rem;
+  font-weight: 500;
+  letter-spacing: 0.2em;
+}
+
+.section .story-text h3 { /* ".section" so it wins over the general h3 style */
+  margin: 0 0 12px;
+  font-family: var(--font-display);
+  font-weight: 900;
+  font-stretch: 125%;
+  font-size: clamp(1.35rem, 2.4vw, 1.9rem);
+  line-height: 1.1;
+  color: var(--ink);
+}
+
+.story-text p {
+  margin: 0;
+}
+
+/* ----- Corner art: the small drawings of the two of us (coffee date,
+   basketball, ...) that sit at the top of a section, just above its title, tucked toward the
+   left or right edge. They all share one scale and one placement rule, so
+   change them here and every drawing in the group follows.
+   Use: <IllustrationSlot ... className="corner-art corner-art-right" /> (or -left). ----- */
+
+/* Scale: drawing units → pixels. 0.3323 makes the coffee date 320px wide;
+   each drawing's width comes from its own size (--art-width, from art.js),
+   so the people in every drawing come out the same size. */
+.illustration-slot.corner-art {
+  --corner-art-scale: 0.3323;
+  max-width: calc(var(--art-width) * var(--corner-art-scale) * 1px);
+  /* It's the first thing in its section, just above the title, with room
+     to breathe before the title. */
+  margin-top: 0;
+  margin-bottom: 96px;
+}
+
+.illustration-slot.corner-art-right {
   margin-right: 0;
+}
+
+.illustration-slot.corner-art-left {
+  margin-left: 0;
+}
+
+/* Wider screens: tuck it toward the edge, halving the empty space between it
+   and the edge of the page — but always keep at least 200px of space between
+   it and the edge. On smaller laptops that means it stays lined up with the
+   text instead of crowding the edge. Measured from the screen's edge (using
+   the usual 980px page width), so it lands in the same place even in the
+   narrower sections like Registry. */
+@media (min-width: 641px) {
+  .illustration-slot.corner-art {
+    --page-gutter: calc((100vw - min(980px, 100vw - 48px)) / 2);
+    --edge-gap: max(calc(var(--page-gutter) / 2), min(var(--page-gutter), 200px));
+    --own-gutter: calc((100vw - 100%) / 2);
+  }
+  .illustration-slot.corner-art-right {
+    margin-right: calc(var(--edge-gap) - var(--own-gutter));
+  }
+  .illustration-slot.corner-art-left {
+    margin-left: calc(var(--edge-gap) - var(--own-gutter));
+  }
+}
+
+/* Phones: centered. */
+@media (max-width: 640px) {
+  .illustration-slot.corner-art {
+    margin-left: auto;
+    margin-right: auto;
+  }
+}
+
+/* ----- Nuggets: a little card about us that pops up beside a drawing
+   when a guest hovers over it, taps it, or tabs to it (see "nugget" in
+   src/data/art.js). It opens toward the middle of the page: to the left of
+   drawings on the right, to the right of drawings on the left, and below the
+   drawing on phones. ----- */
+.illustration-slot.has-nugget {
+  position: relative;
+  cursor: pointer;
+  outline: none;
+}
+
+.illustration-slot.has-nugget:focus-visible .illustration-tint {
+  outline: 2px solid var(--ink);
+  outline-offset: 8px;
+  border-radius: 8px;
+}
+
+.nugget {
+  position: absolute;
+  z-index: 20;
+  top: 50%;
+  right: 100%;
+  translate: 0 -50%; /* centered on the drawing, top to bottom */
+  width: max-content;
+  /* See-through space between the drawing and the card (--nugget-gap, set
+     per drawing in art.js). Being part of the hover area, it keeps the card
+     open while the pointer moves across to it. */
+  padding: 0 var(--nugget-gap, 16px);
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(6px);
+  transition: opacity 0.25s ease, transform 0.25s ease, visibility 0s 0.25s;
+  cursor: auto;
+}
+
+/* A nugget short enough to sit on one line ("oneLine" in art.js). */
+.nugget.one-line .nugget-card {
+  max-width: none;
+  white-space: nowrap;
+}
+
+.corner-art-left .nugget {
+  right: auto;
+  left: 100%;
+}
+
+.illustration-slot.has-nugget:hover .nugget,
+.illustration-slot.has-nugget:focus-within .nugget {
+  opacity: 1;
+  visibility: visible;
+  transform: none;
+  transition: opacity 0.25s ease, transform 0.25s ease, visibility 0s;
+}
+
+.nugget-card {
+  box-sizing: border-box;
+  max-width: var(--nugget-width, min(280px, 70vw));
+  padding: 14px 18px;
+  border-radius: 18px;
+  background: var(--ink);
+  color: var(--paper);
+  font: 400 0.95rem/1.45 var(--font-ui);
+  text-align: left;
+}
+
+.nugget-card p {
+  margin: 0;
+}
+
+.nugget-card .nugget-heading {
+  margin-bottom: 4px;
+  font-weight: 600;
+}
+
+.nugget-card ul {
+  margin: 8px 0 0;
+  padding-left: 1.1em;
+}
+
+.nugget-card li + li {
+  margin-top: 2px;
+}
+
+/* A row of small photos (or placeholder squares, for now). */
+.nugget-gallery {
+  display: grid;
+  grid-template-columns: repeat(3, 72px);
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.nugget-photo {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  aspect-ratio: 1;
+  border: 1.5px dashed currentColor;
+  border-radius: 8px;
+  font-size: 0.7rem;
+  object-fit: cover;
+}
+
+img.nugget-photo {
+  width: 100%;
+  border: none;
+}
+
+.nugget-card a {
+  color: inherit;
+  text-underline-offset: 3px;
+}
+
+/* Phones: the drawing is centered, so the card opens just below it. */
+@media (max-width: 640px) {
+  .nugget,
+  .corner-art-left .nugget {
+    top: 100%;
+    right: auto;
+    left: 50%;
+    translate: -50% 0;
+    padding: 10px 0 0;
+  }
+  .nugget-card,
+  .nugget.one-line .nugget-card {
+    max-width: min(var(--nugget-width, 280px), calc(100vw - 32px));
+    white-space: normal;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .nugget {
+    transition: none;
+  }
 }
 
 /* On narrow screens, stack the photo above the text. */
 @media (max-width: 640px) {
   .story-moment {
     grid-template-columns: 1fr;
-    gap: 24px;
-    margin: 40px 0;
+    gap: 20px;
+    margin-bottom: 48px;
   }
-  .story-moment:nth-of-type(even) .photo-slot {
+  .story-moment:nth-child(even) .story-photo {
     order: 0;
-  }
-  .story-vignette {
-    margin-right: auto;
   }
 }
 
 /* ---------- Memories: view toggle ---------- */
 
+/* One pill split into equal parts; a filled highlight slides behind the
+   chosen one (--index: 0, 1, 2 — set in MemoriesSection.jsx). */
 .view-toggle {
-  display: flex;
-  justify-content: center;
-  gap: 8px;
-  margin-bottom: 24px;
+  position: relative;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  width: fit-content;
+  margin: 0 auto 96px;
+  padding: 3px;
+  border: 1.5px solid var(--ink);
+  border-radius: 999px;
 }
 
-.view-toggle button,
-.camera-controls button {
-  font: inherit;
-  font-size: 0.85rem;
-  font-weight: 600;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  padding: 6px 20px;
-  border: 2px solid var(--olive);
+.view-toggle::before {
+  content: '';
+  position: absolute;
+  top: 3px;
+  bottom: 3px;
+  left: 3px;
+  width: calc((100% - 6px) / 3);
+  border-radius: 999px;
+  background: var(--ink);
+  translate: calc(100% * var(--index, 0)) 0;
+  transition: translate 0.3s cubic-bezier(0.3, 0.8, 0.3, 1);
+}
+
+.view-toggle button {
+  position: relative; /* above the highlight */
+  min-width: 7.5em;
+  padding: 8px 18px;
+  border: none;
   border-radius: 999px;
   background: transparent;
-  color: var(--olive);
+  color: var(--ink);
+  font: 500 0.75rem/1 var(--font-ui);
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
   cursor: pointer;
+  transition: color 0.3s ease;
 }
 
 .view-toggle button.selected {
-  background: var(--olive);
   color: var(--paper);
+}
+
+@media (max-width: 400px) {
+  .view-toggle button {
+    min-width: 0;
+    padding: 8px 12px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .view-toggle::before {
+    transition: none;
+  }
 }
 
 /* ---------- Memories: shared sizing ---------- */
 
-/* A fixed-height area for both views, so switching views
-   doesn't move anything else on the page. */
+/* All three views sit in the same grid cell, so the area is as tall as the
+   tallest one and switching views doesn't move anything else on the page.
+   Each view starts just under the toggle; any spare room is below it. */
 .memories-viewer {
-  min-height: 400px;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
+  display: grid;
+  container-type: inline-size; /* lets sizes below use "cqw" (1% of its width) */
+}
+
+.memories-view {
+  grid-area: 1 / 1;
+  align-self: start;
+  min-width: 0;
+  visibility: hidden;
+}
+
+.memories-view.shown {
+  visibility: visible;
+}
+
+/* The film strip starts level with the top of the camera's screen, so the
+   photos sit at the same height in both views. (The camera is
+   min(660px, 100%) wide; its screen starts 19.68% of that width down:
+   31.92% of the drawing's height, which is 542/879 of its width.) */
+.memories-view-filmstrip {
+  padding-top: calc(min(660px, 100%) * 0.1968);
 }
 
 /* Every memory photo is the same size in both views:
    320px wide (or 75% of a narrow phone screen), 4:3 shape. */
-.memory-photo.photo-slot {
-  width: min(320px, 75vw);
+.memory-photo .photo-slot {
   padding: 0;
   box-shadow: none;
   background: none;
@@ -537,84 +1223,369 @@ summary:focus-visible {
 
 /* ---------- Memories: film strip view ---------- */
 
-.filmstrip {
-  display: flex;
-  gap: 12px;
-  overflow-x: auto;      /* scroll sideways through the frames */
-  background: var(--charcoal);
-  padding: 20px 12px;
-  border-radius: 4px;
-  /* Dashed borders top and bottom stand in for the film's sprocket holes. */
-  border-top: 8px dashed var(--paper);
-  border-bottom: 8px dashed var(--paper);
+/* The strip runs the full width of the page and scrolls sideways. It's the
+   drawn film frame (film-frame.svg, 412 × 369) repeated: each opening is a
+   3:2 photo shape, as wide as the camera's screen (49.49% of the camera,
+   which is min(660px, the column) wide). The first photo starts at the left
+   edge of the screen. */
+#memories {
+  overflow-x: clip; /* the full-width strip never makes the page scroll sideways */
 }
 
-.filmstrip-frame {
-  flex: 0 0 auto; /* frames keep their size and don't shrink */
+.filmstrip {
+  /* One frame (rounded to whole pixels where the browser can, so neighbouring
+     frames meet without a hairline between them). */
+  --film-w: calc(min(660px, 100cqw) * 0.4949 * 412 / 365);
+  --film-w: round(calc(min(660px, 100cqw) * 0.4949 * 412 / 365), 1px);
+  width: 100vw;
+  margin-left: calc(50% - 50vw);
+  overflow-x: auto; /* scroll sideways through the frames */
+  overscroll-behavior-x: contain; /* a sideways swipe at the end doesn't go "back" a page */
+  padding-bottom: 10px; /* a little room between the film and its scroll bar */
+  outline-offset: -2px;
+  cursor: grab;
+}
+
+.filmstrip.dragging {
+  cursor: grabbing;
+  user-select: none;
+}
+
+.film-track {
+  display: flex;
+  width: max-content;
+  min-width: 100%;
+}
+
+/* One frame: a box (holding its photo, if it has one) with the drawn frame
+   laid on top in the text color, so the frame's rounded opening shapes the
+   photo's corners. */
+.film-frame {
+  position: relative;
+  flex: none;
+  width: var(--film-w);
+  aspect-ratio: 412 / 369;
+}
+
+.film-frame::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: var(--ink);
+  -webkit-mask: url('/assets/art/film-frame.svg') 0 0 / 100% 100% no-repeat;
+  mask: url('/assets/art/film-frame.svg') 0 0 / 100% 100% no-repeat;
+  pointer-events: none;
+}
+
+/* Empty frames, only if the photos don't reach across the screen: they fill
+   whatever's left (extra ones are cut off) and never make the strip longer. */
+.film-trail {
+  display: flex;
+  overflow: hidden;
+  flex: 1 0 0;
+  contain: inline-size;
+}
+
+/* The photo box, the size of the opening (plus a hair more, hidden under
+   the frame, so no gap shows at the edges). Opening: 23.5, 65, 365 × 243.3. */
+.film-photo {
+  position: absolute;
+  left: calc(5.704% - 1px);
+  top: calc(17.615% - 1px);
+  width: calc(88.592% + 2px);
+  height: calc(65.944% + 2px);
+}
+
+.film-photo .photo-slot {
+  height: 100%;
+  padding: 0;
+  box-shadow: none;
+}
+
+.film-photo .photo-slot img,
+.film-photo .photo-placeholder {
+  height: 100%;
+  aspect-ratio: auto;
+  -webkit-user-drag: none;
+}
+
+/* The scroll bar: hidden until the pointer is over the strip, then a thin
+   line in the text color. */
+.filmstrip {
+  scrollbar-width: thin;
+  scrollbar-color: transparent transparent;
+}
+
+.filmstrip:hover,
+.filmstrip:focus-visible {
+  scrollbar-color: var(--ink) transparent;
+}
+
+/* Safari draws scroll bars its own way. */
+.filmstrip::-webkit-scrollbar {
+  height: 6px;
+}
+
+.filmstrip::-webkit-scrollbar-thumb {
+  background: transparent;
+  border-radius: 999px;
+}
+
+.filmstrip:hover::-webkit-scrollbar-thumb {
+  background: var(--ink);
+}
+
+/* ---------- Memories: any photo that opens full screen ---------- */
+
+.photo-button {
+  display: block;
+  width: 100%;
+  padding: 0;
+  border: none;
+  background: none;
+  cursor: zoom-in;
+}
+
+.photo-button img {
+  transition: filter 0.2s ease;
+}
+
+.photo-button:hover img {
+  filter: brightness(1.06);
+}
+
+.photo-button:focus-visible {
+  outline: 2px solid var(--ink);
+  outline-offset: 3px;
+}
+
+/* ---------- Memories: grid view ---------- */
+
+/* Pages of photos side by side; the row scrolls sideways a whole page at a
+   time (snapping into place), and its scroll bar is hidden: the dots below
+   do that job. */
+.memory-pages {
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: 100%;
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  overscroll-behavior-x: contain;
+  scrollbar-width: none;
+}
+
+.memory-pages::-webkit-scrollbar {
+  display: none;
+}
+
+/* One page: 3 across and 2 down (2 by 2 on phones). A page with fewer
+   photos keeps the same size, so the dots don't jump. */
+.memory-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  align-content: start;
+  gap: 14px;
+  scroll-snap-align: start;
+}
+
+.memory-grid .photo-slot {
+  width: 100%;
+}
+
+/* The page dots: small outlined circles; the current page's is filled. */
+.memory-dots {
+  display: flex;
+  justify-content: center;
+  gap: 4px;
+  margin-top: 20px;
+}
+
+.memory-dots button {
+  width: 24px;
+  height: 24px;
+  padding: 0;
+  border: none;
+  background: none;
+  cursor: pointer;
+}
+
+.memory-dots button::before {
+  content: '';
+  display: block;
+  width: 9px;
+  height: 9px;
+  margin: auto;
+  border: 1.5px solid var(--ink);
+  border-radius: 50%;
+  box-sizing: border-box;
+  transition: background-color 0.2s ease;
+}
+
+.memory-dots button.active::before {
+  background: var(--ink);
+}
+
+.memory-dots button:focus-visible {
+  outline: 2px solid var(--ink);
+  border-radius: 50%;
+}
+
+@media (max-width: 640px) {
+  .memory-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 8px;
+  }
 }
 
 /* ---------- Memories: camera view ---------- */
 
+/* The drawn camera (camera.svg, 879 × 542) in the text color. Positions
+   below are percentages of the drawing, measured from the file: the screen,
+   the dial, and the two arrows on it. Its screen shows a photo at the same
+   size the photos have elsewhere (about 320px wide). */
 .camera {
-  width: fit-content; /* hugs the screen inside it */
+  width: min(660px, 100%);
   margin: 0 auto;
-  border-radius: 20px;
-  padding: 24px;
-  background: var(--brown); /* camera body */
-  box-shadow: 0 10px 24px rgba(63, 58, 51, 0.25);
 }
 
+.camera-body {
+  position: relative;
+  aspect-ratio: 879 / 542;
+}
+
+.camera-drawing {
+  position: absolute;
+  inset: 0;
+  background: var(--ink);
+  -webkit-mask-size: 100% 100%;
+  mask-size: 100% 100%;
+  -webkit-mask-repeat: no-repeat;
+  mask-repeat: no-repeat;
+  pointer-events: none;
+}
+
+/* The screen: under the drawing, a hair bigger than its opening so the
+   edges tuck under the outline. */
 .camera-screen {
-  border: 6px solid var(--charcoal);
-  border-radius: 6px;
-  background: var(--charcoal);
+  position: absolute;
+  left: 11.15%;
+  top: 31.92%;
+  width: 49.49%;
+  height: 53.51%;
+  overflow: hidden;
+  background: #f7fbff;
 }
 
-.camera-controls {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-top: 16px;
-  color: var(--paper);
-  font-weight: 600;
-}
-
-.camera-controls button {
-  border-color: var(--paper);
-  color: var(--paper);
-}
-
-/* ---------- Decorative transitions (between sections) ---------- */
-
-.decorative-transition {
-  max-width: 900px;
-  margin: 0 auto;
-  padding: 48px 24px;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  overflow: hidden; /* hides the walking couple before it strolls in */
-}
-
-.decorative-transition .reveal {
+.camera-photo,
+.camera-photo .photo-slot {
   width: 100%;
+  height: 100%;
+  padding: 0;
+  background: none;
+  box-shadow: none;
 }
 
-.transition-path {
+.camera-photo img,
+.camera-photo .photo-placeholder {
   width: 100%;
-  height: 40px;
-  margin-top: -8px;
+  height: 100%;
+  aspect-ratio: auto;
+  object-fit: cover;
 }
 
-.transition-path path,
-.route-line path {
-  fill: none;
-  stroke: var(--brown);
-  stroke-width: 2;
-  stroke-dasharray: 2 9;
-  stroke-linecap: round;
-  opacity: 0.6;
-  vector-effect: non-scaling-stroke;
+/* Placeholder for now: near-white, so the screen reads as a photo. */
+.camera-photo .photo-placeholder {
+  background: #f7fbff;
+  color: var(--dust);
+  font-family: var(--font-ui);
+  font-size: 0.8rem;
+}
+
+/* The round dial on the right; the arrows sit at its left and right edges. */
+.camera-dial {
+  position: absolute;
+  left: 73.55%;
+  top: 52.4%;
+  width: 17.52%;
+  height: 28.41%;
+  border-radius: 50%;
+}
+
+.camera-arrow {
+  position: absolute;
+  top: 49.7%;
+  width: 34%;
+  aspect-ratio: 1;
+  translate: -50% -50%;
+  display: grid;
+  place-items: center;
+  padding: 0;
+  border: none;
+  border-radius: 50%;
+  background: transparent;
+  color: var(--paper);
+  cursor: pointer;
+}
+
+.camera-arrow-left {
+  left: 13.6%;
+}
+
+.camera-arrow-right {
+  left: 85.4%;
+}
+
+/* The arrow: the page color, just covering the arrow in the drawing, so
+   it can pulse outward from it. */
+.camera-arrow svg {
+  width: 44%;
+  fill: currentColor;
+  animation: arrow-pulse 2.2s ease-in-out infinite;
+}
+
+.camera-arrow-right svg {
+  animation-delay: 0.15s;
+}
+
+@keyframes arrow-pulse {
+  0%,
+  60%,
+  100% {
+    transform: scale(1);
+  }
+  30% {
+    transform: scale(1.3);
+  }
+}
+
+/* Once the pointer is on the dial (or an arrow has keyboard focus), they
+   clearly know it works: stop pulsing. */
+.camera-dial:hover .camera-arrow svg,
+.camera-dial:focus-within .camera-arrow svg {
+  animation: none;
+}
+
+.camera-arrow:hover svg {
+  transform: scale(1.15);
+}
+
+.camera-arrow:focus-visible {
+  outline: 2px solid var(--paper);
+  outline-offset: -2px;
+}
+
+.camera-count {
+  margin: 8px 0 0;
+  text-align: center;
+  font: 500 0.8rem/1 var(--font-ui);
+  letter-spacing: 0.14em;
+  color: var(--ink);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .camera-arrow svg {
+    animation: none;
+  }
 }
 
 /* ---------- Events timeline ---------- */
@@ -630,7 +1601,7 @@ summary:focus-visible {
   top: 0;
   bottom: 0;
   left: 50%;
-  border-left: 2px dashed rgba(122, 75, 46, 0.35);
+  border-left: 1px solid rgba(130, 68, 44, 0.35);
 }
 
 /* A handwritten date sitting on the line at the start of each day. */
@@ -639,18 +1610,22 @@ summary:focus-visible {
   width: fit-content;
   margin: 32px auto;
   padding: 0 16px;
-  background: var(--field); /* hides the line behind the text */
-  font-family: var(--font-hand);
-  font-size: 2.2rem;
-  font-weight: 700;
-  color: var(--terracotta);
+  background: var(--paper-tinted); /* hides the line behind the text */
+  font-family: var(--font-display);
+  font-size: 1.2rem;
+  font-weight: 400;
+  color: var(--rust);
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
 }
 
 /* One event: [details] [dot] [artwork], in three columns.
    "grid-template-areas" names the columns so we can swap sides easily. */
 .timeline-item {
   display: grid;
-  grid-template-columns: 1fr 40px 1fr;
+  /* minmax(0, 1fr): the two sides stay equal even if something inside runs
+     wider (like a one-line event name), so the line stays centered */
+  grid-template-columns: minmax(0, 1fr) 40px minmax(0, 1fr);
   grid-template-areas: 'details dot art';
   align-items: center;
   gap: 24px;
@@ -672,10 +1647,12 @@ summary:focus-visible {
 }
 
 .event-when {
-  font-family: var(--font-hand);
-  font-size: 1.4rem;
-  font-weight: 700;
-  color: var(--olive);
+  font-family: var(--font-body);
+  font-size: 0.8rem;
+  font-weight: 500;
+  color: var(--cocoa);
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
 }
 
 /* Time / Location / Attire: labels on the left, values on the right. */
@@ -692,7 +1669,7 @@ summary:focus-visible {
   letter-spacing: 0.1em;
   font-size: 0.75rem;
   font-weight: 600;
-  color: var(--olive);
+  color: var(--cocoa);
   padding-top: 3px;
 }
 
@@ -700,19 +1677,342 @@ summary:focus-visible {
   margin: 0;
 }
 
+/* Each label/value pair sits in the grid's two columns. */
+.event-fact {
+  display: contents;
+}
+
+/* A value with a small icon link after it (the map pin, the moodboard):
+   a filled dark circle with the icon in the page color, centered on the
+   line of text beside it. */
+.fact-with-icon {
+  display: inline;
+}
+
+.keep-together {
+  white-space: nowrap;
+}
+
+.fact-icon {
+  position: relative;
+  top: -2px; /* vertical-align: middle sits a touch low; this centers it on the text */
+  margin-left: 8px;
+  vertical-align: middle;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  padding: 0;
+  border: none;
+  border-radius: 50%;
+  background: var(--ink);
+  color: var(--paper);
+  cursor: pointer;
+  transition: transform 0.2s ease;
+}
+
+.fact-icon svg {
+  width: 13px;
+  height: 13px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linejoin: round;
+}
+
+.fact-icon:hover,
+.fact-icon:focus-visible {
+  transform: scale(1.12);
+}
+
+.fact-icon:focus-visible {
+  outline: 2px solid var(--ink);
+  outline-offset: 2px;
+}
+
+/* A small line under the attire, e.g. "bonus points if you wear a cowboys jersey". */
+.attire-note {
+  position: relative;
+  display: block;
+  margin-top: -5px; /* sits snug under the attire (whose icon makes its line a bit taller) */
+  font-size: 0.85rem;
+  line-height: 1.35;
+}
+
+/* A button that looks like a text link. */
+.link-button {
+  padding: 0;
+  border: none;
+  background: none;
+  font: inherit;
+  color: inherit;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  cursor: pointer;
+}
+
+/* The card that the link opens: a photo (or its placeholder), framed by the
+   dark card. The photo is 250px wide (3:4, like a phone photo). */
+.attire-popup {
+  position: absolute;
+  z-index: 20;
+  left: 0;
+  top: calc(100% + 8px);
+  display: block;
+  width: min(266px, calc(100vw - 32px));
+  box-sizing: border-box;
+  padding: 8px;
+  border-radius: 16px;
+  box-shadow: 0 12px 30px rgba(0, 52, 89, 0.25);
+  background: var(--ink);
+  color: var(--paper);
+  font-style: normal;
+  animation: pop-in 0.2s ease;
+}
+
+.attire-popup img,
+.attire-popup-placeholder {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  aspect-ratio: 3 / 4;
+  border-radius: 10px;
+  object-fit: cover;
+}
+
+.attire-popup-placeholder {
+  box-sizing: border-box;
+  padding: 16px;
+  border: 1.5px dashed currentColor;
+  font-size: 0.85rem;
+  text-align: center;
+}
+
+/* Phones: line the card up with the right edge of the text instead, so it
+   stays on screen. */
+@media (max-width: 640px) {
+  .attire-popup {
+    left: auto;
+    right: 0;
+  }
+}
+
+@keyframes pop-in {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+}
+
+/* ----- Lightbox: a photo full screen over a dark-blue overlay (Lightbox.jsx) ----- */
+
+.lightbox {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: max(64px, env(safe-area-inset-top, 0px)) 72px 40px;
+  background: rgba(0, 52, 89, 0.94);
+  color: var(--paper);
+  animation: lightbox-in 0.2s ease;
+}
+
+@keyframes lightbox-in {
+  from { opacity: 0; }
+}
+
+.lightbox-figure {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 14px;
+  margin: 0;
+  max-width: 100%;
+  max-height: 100%;
+}
+
+.lightbox-figure img,
+.lightbox-placeholder {
+  display: block;
+  max-width: min(100%, 1400px);
+  max-height: calc(100dvh - 160px);
+  border-radius: 6px;
+  animation: lightbox-in 0.25s ease;
+}
+
+.lightbox-placeholder {
+  width: min(80vw, 900px);
+  aspect-ratio: 3 / 2;
+  display: grid;
+  place-items: center;
+  background: var(--paper);
+  color: var(--ink);
+  font: 500 0.9rem var(--font-ui);
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+}
+
+.lightbox figcaption {
+  font: 500 0.8rem/1 var(--font-ui);
+  letter-spacing: 0.14em;
+}
+
+/* The × and the arrows: light circles with dark-blue icons. */
+.lightbox-close,
+.lightbox-arrow {
+  position: absolute;
+  display: grid;
+  place-items: center;
+  width: 48px;
+  height: 48px;
+  padding: 0;
+  border: none;
+  border-radius: 50%;
+  background: var(--paper);
+  color: var(--ink);
+  cursor: pointer;
+  transition: transform 0.15s ease;
+}
+
+.lightbox-close:hover,
+.lightbox-arrow:hover {
+  transform: scale(1.08);
+}
+
+.lightbox-close:focus-visible,
+.lightbox-arrow:focus-visible {
+  outline: 2px solid var(--paper);
+  outline-offset: 3px;
+}
+
+.lightbox-close svg,
+.lightbox-arrow svg {
+  width: 22px;
+  height: 22px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2.2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.lightbox-close {
+  top: calc(16px + env(safe-area-inset-top, 0px));
+  right: 16px;
+}
+
+.lightbox-arrow {
+  top: 50%;
+  translate: 0 -50%;
+}
+
+.lightbox-prev {
+  left: 12px;
+}
+
+.lightbox-next {
+  right: 12px;
+}
+
+/* Phones: the photo uses the full width; the arrows sit at the bottom corners. */
+@media (max-width: 640px) {
+  .lightbox {
+    padding: 72px 12px 96px;
+  }
+  .lightbox-arrow {
+    top: auto;
+    bottom: calc(20px + env(safe-area-inset-bottom, 0px));
+    translate: none;
+  }
+  .lightbox-prev {
+    left: 20px;
+  }
+  .lightbox-next {
+    right: 20px;
+  }
+  .lightbox figcaption {
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: calc(36px + env(safe-area-inset-bottom, 0px));
+    text-align: center;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .lightbox,
+  .lightbox-figure img {
+    animation: none;
+  }
+}
+
+/* ----- Toast: a short message at the bottom of the screen (Toast.jsx) ----- */
+.toast-area {
+  position: fixed;
+  z-index: 60;
+  left: 50%;
+  bottom: calc(24px + env(safe-area-inset-bottom, 0px));
+  translate: -50% 0;
+  pointer-events: none;
+}
+
+.toast {
+  margin: 0;
+  padding: 10px 18px;
+  border-radius: 999px;
+  background: var(--ink);
+  color: var(--paper);
+  font: 500 0.9rem/1.2 var(--font-ui);
+  white-space: nowrap;
+  animation: toast-in 0.3s ease, toast-out 0.3s ease 2.5s forwards;
+}
+
+@keyframes toast-in {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+}
+
+@keyframes toast-out {
+  to {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .toast,
+  .attire-popup {
+    animation: none;
+  }
+}
+
 .timeline-dot {
   grid-area: dot;
   justify-self: center;
   position: relative; /* draws it on top of the line */
-  width: 14px;
-  height: 14px;
+  width: 9px;
+  height: 9px;
   border-radius: 50%;
-  background: var(--terracotta);
-  border: 5px solid var(--field);
+  background: var(--rose-clay);
+  border: 4px solid var(--paper-tinted);
 }
 
 .timeline-art {
   grid-area: art;
+}
+
+/* Every event's drawing is the same height (each as wide as its shape
+   needs), so the couple appears at the same size at every event. */
+.timeline-art.illustration-slot {
+  height: 440px;
+  width: auto;
+  max-width: 100%;
 }
 
 /* On phones: the line moves to the left edge, and each event
@@ -741,6 +2041,10 @@ summary:focus-visible {
     margin-left: 0;
   }
 
+  .timeline-art.illustration-slot {
+    height: 320px;
+  }
+
   .timeline-dot {
     margin-top: 8px;
   }
@@ -748,52 +2052,147 @@ summary:focus-visible {
 
 /* ---------- Travel ---------- */
 
-/* The dotted flight path with a plane at the end. */
-.travel-route {
-  position: relative;
-  max-width: 520px;
-  height: 60px;
-  margin: -16px auto 40px;
+/* "ACCOMMODATIONS" is wider than the page's column on laptops; letting the
+   title use the full page width keeps it centered over the cards (instead
+   of spilling off to the right). */
+#travel h2 {
+  width: 100vw;
+  margin-left: calc(50% - 50vw);
 }
 
-.route-line {
-  width: 100%;
-  height: 100%;
-}
-
-.travel-plane {
-  position: absolute;
-  right: -8px;
-  top: -14px;
-  rotate: -15deg;
-}
-
-.travel-columns {
+/* Two dark-blue cards side by side (like the RSVP cards), stacked on
+   phones. Each title sits in a light-blue pill; the details are rows of a
+   small spaced-out label and its value. */
+.travel-cards {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 56px;
+  gap: 24px;
+  align-items: start; /* each card only as tall as its content */
+  margin-top: 56px;
 }
 
-.travel-columns h3 {
-  display: flex;
-  align-items: center;
-  gap: 10px;
+.travel-card {
+  padding: 32px 28px 30px;
+  border-radius: 24px;
+  background: var(--ink);
+  color: var(--paper);
 }
 
-.hotel-photo {
-  max-width: 320px;
-  box-sizing: border-box;
-  margin: 16px 0;
+.travel-card .card-pill {
+  width: fit-content;
+  margin: 0 0 24px;
+  padding: 9px 20px 8px;
+  border-radius: 999px;
+  background: var(--paper);
+  color: var(--ink);
+  font-family: var(--font-display);
+  font-weight: 900;
+  font-stretch: 125%;
+  font-size: 1.05rem;
+  line-height: 1.2;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
 }
 
-@media (max-width: 640px) {
-  .travel-columns {
+.travel-photo.photo-slot {
+  padding: 0;
+  margin: 0 0 24px;
+  box-shadow: none;
+  background: none;
+}
+
+.travel-photo img,
+.travel-photo .photo-placeholder {
+  aspect-ratio: 1000 / 747;
+  border-radius: 14px;
+}
+
+
+.travel-photo .photo-placeholder {
+  background: rgba(202, 233, 255, 0.14);
+  color: var(--paper);
+}
+
+.travel-facts {
+  display: grid;
+  gap: 0;
+  margin: 0;
+}
+
+.travel-facts > div {
+  display: grid;
+  grid-template-columns: 9.5em 1fr;
+  gap: 12px;
+  padding: 14px 0;
+  border-top: 1px solid rgba(202, 233, 255, 0.25);
+}
+
+.travel-facts > div:first-child {
+  border-top: none;
+  padding-top: 0;
+}
+
+.travel-facts dt {
+  padding-top: 0.2em;
+  font-family: var(--font-ui);
+  font-size: 0.68rem;
+  font-weight: 500;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+}
+
+.travel-facts dd {
+  margin: 0;
+}
+
+/* A link to another website, with a small arrow-out-of-a-box icon after it
+   (kept on the same line as the last word). Underlined on hover. */
+.external-link {
+  color: inherit;
+  text-decoration: none;
+}
+
+.external-link:hover,
+.external-link:focus-visible {
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.external-icon {
+  width: 0.95em;
+  height: 0.95em;
+  margin-left: 0.3em;
+  vertical-align: -0.1em;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+@media (max-width: 760px) {
+  .travel-cards {
     grid-template-columns: 1fr;
-    gap: 32px;
+  }
+}
+
+@media (max-width: 420px) {
+  .travel-card {
+    padding: 24px 20px;
+  }
+  .travel-facts > div {
+    grid-template-columns: 1fr;
+    gap: 4px;
   }
 }
 
 /* ---------- FAQ ---------- */
+
+/* Start at the top (instead of centered up and down), so opening or closing
+   an answer only moves what's below it, never the title. */
+#faq {
+  justify-content: flex-start;
+}
 
 .faq-list {
   max-width: 680px;
@@ -801,15 +2200,15 @@ summary:focus-visible {
 }
 
 .faq-item {
-  border-bottom: 2px dashed var(--sand);
+  border-bottom: 1px solid var(--line);
   padding: 18px 4px;
 }
 
 .faq-item summary {
-  font-family: var(--font-title);
-  font-weight: 600;
-  font-size: 1.1rem;
-  color: var(--brown);
+  font-family: var(--font-display);
+  font-weight: 400;
+  font-size: 1.15rem;
+  color: var(--rust);
   cursor: pointer;
   list-style: none; /* hides the browser's default arrow... */
   display: flex;
@@ -824,10 +2223,10 @@ summary:focus-visible {
 /* A handwritten + that becomes a – when the answer is open. */
 .faq-item summary::after {
   content: '+';
-  font-family: var(--font-hand);
-  font-size: 1.8rem;
+  font-family: var(--font-display);
+  font-size: 1.4rem;
   line-height: 1;
-  color: var(--terracotta);
+  color: var(--rose-clay);
 }
 
 .faq-item[open] summary::after {
@@ -840,6 +2239,1147 @@ summary:focus-visible {
 
 /* ---------- RSVP ---------- */
 
-.rsvp-art {
-  margin-top: 40px;
+.rsvp .section-inner {
+  max-width: 680px;
+}
+
+.rsvp-intro {
+  text-align: center;
+  margin: -24px 0 32px;
+}
+
+.rsvp form {
+  display: grid;
+  gap: 20px;
+}
+
+/* One card per person (and one for contact info). */
+.rsvp-guest {
+  margin: 0;
+  padding: 20px 24px 24px;
+  border: 1px solid var(--line);
+  border-radius: 2px;
+  background: var(--paper-light);
+  display: grid;
+  gap: 18px;
+  min-width: 0; /* lets the card shrink on narrow phones */
+}
+
+.rsvp-guest legend {
+  padding: 0 8px;
+  font-family: var(--font-display);
+  font-size: 1.05rem;
+  font-weight: 400;
+  color: var(--rust);
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+}
+
+.rsvp-event-name {
+  margin: 0 0 8px;
+  font-family: var(--font-display);
+  font-weight: 400;
+  color: var(--rust);
+  font-size: 1.15rem;
+}
+
+.rsvp-event-name span {
+  display: block;
+  font-family: var(--font-body);
+  font-weight: 400;
+  font-size: 0.85rem;
+  color: var(--cocoa);
+}
+
+.rsvp-choices {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+/* The real radio button is hidden; its label is styled as a pill. */
+.rsvp-choice input {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.rsvp-choice label {
+  display: inline-block;
+  padding: 8px 18px;
+  border: 1px solid var(--line);
+  border-radius: 0;
+  cursor: pointer;
+  font-size: 0.9rem;
+  letter-spacing: 0.08em;
+}
+
+.rsvp-choice label:hover {
+  border-color: var(--rust);
+}
+
+.rsvp-choice input:checked + label {
+  background: var(--rust);
+  border-color: var(--rust);
+  color: var(--paper);
+}
+
+/* Keyboard users see which choice has focus. */
+.rsvp-choice input:focus-visible + label {
+  outline: 2px dashed var(--rose-clay);
+  outline-offset: 3px;
+}
+
+.rsvp-field {
+  display: grid;
+  gap: 6px;
+}
+
+.rsvp-field label {
+  font-weight: 600;
+  font-size: 0.95rem;
+}
+
+.rsvp-field input,
+.rsvp-field textarea {
+  font: inherit;
+  padding: 10px 14px;
+  border: 1px solid var(--line);
+  border-radius: 2px;
+  background: var(--paper);
+  color: var(--ink);
+  resize: vertical;
+}
+
+.rsvp-field input:focus,
+.rsvp-field textarea:focus {
+  outline: none;
+  border-color: var(--rust);
+}
+
+.rsvp .form-error,
+.form-success {
+  margin: 0;
+  text-align: center;
+  color: var(--rust);
+}
+
+.form-success {
+  color: var(--cocoa);
+  font-weight: 600;
+}
+
+.rsvp-submit {
+  justify-self: center;
+  cursor: pointer;
+}
+
+/* ---------- Footer ---------- */
+
+.site-footer {
+  /* a solid dark-blue stripe across the bottom of the page, with the
+     message centered in it in the page's light blue */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 120px;
+  padding: 32px 24px calc(32px + env(safe-area-inset-bottom, 0px));
+  box-sizing: border-box;
+  background: var(--ink);
+  color: var(--paper);
+  text-align: center;
+  font-family: var(--font-ui);
+  font-size: 0.8rem;
+  letter-spacing: 0.06em;
+}
+
+.site-footer p {
+  margin: 0;
+  text-wrap: balance; /* on phones, two even lines instead of one long and one short */
+}
+
+/* =====================================================================
+   House of Honey design (the site's final look; index.html sets
+   <html data-design="honey">). Inspired by a bold editorial site: huge wide
+   sans-serif names and a script "&". Colors: a super light blue background
+   (#cae9ff) with dark blue text (#003459) everywhere.
+   ===================================================================== */
+
+:root[data-design='honey'] {
+  --paper: #cae9ff;        /* super light blue background */
+  --paper-light: #e2f3ff;  /* cards and inputs: a touch lighter */
+  --paper-tinted: #cae9ff; /* the Events section: same as the page */
+  --line: #93c3e4;         /* hairlines and borders */
+  --rust: #003459;         /* headings: dark blue */
+  --cocoa: #003459;        /* small labels: the same dark blue */
+  --dust: #6d9cc0;         /* placeholder outlines */
+  --rose-clay: #003459;    /* small accents */
+  --petal: #ddf0ff;
+  --stem: #e2f3ff;
+  --ink: #003459;          /* body text: dark blue */
+  --error: #b3261e;        /* problems to fix in a form: a clear red */
+  --font-display: 'Archivo', 'Arial Black', Helvetica, sans-serif;
+  --font-script: 'Pinyon Script', 'Snell Roundhand', cursive;
+  --font-ui: 'Archivo', Helvetica, Arial, sans-serif;
+  --nav-height: 46px;      /* a slimmer nav, so the names and photo sit higher */
+}
+
+/* The login card's names, bold and wide too. */
+[data-design='honey'] .invitation-names {
+  font-weight: 900;
+  font-stretch: 125%;
+  letter-spacing: 0;
+}
+
+/* Flat blush: no paper grain in this design. */
+:root[data-design='honey'] body {
+  background-image: none;
+}
+
+/* Headings: heavy and wide. */
+[data-design='honey'] h1,
+[data-design='honey'] h2 {
+  font-weight: 900;
+  font-stretch: 125%;
+  letter-spacing: -0.01em;
+}
+
+[data-design='honey'] h2 {
+  /* Small enough on phones that "ACCOMMODATIONS" fits the screen. */
+  font-size: clamp(1.4rem, 7vw, 5rem);
+  line-height: 0.95;
+}
+
+[data-design='honey'] h2::after {
+  display: none;
+}
+
+/* Reading text and smaller titles stay in the serif. */
+[data-design='honey'] h3,
+[data-design='honey'] .faq-item summary,
+[data-design='honey'] .rsvp-event-name {
+  font-family: var(--font-body);
+  font-weight: 500;
+}
+
+/* The open FAQ question turns bold, so it's clear which one you're reading. */
+[data-design='honey'] .faq-item[open] summary {
+  font-weight: 700;
+}
+
+/* Buttons: solid chocolate blocks. */
+[data-design='honey'] .button {
+  background: var(--ink);
+  border-color: var(--ink);
+  color: var(--paper);
+  font-family: var(--font-ui);
+  font-weight: 500;
+  letter-spacing: 0.02em;
+  text-transform: none;
+  font-size: 0.95rem;
+}
+
+[data-design='honey'] .button:hover {
+  background: transparent;
+  color: var(--ink);
+}
+
+/* Event names: the heavy, wide face of the section titles, so each event
+   stands out at a glance. */
+[data-design='honey'] .event-details h3 {
+  margin: 6px 0 18px;
+  font-family: var(--font-display);
+  font-weight: 900;
+  font-stretch: 125%;
+  font-size: clamp(1.35rem, 2.4vw, 1.9rem);
+  line-height: 1.1;
+  letter-spacing: -0.005em;
+  color: var(--ink);
+}
+
+/* On screens wide enough, each name stays on one line, running a little past
+   its column if it needs to (the long names are on the right side of the
+   timeline, where there's empty space). The details below keep their width.
+   Narrower screens wrap the name instead. */
+@media (min-width: 1120px) {
+  [data-design='honey'] .event-details h3 {
+    white-space: nowrap;
+  }
+}
+
+/* RSVP form: the same look as the rest of this design. Cards and boxes are
+   outlined in the dark blue (1.5px, like the Memories toggle), with rounded
+   corners; small labels are spaced-out capitals (like the countdown);
+   Accept / Decline is a two-part pill, like the Memories toggle. */
+[data-design='honey'] .rsvp-guest {
+  padding: 24px 28px 28px;
+  border: 1.5px solid var(--ink);
+  border-radius: 24px;
+  background: transparent;
+  gap: 22px;
+}
+
+[data-design='honey'] .rsvp-guest legend {
+  padding: 0 10px;
+  margin-left: -10px;
+  font-family: var(--font-display);
+  font-size: 1.1rem;
+  font-weight: 900;
+  font-stretch: 125%;
+  letter-spacing: 0.02em;
+  color: var(--ink);
+}
+
+[data-design='honey'] .rsvp-event-name {
+  margin: 0 0 10px;
+  font-family: var(--font-ui);
+  font-weight: 600;
+  font-size: 1.05rem;
+  color: var(--ink);
+}
+
+[data-design='honey'] .rsvp-event-name span,
+[data-design='honey'] .rsvp-field label {
+  font-family: var(--font-ui);
+  font-size: 0.68rem;
+  font-weight: 500;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--ink);
+}
+
+[data-design='honey'] .rsvp-event-name span {
+  margin-top: 4px;
+}
+
+[data-design='honey'] .rsvp-choices {
+  display: inline-flex;
+  gap: 0;
+  padding: 3px;
+  border: 1.5px solid var(--ink);
+  border-radius: 999px;
+}
+
+[data-design='honey'] .rsvp-choice label {
+  display: block;
+  min-width: 7.5em;
+  padding: 8px 18px;
+  border: none;
+  border-radius: 999px;
+  font: 500 0.75rem/1 var(--font-ui);
+  letter-spacing: 0.14em;
+  text-align: center;
+  text-transform: uppercase;
+  transition: background-color 0.25s ease, color 0.25s ease;
+}
+
+[data-design='honey'] .rsvp-choice label:hover {
+  background: rgba(0, 52, 89, 0.08);
+}
+
+[data-design='honey'] .rsvp-choice input:checked + label {
+  background: var(--ink);
+  color: var(--paper);
+}
+
+[data-design='honey'] .rsvp-choice input:focus-visible + label {
+  outline: 2px solid var(--ink);
+  outline-offset: 2px;
+}
+
+[data-design='honey'] .rsvp-field {
+  gap: 8px;
+}
+
+[data-design='honey'] .rsvp-field input,
+[data-design='honey'] .rsvp-field textarea {
+  padding: 11px 18px;
+  border: 1.5px solid var(--ink);
+  border-radius: 999px;
+  background: transparent;
+  font-family: var(--font-ui);
+  font-size: 0.95rem;
+}
+
+[data-design='honey'] .rsvp-field textarea {
+  border-radius: 18px;
+}
+
+[data-design='honey'] .rsvp-field input::placeholder,
+[data-design='honey'] .rsvp-field textarea::placeholder {
+  color: var(--ink);
+  opacity: 0.5;
+}
+
+[data-design='honey'] .rsvp-field input:focus,
+[data-design='honey'] .rsvp-field textarea:focus {
+  outline: 2px solid var(--ink);
+  outline-offset: 2px;
+}
+
+[data-design='honey'] .rsvp-submit {
+  margin-top: 8px;
+  padding: 14px 40px;
+  border-width: 1.5px;
+  border-radius: 999px;
+  font-size: 0.8rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+}
+
+/* ----- Login form: pill boxes and button, like the RSVP form ----- */
+
+[data-design='honey'] .field-row input {
+  padding: 12px 20px;
+  border: 1.5px solid var(--ink);
+  border-radius: 999px;
+  background: transparent;
+  font-family: var(--font-ui);
+  font-size: 0.95rem;
+}
+
+[data-design='honey'] .field-row input::placeholder {
+  color: var(--ink);
+  opacity: 0.5;
+}
+
+[data-design='honey'] .field-row input:focus {
+  outline: 2px solid var(--ink);
+  outline-offset: 2px;
+}
+
+[data-design='honey'] .field-row .button {
+  padding: 12px 26px;
+  border-width: 1.5px;
+  border-radius: 999px;
+}
+
+/* ----- Form messages and problems (login and RSVP) ----- */
+
+/* A message under a form, with a small round icon: red "!" for a problem,
+   dark-blue check for success. */
+[data-design='honey'] .form-error,
+[data-design='honey'] .form-success {
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  gap: 8px;
+  margin: 14px 0 0;
+  font-family: var(--font-ui);
+  font-size: 0.9rem;
+  line-height: 1.4;
+  text-align: left;
+}
+
+[data-design='honey'] .form-error {
+  color: var(--error);
+}
+
+[data-design='honey'] .form-success {
+  color: var(--ink);
+  font-weight: 600;
+}
+
+[data-design='honey'] .rsvp .form-error,
+[data-design='honey'] .rsvp .form-success {
+  margin: 0;
+}
+
+.form-message-icon {
+  flex: none;
+  width: 18px;
+  height: 18px;
+  margin-top: 0.05em;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+/* The link inside a message ("Find your invitation again"). */
+[data-design='honey'] .form-error .link-button {
+  margin: 0;
+  padding: 0;
+  font-size: inherit;
+  color: inherit;
+}
+
+/* A box or question that needs fixing: outlined in red, with a short red
+   note underneath. */
+[data-design='honey'] input[aria-invalid='true'],
+[data-design='honey'] .rsvp-event.missing .rsvp-choices {
+  border-color: var(--error);
+}
+
+/* Typing in a box that needs fixing: its focus ring is red too. */
+[data-design='honey'] input[aria-invalid='true']:focus {
+  outline-color: var(--error);
+}
+
+[data-design='honey'] .rsvp-event.missing .rsvp-event-name {
+  color: var(--error);
+}
+
+[data-design='honey'] .field-note {
+  margin: 8px 0 0;
+  color: var(--error);
+  font-family: var(--font-ui);
+  font-size: 0.82rem;
+}
+
+[data-design='honey'] .rsvp-event:focus {
+  outline: none; /* it's only focused to bring the keyboard to it */
+}
+
+
+@media (max-width: 480px) {
+  [data-design='honey'] .rsvp-guest {
+    padding: 20px 18px 22px;
+  }
+}
+
+/* Nav: brand, then links on the left; RSVP pushed to the right with an arrow. */
+[data-design='honey'] .navbar {
+  display: flex;
+  align-items: center;
+  gap: 32px;
+  border-bottom: none;
+  background: var(--paper);
+}
+
+[data-design='honey'] .navbar-brand {
+  font-weight: 900;
+  font-stretch: 125%;
+  letter-spacing: 0;
+  font-size: 1.05rem;
+}
+
+/* The logo's "&" matches the script ampersand in the big names. */
+[data-design='honey'] .navbar-and {
+  font-family: var(--font-script);
+  font-weight: 400;
+  font-stretch: 100%;
+  font-size: 1.9em;
+  line-height: 0;
+  position: relative;
+  top: 0.06em; /* centered on the S and A (measured) */
+  /* Pull the S and A in closer (the left side of the script "&" has more
+     built-in space than the right, so it's trimmed more). */
+  margin: 0 -0.12em 0 -0.22em;
+}
+
+[data-design='honey'] .navbar-links {
+  flex: 1;
+  gap: 24px;
+}
+
+[data-design='honey'] .navbar-links a,
+[data-design='honey'] .navbar-logout {
+  font-family: var(--font-ui);
+  font-weight: 400;
+  text-transform: none;
+  letter-spacing: 0;
+  font-size: 0.82rem;
+  color: var(--ink);
+}
+
+[data-design='honey'] .navbar-links a.active {
+  border-bottom-color: var(--ink);
+}
+
+[data-design='honey'] .navbar-links a[href='#rsvp'] {
+  margin-left: auto;
+}
+
+[data-design='honey'] .navbar-links a[href='#rsvp']::after {
+  content: '→';
+  margin-left: 10px;
+  padding: 1px 6px;
+  background: rgba(0, 52, 89, 0.12);
+}
+
+[data-design='honey'] .menu-button {
+  margin-left: auto;
+}
+
+@media (max-width: 768px) {
+  [data-design='honey'] .navbar-links a[href='#rsvp'] {
+    margin-left: 0;
+  }
+}
+
+/* ----- The Home banner ----- */
+
+[data-design='honey'] .hero-honey {
+  padding: 0;
+}
+
+/* The names and the dancing couple share the first screen. */
+.honey {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.honey-banner {
+  padding: 18px 16px 22px;
+}
+
+/* The names stretch across the full width: SONERI on the left, AKHIL on the
+   right, the script ampersand curling between them.
+   (".hero .honey-names" so it wins over the general ".hero h1" size.) */
+.hero .honey-names {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin: 0;
+  font-size: clamp(2rem, 9.1vw, 12rem);
+  line-height: 0.85;
+  white-space: nowrap;
+  text-transform: uppercase;
+  color: var(--ink);
+}
+
+.honey-and {
+  font-family: var(--font-script);
+  font-weight: 400;
+  font-stretch: 100%;
+  text-transform: none;
+  letter-spacing: 0;
+  font-size: 1.9em;
+  line-height: 0;
+  position: relative;
+  top: 0; /* centered on the capital letters (measured), not hanging below them */
+}
+
+/* Two lines of serif capitals under the names: date and place, then the welcome. */
+.honey-details {
+  display: flex;
+  justify-content: space-between;
+  gap: 24px;
+  margin-top: 22px;
+  font-family: var(--font-body);
+  font-size: clamp(1rem, 2.3vw, 2rem);
+  line-height: 1.08;
+  text-transform: uppercase;
+  color: var(--ink);
+}
+
+.honey-details p {
+  margin: 0;
+}
+
+.honey-welcome {
+  text-align: right;
+}
+
+/* Phones and small tablets: the names stack (SONERI / & / AKHIL), centered and big. */
+@media (max-width: 720px) {
+  .hero .honey-names {
+    flex-wrap: wrap;
+    justify-content: center;
+    font-size: 16vw;
+    line-height: 0.9;
+  }
+  .honey-and {
+    width: 100%;
+    text-align: center;
+    line-height: 0.7;
+    top: 0.02em; /* evenly spaced between SONERI and AKHIL */
+  }
+  .honey-details {
+    font-size: 0.95rem;
+  }
+}
+
+/* ----- House of Honey: the dancing couple (HoneyDance.jsx) ----- */
+
+/* Fills the space left below the names, so the names and the couple share
+   one screen. The stage inside is as tall as that space and keeps the
+   drawings' shape (640 × 900). */
+.honey-stage-wrap {
+  position: relative;
+  flex: 1;
+  min-height: 340px;
+  margin-bottom: 16px;
+}
+
+.honey-stage {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 50%;
+  translate: -50% 0;
+  aspect-ratio: 640 / 900;
+}
+
+.honey-frames,
+.honey-frames > div {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+
+/* Each frame: the text color (--ink), cut into that frame's shape.
+   One frame shows at a time; the old one stays underneath while the new one fades in. */
+.honey-frames > div {
+  opacity: 0;
+  background: var(--ink);
+  -webkit-mask-size: 100% 100%;
+  mask-size: 100% 100%;
+  -webkit-mask-repeat: no-repeat;
+  mask-repeat: no-repeat;
+  /* Keep every frame ready for fading, so the edges don't shimmer as a fade
+     starts and stops. */
+  will-change: opacity;
+}
+
+/* A smooth dissolve in two halves: the new frame fades in over the first
+   half while the old one stays solid underneath, then the old one fades out
+   over the second half. Whatever both frames share stays solid the whole
+   time; only the parts that move blend, and nothing pops away at the end. */
+.honey-frames > div.previous {
+  opacity: 0;
+  z-index: 1;
+  animation: frame-out var(--fade) ease-in-out;
+}
+
+.honey-frames > div.current {
+  opacity: 1;
+  z-index: 2;
+  animation: frame-in calc(var(--fade) / 2) ease-in-out;
+}
+
+@keyframes frame-in {
+  from { opacity: 0; }
+}
+
+@keyframes frame-out {
+  0%,
+  50% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+  }
+}
+
+/* Speech bubbles: clean, modern chat bubbles. See-through with a thin dark
+   blue outline, rounded, and one squared-off corner pointing toward whoever
+   is speaking. */
+.honey-bubble {
+  position: absolute;
+  z-index: 3;
+  width: max-content;
+  max-width: 22em; /* wide screens: each sentence on one line */
+  margin: 0;
+  padding: 12px 18px;
+  text-wrap: balance; /* phones: even line lengths when the text wraps */
+  background: transparent;
+  border: 1.5px solid var(--ink);
+  border-radius: 20px;
+  font-family: var(--font-ui);
+  font-size: 1rem;
+  font-weight: 500;
+  line-height: 1.3;
+  color: var(--ink);
+  /* Hidden until the last wave; then they pop in. */
+  opacity: 0;
+  transform: translateY(10px) scale(0.92);
+  transition: opacity 0.4s ease, transform 0.5s cubic-bezier(0.2, 0.9, 0.3, 1.2);
+}
+
+/* Hers: to the left of her head, pointing right toward her. */
+.honey-bubble-her {
+  right: 74%;
+  top: 7%;
+  border-bottom-right-radius: 4px;
+  transform-origin: bottom right;
+}
+
+/* His: to the right of his head, above his waving hand, pointing toward him. */
+.honey-bubble-him {
+  left: 74%;
+  top: -1%;
+  border-bottom-left-radius: 4px;
+  transform-origin: bottom left;
+}
+
+/* His speaks first, then hers. */
+.honey-stage.talking .honey-bubble {
+  opacity: 1;
+  transform: none;
+}
+
+.honey-stage.talking .honey-bubble-her {
+  transition-delay: 0.25s;
+}
+
+/* Phones: no room beside them, so the stage moves down a little and both
+   bubbles sit above their heads: hers on the left, his on the right. */
+@media (max-width: 720px) {
+  .honey-stage-wrap {
+    min-height: 420px;
+  }
+  .honey-stage {
+    top: 64px;
+  }
+  .honey-bubble {
+    max-width: 9.6em;
+    padding: 9px 13px;
+    font-size: 0.86rem;
+    border-radius: 16px;
+  }
+  .honey-bubble-her {
+    right: auto;
+    left: -6%;
+    top: -62px;
+  }
+  .honey-bubble-him {
+    left: auto;
+    right: -6%;
+    top: -40px;
+  }
+}
+
+/* Extra-narrow phones: slightly smaller bubbles so the two don't touch. */
+@media (max-width: 380px) {
+  .honey-bubble {
+    max-width: 8.6em;
+    font-size: 0.8rem;
+  }
+}
+
+/* "play again": plain text with a circular arrow, in the bottom-right
+   corner of the area around the couple (which spans the page's width and
+   ends at the bottom of the first screen). Once the animation has finished,
+   it fades in while the pointer is over that area, or when it has keyboard
+   focus. On touch screens, which have no hovering, it simply shows. */
+.honey-replay {
+  position: absolute;
+  z-index: 3;
+  right: 16px;
+  bottom: 0;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 4px;
+  border: none;
+  background: transparent;
+  color: var(--ink);
+  font: 500 0.85rem/1 var(--font-ui);
+  letter-spacing: 0.02em;
+  white-space: nowrap;
+  cursor: pointer;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.honey-stage-wrap:hover .honey-replay,
+.honey-replay:focus-visible {
+  opacity: 1;
+}
+
+.honey-replay:hover .honey-replay-label {
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.honey-replay-icon {
+  width: 15px;
+  height: 15px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2.2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+@media (hover: none) {
+  .honey-replay {
+    opacity: 1;
+  }
+}
+
+/* Animation 2's bubbles: the same thin dark blue outline with the text
+   inside, fully rounded, with no tail. */
+.honey-stage-wrap .honey-bubble {
+  border-radius: 999px;
+}
+
+/* Each bubble is centered up and down on its speaker's face, and sits to
+   the side with some room: hers to the left of her hair, his to the right
+   of his. (Positions are shares of the drawing, so they hold at any size.) */
+.honey-stage-wrap .honey-bubble {
+  translate: 0 -50%;
+}
+
+.honey-stage-wrap .honey-bubble-her {
+  right: 85%;
+  top: 19.6%;
+}
+
+.honey-stage-wrap .honey-bubble-him {
+  left: 75%;
+  top: 12.8%;
+}
+
+/* Narrower screens: less room beside them, so the sentences wrap onto two
+   lines instead of running off the edge. */
+@media (max-width: 1100px) {
+  .honey-stage-wrap .honey-bubble {
+    max-width: 11em;
+    border-radius: 22px;
+  }
+  .honey-stage-wrap .honey-bubble-him {
+    left: 78%; /* a little further out, clear of his shoulder */
+  }
+}
+
+@media (max-width: 860px) {
+  .honey-stage-wrap .honey-bubble {
+    max-width: 8.5em;
+    font-size: 0.9rem;
+  }
+}
+
+@media (max-width: 720px) {
+  .honey-stage-wrap .honey-bubble {
+    border-radius: 18px;
+  }
+  /* Side by side above their heads, meeting near the middle (so they never
+     run into each other), high enough to stay clear of their hair. */
+  .honey-stage-wrap .honey-bubble {
+    translate: none;
+  }
+  .honey-stage-wrap .honey-bubble-her {
+    left: auto;
+    right: 52%;
+    top: -66px;
+  }
+  .honey-stage-wrap .honey-bubble-him {
+    right: auto;
+    left: 52%;
+    top: -62px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .honey-frames > div.current {
+    animation: none;
+  }
+  .honey-bubble {
+    transition: none;
+  }
+}
+
+/* ----- House of Honey: the first screen, then the countdown ----- */
+
+/* The names and the dancing couple share exactly the first screen. */
+.honey-screen {
+  min-height: calc(100dvh - var(--nav-height));
+  display: flex;
+  flex-direction: column;
+}
+
+/* Text only screen readers hear (e.g. "182 days until the wedding"). */
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+/* The countdown: about 40% of the page wide, with plenty of space above it
+   (so the couple gets the spotlight) and below it. */
+.countdown {
+  position: relative;
+  width: 40%;
+  min-width: min(340px, calc(100% - 32px));
+  margin: clamp(96px, 22vh, 240px) auto clamp(80px, 16vh, 180px);
+  color: var(--ink);
+}
+
+.countdown-units {
+  display: flex;
+  justify-content: space-between;
+}
+
+.countdown-unit {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+}
+
+/* The numbers: the same bold, wide face as the names, airy spacing, and
+   equal-width digits so they don't wobble as they tick. */
+.countdown-value {
+  font-family: var(--font-display);
+  font-weight: 900;
+  font-stretch: 125%;
+  font-size: clamp(1.7rem, 3.4vw, 3.2rem);
+  line-height: 1;
+  letter-spacing: 0.08em;
+  font-variant-numeric: tabular-nums;
+}
+
+.countdown-label {
+  font-family: var(--font-ui);
+  font-size: 0.72rem;
+  font-weight: 500;
+  letter-spacing: 0.32em;
+  text-transform: uppercase;
+  margin-right: -0.32em; /* keeps the spaced-out word centered */
+}
+
+/* ----- The flowers on either side of the countdown ----- */
+
+/* Each side's three flowers sit centered in the space between the numbers
+   and the edge of the screen, so there's equal room on either side of them.
+   They're 120% as tall as a number plus its label, every stem ending level
+   with the bottom of the labels. */
+.countdown-units {
+  position: relative;
+}
+
+.countdown-flowers {
+  position: absolute;
+  bottom: 0;
+  height: 120%;
+  width: calc((100vw - 100%) / 2);
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  gap: 0.6em; /* the space between flowers */
+  font-size: clamp(1.7rem, 3.4vw, 3.2rem); /* matches the numbers, so the gap grows with them */
+  pointer-events: none;
+}
+
+.countdown-flowers-left {
+  right: 100%;
+}
+
+.countdown-flowers-right {
+  left: 100%;
+}
+
+.countdown-flower {
+  display: block;
+  flex: none;
+  background: var(--ink);
+  -webkit-mask-size: 100% 100%;
+  mask-size: 100% 100%;
+}
+
+.countdown-flower.mirrored {
+  transform: scaleX(-1);
+}
+
+/* Phones: the countdown spans most of the width. */
+@media (max-width: 720px) {
+  .countdown {
+    width: calc(100% - 32px);
+    margin-top: 96px;
+  }
+  .countdown-label {
+    font-size: 0.62rem;
+    letter-spacing: 0.2em;
+    margin-right: -0.2em;
+  }
+  /* No room beside the numbers on a phone, so each group stands just above
+     its half of the countdown instead, centered in that half. */
+  .countdown-flowers {
+    bottom: calc(100% + 14px);
+    width: 50%;
+    font-size: 1.7rem;
+  }
+  .countdown-flowers-left {
+    right: 50%;
+  }
+  .countdown-flowers-right {
+    left: 50%;
+  }
+}
+
+/* ----- RSVP form: filled cards. Each person's card (and the contact card)
+   is solid dark blue with light-blue text, like the pop-up cards on the
+   drawings; these rules override the outlined look above. ----- */
+
+[data-design='honey'] .rsvp-guest {
+  background: var(--ink);
+  border-color: var(--ink);
+  color: var(--paper);
+  padding-top: 32px;
+}
+
+/* The person's name: dark-blue letters in a light-blue pill, so each card
+   is easy to tell apart at a glance. */
+[data-design='honey'] .rsvp-guest legend {
+  float: left; /* sits inside the card instead of on its edge */
+  width: fit-content;
+  padding: 9px 20px 8px;
+  margin: 0 0 6px;
+  border-radius: 999px;
+  background: var(--paper);
+  color: var(--ink);
+  font-size: 1.15rem;
+  line-height: 1.2;
+}
+
+[data-design='honey'] .rsvp-guest legend + * {
+  clear: both;
+}
+
+[data-design='honey'] .rsvp-event-name,
+[data-design='honey'] .rsvp-event-name span,
+[data-design='honey'] .rsvp-field label {
+  color: var(--paper);
+}
+
+[data-design='honey'] .rsvp-choices,
+[data-design='honey'] .rsvp-field input,
+[data-design='honey'] .rsvp-field textarea {
+  border-color: rgba(202, 233, 255, 0.7);
+  color: var(--paper);
+}
+
+[data-design='honey'] .rsvp-field input::placeholder,
+[data-design='honey'] .rsvp-field textarea::placeholder {
+  color: var(--paper);
+}
+
+[data-design='honey'] .rsvp-choice label:hover {
+  background: rgba(202, 233, 255, 0.12);
+}
+
+[data-design='honey'] .rsvp-choice input:checked + label {
+  background: var(--paper);
+  color: var(--ink);
+}
+
+[data-design='honey'] .rsvp-field input:focus,
+[data-design='honey'] .rsvp-field textarea:focus,
+[data-design='honey'] .rsvp-choice input:focus-visible + label {
+  outline-color: var(--paper);
+}
+
+/* Problems inside the dark cards: a soft coral instead of red, so they
+   stand out against the dark blue. */
+[data-design='honey'] .rsvp-guest .rsvp-event.missing .rsvp-choices,
+[data-design='honey'] .rsvp-guest input[aria-invalid='true'] {
+  border-color: #ffb4a9;
+}
+
+[data-design='honey'] .rsvp-guest input[aria-invalid='true']:focus {
+  outline-color: #ffb4a9;
+}
+
+[data-design='honey'] .rsvp-guest .rsvp-event.missing .rsvp-event-name,
+[data-design='honey'] .rsvp-guest .field-note {
+  color: #ffb4a9;
 }

@@ -1,55 +1,75 @@
-// The list of wedding events. Edit details here and every page updates.
+// What the site shows for each event, by its id (the event_id in the
+// Sheet's Events tab).
 //
-// Each event has a unique "id". In Milestone 2 we'll use these ids to show
-// each guest only the events they're invited to. For example, a guest
-// invited to ["sangeet", "reception"] would only see those two blocks.
+// The Sheet still decides WHO is invited to which events (and their order);
+// these details fill in WHAT each event is. Anything left out here falls back
+// to that column in the Sheet, so an event missing from this list still shows.
 //
-// "TBD" values are placeholders to fill in later.
+// Optional extras:
+//   mapUrl      — the pin next to the address opens this (Google Maps link)
+//   moodboard   — the moodboard icon next to the attire opens this link; ''
+//                 shows a "coming soon" message instead
+//   attireNote  — a small line under the attire; { before, link, after } makes
+//                 the middle words a link that pops up a card (attirePopup)
+//   attirePopup — what that card shows: { image, alt, caption } (no image yet
+//                 → a placeholder box)
 //
-// Each event's artwork is listed in src/data/art.js as "event-<id>",
-// e.g. the sangeet's art is "event-sangeet".
+// Use " | " between two parts of a name or place (e.g. a venue and its room).
 
-const events = [
-  {
-    id: 'ceremony',
+const LOEWS_ADDRESS = '1600 E Randol Mill Rd, Arlington, TX 76011'
+const LOEWS_MAP = 'https://maps.app.goo.gl/mwfHokVjNmsswHYw9'
+
+const eventDetails = {
+  ceremony: {
     name: 'Intimate Ceremony',
-    date: 'April 9',
-    timeOfDay: 'Morning',
-    time: 'TBD',
-    location: 'TBD',
-    attire: 'TBD',
-    description: 'Placeholder description of the intimate ceremony.',
+    time: '9:00 AM',
+    location: 'Weston Gardens',
+    address: '8101 Anglin Dr, Fort Worth, TX 76140',
+    mapUrl: 'https://maps.app.goo.gl/9ukmWUF7erqTjdSNA',
+    attire: 'Garden formal',
+    moodboard: '',
+    description: 'Join the couple for an intimate gathering as they read their vows to each other.',
   },
-  {
-    id: 'sangeet',
-    name: 'Welcome Night / Sangeet',
-    date: 'April 9',
-    timeOfDay: 'Evening',
-    time: 'TBD',
-    location: 'TBD',
-    attire: 'TBD',
-    description: 'Placeholder description of the welcome night and sangeet.',
+  sangeet: {
+    name: 'Welcome Night | Sangeet',
+    time: '7:00 PM',
+    location: 'Live! by Loews | Arlington Ballroom',
+    address: LOEWS_ADDRESS,
+    mapUrl: LOEWS_MAP,
+    attire: 'Dark jewel tones (to be confirmed)',
+    moodboard: '',
+    description:
+      'Join the couple for an evening of mingling, good food, and dancing as they kick off the wedding weekend.',
   },
-  {
-    id: 'indian-wedding',
-    name: 'Indian Wedding',
-    date: 'April 10',
-    timeOfDay: 'Morning',
-    time: 'TBD',
-    location: 'TBD',
-    attire: 'TBD',
-    description: 'Placeholder description of the Indian wedding.',
+  'indian-wedding': {
+    name: 'Wedding',
+    time: '10:00 AM',
+    location: 'Live! by Loews | Clover Club Lawn',
+    address: LOEWS_ADDRESS,
+    mapUrl: LOEWS_MAP,
+    attire: 'Indian clothes or western formal',
+    moodboard: '',
+    attireNote: { before: 'bonus points if you wear a ', link: 'cowboys jersey', after: '' },
+    attirePopup: {
+      image: 'assets/photos/cowboys-jersey.jpg',
+      alt: 'Suraj and friends in Cowboys jerseys at AT&T Stadium',
+      caption: '',
+    },
+    description: 'Join the couple for a traditional Indian wedding ceremony, followed by lunch.',
   },
-  {
-    id: 'reception',
-    name: 'Cocktail Hour + Reception',
-    date: 'April 10',
-    timeOfDay: 'Evening',
-    time: 'TBD',
-    location: 'TBD',
-    attire: 'TBD',
-    description: 'Placeholder description of the cocktail hour and reception.',
+  reception: {
+    name: 'Cocktail Hour | Reception',
+    time: '6:00 PM',
+    location: 'Live! by Loews | Arlington Ballroom',
+    address: LOEWS_ADDRESS,
+    mapUrl: LOEWS_MAP,
+    attire: 'Indian clothes or western formal',
+    moodboard: '',
+    description: 'Join the couple for an hour of mingling, followed by a night celebrating the newlyweds.',
   },
-]
+}
 
-export default events
+// The Sheet's event, with these details laid over it.
+export function withEventDetails(event) {
+  return { ...event, ...eventDetails[event.id] }
+}

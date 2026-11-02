@@ -3,10 +3,14 @@
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
 import App from './App.jsx'
+import { GuestProvider } from './guest/GuestProvider.jsx'
 import './index.css'
 
 createRoot(document.getElementById('root')).render(
   <StrictMode>
-    <App />
+    {/* GuestProvider keeps track of who's logged in, for every part of the site. */}
+    <GuestProvider>
+      <App />
+    </GuestProvider>
   </StrictMode>
 )

@@ -2,9 +2,10 @@
 // People who have "reduce motion" turned on in their device settings
 // just see the content right away (handled in index.css).
 // Usage: <ScrollReveal> ...anything... </ScrollReveal>
+// "as" picks the kind of element it is (a <div> unless you say otherwise, e.g. as="li").
 import { useEffect, useRef, useState } from 'react'
 
-export default function ScrollReveal({ children, className = '' }) {
+export default function ScrollReveal({ children, className = '', as: Tag = 'div' }) {
   // useRef gives us a handle on the actual element on the page.
   const ref = useRef(null)
   const [revealed, setRevealed] = useState(false)
@@ -24,8 +25,8 @@ export default function ScrollReveal({ children, className = '' }) {
   }, [])
 
   return (
-    <div ref={ref} className={`reveal ${revealed ? 'revealed' : ''} ${className}`}>
+    <Tag ref={ref} className={`reveal ${revealed ? 'revealed' : ''} ${className}`}>
       {children}
-    </div>
+    </Tag>
   )
 }
