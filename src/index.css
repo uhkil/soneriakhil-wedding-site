@@ -954,19 +954,29 @@ h2:hover .title-berry.mirrored {
   }
 }
 
-/* Phones: centered. */
+/* Phones: about half the width, on its own side (right-hand drawings on
+   the right, left-hand ones on the left), leaving room beside it for its
+   pop-up card. */
 @media (max-width: 640px) {
   .illustration-slot.corner-art {
+    width: 55%;
+  }
+  .illustration-slot.corner-art-right {
     margin-left: auto;
+    margin-right: 0;
+  }
+  .illustration-slot.corner-art-left {
+    margin-left: 0;
     margin-right: auto;
   }
 }
 
 /* ----- Nuggets: a little card about us that pops up beside a drawing
    when a guest hovers over it, taps it, or tabs to it (see "nugget" in
-   src/data/art.js). It opens toward the middle of the page: to the left of
-   drawings on the right, to the right of drawings on the left, and below the
-   drawing on phones. ----- */
+   src/data/art.js). It opens toward the middle of the page, centered on the
+   drawing top to bottom: to the left of drawings on the right, to the right
+   of drawings on the left (on phones too, where it fills the space beside
+   the drawing). ----- */
 .illustration-slot.has-nugget {
   position: relative;
   cursor: pointer;
@@ -1074,20 +1084,33 @@ img.nugget-photo {
   text-underline-offset: 3px;
 }
 
-/* Phones: the drawing is centered, so the card opens just below it. */
+/* Narrower screens: the card can't be as wide, so it wraps to fit the
+   space beside the drawing instead of running off the edge. */
+@media (max-width: 900px) {
+  .nugget-card,
+  .nugget.one-line .nugget-card {
+    max-width: min(var(--nugget-width, 280px), 38vw);
+    white-space: normal;
+  }
+}
+
+/* Phones: the drawing takes about half the width (see "corner-art"), and
+   the card fills the other half beside it, still centered top to bottom. */
 @media (max-width: 640px) {
-  .nugget,
-  .corner-art-left .nugget {
-    top: 100%;
-    right: auto;
-    left: 50%;
-    translate: -50% 0;
-    padding: 10px 0 0;
+  .nugget {
+    padding: 0 10px;
   }
   .nugget-card,
   .nugget.one-line .nugget-card {
-    max-width: min(var(--nugget-width, 280px), calc(100vw - 32px));
-    white-space: normal;
+    width: calc((100vw - 48px) * 0.45 - 20px);
+    max-width: none;
+    padding: 12px 14px;
+    border-radius: 14px;
+    font-size: 0.85rem;
+  }
+  .nugget-gallery {
+    grid-template-columns: repeat(3, 1fr);
+    gap: 6px;
   }
 }
 
