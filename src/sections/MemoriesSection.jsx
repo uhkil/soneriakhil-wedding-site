@@ -308,9 +308,23 @@ function Camera({ onOpen }) {
         </div>
       </div>
 
-      <p className="camera-count">
-        {current + 1} / {photos.length}
-      </p>
+      {/* The count, with arrows on either side that show while the pointer
+          is over the camera (always on touch screens). */}
+      <div className="camera-count">
+        <button type="button" className="count-arrow" aria-label="Previous photo" onClick={() => step(-1)}>
+          <svg viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M15 5l-7 7 7 7" />
+          </svg>
+        </button>
+        <span>
+          {current + 1} / {photos.length}
+        </span>
+        <button type="button" className="count-arrow" aria-label="Next photo" onClick={() => step(1)}>
+          <svg viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M9 5l7 7-7 7" />
+          </svg>
+        </button>
+      </div>
     </div>
   )
 }

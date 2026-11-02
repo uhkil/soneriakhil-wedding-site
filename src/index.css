@@ -935,10 +935,11 @@ h2:hover .title-berry.mirrored {
 .illustration-slot.corner-art {
   --corner-art-scale: 0.3323;
   max-width: calc(var(--art-width) * var(--corner-art-scale) * 1px);
-  /* It's the first thing in its section, just above the title, with room
-     to breathe before the title. */
+  /* It's the first thing in its section, just above the title. The space
+     below it matches the space above it (the two sections' padding, 96px
+     each), so it sits evenly between what's above and its title. */
   margin-top: 0;
-  margin-bottom: 96px;
+  margin-bottom: 192px;
 }
 
 .illustration-slot.corner-art-right {
@@ -1225,7 +1226,7 @@ img.nugget-photo {
 
 /* The strip runs the full width of the page and scrolls sideways. It's the
    drawn film frame (film-frame.svg, 412 × 369) repeated: each opening is a
-   3:2 photo shape, as wide as the camera's screen (49.49% of the camera,
+   3:2 photo shape, as wide as the camera's screen (51.24% of the camera,
    which is min(660px, the column) wide). The first photo starts at the left
    edge of the screen. */
 #memories {
@@ -1235,8 +1236,8 @@ img.nugget-photo {
 .filmstrip {
   /* One frame (rounded to whole pixels where the browser can, so neighbouring
      frames meet without a hairline between them). */
-  --film-w: calc(min(660px, 100cqw) * 0.4949 * 412 / 365);
-  --film-w: round(calc(min(660px, 100cqw) * 0.4949 * 412 / 365), 1px);
+  --film-w: calc(min(660px, 100cqw) * 0.5124 * 412 / 365);
+  --film-w: round(calc(min(660px, 100cqw) * 0.5124 * 412 / 365), 1px);
   width: 100vw;
   margin-left: calc(50% - 50vw);
   overflow-x: auto; /* scroll sideways through the frames */
@@ -1468,9 +1469,9 @@ img.nugget-photo {
    edges tuck under the outline. */
 .camera-screen {
   position: absolute;
-  left: 11.15%;
+  left: 9.4%; /* the screen's opening, with an even border all around */
   top: 31.92%;
-  width: 49.49%;
+  width: 51.24%;
   height: 53.51%;
   overflow: hidden;
   background: #f7fbff;
@@ -1539,7 +1540,12 @@ img.nugget-photo {
    it can pulse outward from it. */
 .camera-arrow svg {
   width: 44%;
+  overflow: visible;
   fill: currentColor;
+  /* a matching outline with round joins softens the triangle's corners */
+  stroke: currentColor;
+  stroke-width: 1.6;
+  stroke-linejoin: round;
   animation: arrow-pulse 2.2s ease-in-out infinite;
 }
 
@@ -1575,11 +1581,61 @@ img.nugget-photo {
 }
 
 .camera-count {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
   margin: 8px 0 0;
-  text-align: center;
   font: 500 0.8rem/1 var(--font-ui);
   letter-spacing: 0.14em;
   color: var(--ink);
+}
+
+/* Small arrows beside the count: they fade in while the pointer is over the
+   camera (or the keyboard is on them), as a second, more obvious way to step
+   through the photos. Touch screens always show them. */
+.count-arrow {
+  display: grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  border: none;
+  border-radius: 50%;
+  background: transparent;
+  color: var(--ink);
+  cursor: pointer;
+  opacity: 0;
+  transition: opacity 0.2s ease, background-color 0.2s ease;
+}
+
+.camera:hover .count-arrow,
+.count-arrow:focus-visible {
+  opacity: 1;
+}
+
+.count-arrow:hover {
+  background: rgba(0, 52, 89, 0.1);
+}
+
+.count-arrow:focus-visible {
+  outline: 2px solid var(--ink);
+}
+
+.count-arrow svg {
+  width: 14px;
+  height: 14px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2.2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+@media (hover: none) {
+  .count-arrow {
+    opacity: 1;
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -1636,6 +1692,11 @@ img.nugget-photo {
 /* Flipped events put the artwork on the left and the details on the right. */
 .timeline-item.flipped {
   grid-template-areas: 'art dot details';
+}
+
+/* No extra space after the last event (the section's own padding is enough). */
+.timeline-item:last-child {
+  margin-bottom: 0;
 }
 
 .event-details {
@@ -2192,6 +2253,9 @@ img.nugget-photo {
    an answer only moves what's below it, never the title. */
 #faq {
   justify-content: flex-start;
+  /* only as tall as the questions, so the gap above the RSVP drawing
+     matches the other drawings' */
+  min-height: 0;
 }
 
 .faq-list {
