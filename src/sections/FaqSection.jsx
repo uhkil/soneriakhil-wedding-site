@@ -3,6 +3,7 @@
 // opening and closing on their own. Only one answer is open at a time:
 // opening one closes the others.
 import Section from '../components/Section.jsx'
+import Art from '../components/Art.jsx'
 
 // Edit this list to add, remove, or change questions. Each answer is a short
 // list of points (shown as bullets). A point can include links:
@@ -63,9 +64,9 @@ export default function FaqSection() {
             and placed like the Memories title): Akhil on the left being
             silly, Soneri on the right looking his way through binoculars. */}
         <span className="title-word">
-          <span className="title-side title-left title-faq-boy" aria-hidden="true" />
+          <Art file="faq-boy.webp" className="title-side title-left title-faq-boy" />
           FAQ
-          <span className="title-side title-right title-faq-girl" aria-hidden="true" />
+          <Art file="faq-girl.webp" className="title-side title-right title-faq-girl" />
         </span>
       </h2>
       <div className="faq-list">

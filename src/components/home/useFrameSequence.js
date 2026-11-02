@@ -2,7 +2,7 @@
 // each for its own length of time, then stops on the last one.
 // Shared by the hero animations (Cream and House of Honey).
 //
-//   sources   — every frame's file, by name: { 'frame-1': '/…/frame-1.svg', … }
+//   sources   — every frame's file, by name: { 'frame-1': '/…/frame-1.webp', … }
 //   sequence  — [name, how long it stays up (ms), how long it fades in (ms)], in order
 //   talkAt    — the step (0 = first) at which the speech bubbles appear
 //

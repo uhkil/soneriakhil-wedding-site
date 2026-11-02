@@ -1,6 +1,6 @@
 // A spot for an illustration. Looks up the art by name in src/data/art.js.
-//   - If that art has a file ("src"), it shows the image (or, with "tint",
-//     the drawing in the page's text color).
+//   - If that art has a file ("src"), it shows the image (with "tint", the
+//     dark-blue drawing, sized to fit).
 //   - If not, it shows a labeled placeholder in the right shape, so we can
 //     judge size and placement before the real art exists.
 //   - If the art has a "nugget", hovering over the drawing (or tapping it, or
@@ -18,7 +18,7 @@ export default function IllustrationSlot({ name, size = 'medium', className = ''
   const nugget = item.nugget
   const ref = useRef(null)
   const near = useNearScreen(ref)
-  const mask = near && item.src ? `url(${import.meta.env.BASE_URL + item.src})` : undefined
+  const image = near && item.src ? import.meta.env.BASE_URL + item.src : undefined
 
   return (
     <div
@@ -32,12 +32,8 @@ export default function IllustrationSlot({ name, size = 'medium', className = ''
       style={{ aspectRatio: item.ratio, '--art-width': parseFloat(item.ratio) }}
     >
       {item.src && item.tint ? (
-        // The text color, cut into the drawing's shape (see "tint" in art.js).
-        <div
-          className="illustration-tint"
-          aria-hidden="true"
-          style={{ WebkitMaskImage: mask, maskImage: mask }}
-        />
+        // The drawing, already in the dark blue (see "tint" in art.js).
+        image && <img className="illustration-tint" src={image} alt="" aria-hidden="true" draggable="false" decoding="async" />
       ) : item.src ? (
         // import.meta.env.BASE_URL adds the site's folder name when it's online
         // (e.g. /soneriakhil-wedding-site/), so image paths work everywhere.

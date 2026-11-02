@@ -1,6 +1,7 @@
 // The gift registry. For now, just a note that details are coming.
 import Section from '../components/Section.jsx'
 import IllustrationSlot from '../components/IllustrationSlot.jsx'
+import Art from '../components/Art.jsx'
 
 export default function RegistrySection() {
   return (
@@ -12,7 +13,7 @@ export default function RegistrySection() {
             making a heart hangs off its right side (see .title-hands). */}
         <span className="title-word">
           Registry
-          <span className="title-hands" aria-hidden="true" />
+          <Art file="heart-hands.webp" className="title-hands" />
         </span>
       </h2>
       <p className="registry-note">More details to come.</p>

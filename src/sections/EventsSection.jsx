@@ -7,6 +7,7 @@
 import Section from '../components/Section.jsx'
 import IllustrationSlot from '../components/IllustrationSlot.jsx'
 import EventBlock from '../components/EventBlock.jsx'
+import Art from '../components/Art.jsx'
 
 export default function EventsSection({ events }) {
   return (
@@ -18,7 +19,7 @@ export default function EventsSection({ events }) {
             right side (see .title-disco in index.css). */}
         <span className="title-word">
           Events
-          <span className="title-disco" aria-hidden="true" />
+          <Art file="discoball.webp" className="title-disco" />
         </span>
       </h2>
       <div className="timeline">

@@ -2,21 +2,22 @@
 // then turning to wave hello. When the last frame lands, each says hello in a
 // speech bubble.
 //
-// The seven drawings (public/assets/hero/) were prepared so the frames match:
+// The seven drawings (public/assets/hero/, rendered from the SVG masters in
+// art-source/hero/) were prepared so the frames match:
 // cropped to the same window around the couple, lined up so their heads and
 // feet don't jump, and every light area (skin, eyes, highlights) made
 // see-through, so the page's blue shows through. Frames 5, 6 and 7 share
 // frame 6's faces and body and differ only in his arm, and frame 1 borrows
 // frame 2's closed eye, so every frame has the same dash-style eyes.
-// The couple is drawn in the page's text color (--ink in index.css): each
-// frame's shape is filled with that color, so they always match the text.
+// The drawings are in the page's dark blue (#003459, the --ink color in
+// index.css), as sharp WebP images (SVGs with cut-outs blur on iPhones).
 import { useEffect, useRef, useState } from 'react'
 import { useFrameSequence } from './useFrameSequence.js'
 
 function frameFiles(folder, count, version) {
   const base = import.meta.env.BASE_URL + `assets/${folder}/`
   return Object.fromEntries(
-    Array.from({ length: count }, (_, i) => [`frame-${i + 1}`, `${base}frame-${i + 1}.svg?v=${version}`])
+    Array.from({ length: count }, (_, i) => [`frame-${i + 1}`, `${base}frame-${i + 1}.webp?v=${version}`])
   )
 }
 
@@ -28,7 +29,7 @@ function frameFiles(folder, count, version) {
 // instead of a glitch.
 // Bump the last number in frameFiles(...) whenever the files change, so
 // browsers fetch the new ones instead of reusing old saved copies.
-const SOURCES = frameFiles('hero', 7, 3)
+const SOURCES = frameFiles('hero', 7, 6)
 
 // The dissolves are fairly long (see .honey-frames in index.css): the new
 // pose fades in over the first half, the old one fades out over the second,
@@ -85,11 +86,7 @@ function Dance({ onReplay }) {
           {Object.entries(sources).map(([name, src]) => {
             const state = name === frame ? 'current' : name === previous ? 'previous' : ''
             return (
-              <div
-                key={name}
-                className={state}
-                style={{ '--fade': `${fade}ms`, WebkitMaskImage: `url(${src})`, maskImage: `url(${src})` }}
-              />
+              <img key={name} className={state} src={src} alt="" draggable="false" style={{ '--fade': `${fade}ms` }} />
             )
           })}
         </div>

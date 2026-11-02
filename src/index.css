@@ -174,13 +174,13 @@ summary:focus-visible {
   object-fit: contain;
 }
 
-/* A one-color drawing in the text color (art with "tint" in art.js). */
+/* A one-color drawing in the dark blue (art with "tint" in art.js): a sharp
+   WebP image with see-through gaps (see art-source/ for the SVG masters). */
 .illustration-tint {
+  display: block;
   width: 100%;
   height: 100%;
-  background: currentColor;
-  -webkit-mask: center / contain no-repeat;
-  mask: center / contain no-repeat;
+  object-fit: contain;
 }
 
 /* Until real art exists: a sketchy dashed box that says what goes here. */
@@ -738,9 +738,6 @@ summary:focus-visible {
   position: absolute;
   bottom: 0.19em; /* their feet line up with the bottom of the letters */
   height: 1.425em;
-  background: var(--ink);
-  -webkit-mask: var(--art) center / contain no-repeat;
-  mask: var(--art) center / contain no-repeat;
 }
 
 .title-left {
@@ -756,23 +753,19 @@ summary:focus-visible {
 /* Memories: Akhil taking a photo of Soneri across the word. */
 .title-photographer {
   aspect-ratio: 571 / 753;
-  --art: url('/assets/art/photoshoot-boy.svg');
 }
 
 .title-subject {
   aspect-ratio: 425 / 753;
-  --art: url('/assets/art/photoshoot-girl.svg');
 }
 
 /* FAQ: Akhil being silly, Soneri looking his way through binoculars. */
 .title-faq-boy {
   aspect-ratio: 577 / 750;
-  --art: url('/assets/art/faq-boy.svg');
 }
 
 .title-faq-girl {
   aspect-ratio: 552 / 750;
-  --art: url('/assets/art/faq-girl.svg');
 }
 
 /* ---------- Events: a disco ball beside the title ---------- */
@@ -789,9 +782,6 @@ summary:focus-visible {
   height: 2.8cap;
   aspect-ratio: 758 / 721;
   margin-left: 0.9em;
-  background: var(--ink);
-  -webkit-mask: url('/assets/art/discoball.svg') center / contain no-repeat;
-  mask: url('/assets/art/discoball.svg') center / contain no-repeat;
 }
 
 #events h2 {
@@ -820,9 +810,6 @@ summary:focus-visible {
   height: 0.9em;
   aspect-ratio: 1376 / 457;
   margin-left: 0.35em;
-  background: var(--ink);
-  -webkit-mask: url('/assets/art/heart-hands.svg') center / contain no-repeat;
-  mask: url('/assets/art/heart-hands.svg') center / contain no-repeat;
 }
 
 /* ---------- Our Story: photo beside text ---------- */
@@ -836,9 +823,6 @@ summary:focus-visible {
   aspect-ratio: 632 / 752;
   margin: 0 0.6em;
   vertical-align: -0.05em;
-  background: var(--ink);
-  -webkit-mask: url('/assets/art/blueberry.svg') center / contain no-repeat;
-  mask: url('/assets/art/blueberry.svg') center / contain no-repeat;
   rotate: -14deg;
   transition: rotate 0.4s cubic-bezier(0.3, 1.6, 0.5, 1);
 }
@@ -1225,7 +1209,7 @@ img.nugget-photo {
 /* ---------- Memories: film strip view ---------- */
 
 /* The strip runs the full width of the page and scrolls sideways. It's the
-   drawn film frame (film-frame.svg, 412 × 369) repeated: each opening is a
+   drawn film frame (film-frame.webp, 412 × 369) repeated: each opening is a
    3:2 photo shape, as wide as the camera's screen (51.24% of the camera,
    which is min(660px, the column) wide). The first photo starts at the left
    edge of the screen. */
@@ -1268,13 +1252,11 @@ img.nugget-photo {
   aspect-ratio: 412 / 369;
 }
 
-.film-frame::after {
-  content: '';
+.film-frame-art {
   position: absolute;
   inset: 0;
-  background: var(--ink);
-  -webkit-mask: url('/assets/art/film-frame.svg') 0 0 / 100% 100% no-repeat;
-  mask: url('/assets/art/film-frame.svg') 0 0 / 100% 100% no-repeat;
+  width: 100%;
+  height: 100%;
   pointer-events: none;
 }
 
@@ -1440,7 +1422,7 @@ img.nugget-photo {
 
 /* ---------- Memories: camera view ---------- */
 
-/* The drawn camera (camera.svg, 879 × 542) in the text color. Positions
+/* The drawn camera (camera.webp, 879 × 542) in the text color. Positions
    below are percentages of the drawing, measured from the file: the screen,
    the dial, and the two arrows on it. Its screen shows a photo at the same
    size the photos have elsewhere (about 320px wide). */
@@ -1457,11 +1439,8 @@ img.nugget-photo {
 .camera-drawing {
   position: absolute;
   inset: 0;
-  background: var(--ink);
-  -webkit-mask-size: 100% 100%;
-  mask-size: 100% 100%;
-  -webkit-mask-repeat: no-repeat;
-  mask-repeat: no-repeat;
+  width: 100%;
+  height: 100%;
   pointer-events: none;
 }
 
@@ -3242,22 +3221,17 @@ img.nugget-photo {
 }
 
 .honey-frames,
-.honey-frames > div {
+.honey-frames > img {
   position: absolute;
   inset: 0;
   width: 100%;
   height: 100%;
 }
 
-/* Each frame: the text color (--ink), cut into that frame's shape.
-   One frame shows at a time; the old one stays underneath while the new one fades in. */
-.honey-frames > div {
+/* Each frame: that drawing (a sharp WebP in dark blue, with see-through gaps). One frame shows at a time;
+   the old one stays underneath while the new one fades in. */
+.honey-frames > img {
   opacity: 0;
-  background: var(--ink);
-  -webkit-mask-size: 100% 100%;
-  mask-size: 100% 100%;
-  -webkit-mask-repeat: no-repeat;
-  mask-repeat: no-repeat;
   /* Keep every frame ready for fading, so the edges don't shimmer as a fade
      starts and stops. */
   will-change: opacity;
@@ -3267,13 +3241,13 @@ img.nugget-photo {
    half while the old one stays solid underneath, then the old one fades out
    over the second half. Whatever both frames share stays solid the whole
    time; only the parts that move blend, and nothing pops away at the end. */
-.honey-frames > div.previous {
+.honey-frames > img.previous {
   opacity: 0;
   z-index: 1;
   animation: frame-out var(--fade) ease-in-out;
 }
 
-.honey-frames > div.current {
+.honey-frames > img.current {
   opacity: 1;
   z-index: 2;
   animation: frame-in calc(var(--fade) / 2) ease-in-out;
@@ -3494,7 +3468,7 @@ img.nugget-photo {
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .honey-frames > div.current {
+  .honey-frames > img.current {
     animation: none;
   }
   .honey-bubble {

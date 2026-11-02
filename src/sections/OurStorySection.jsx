@@ -3,6 +3,7 @@
 import Section from '../components/Section.jsx'
 import PhotoSlot from '../components/PhotoSlot.jsx'
 import ScrollReveal from '../components/ScrollReveal.jsx'
+import Art from '../components/Art.jsx'
 
 // Edit this list to add, remove, or reorder moments.
 // "photo" is the image file (e.g. 'assets/story/how-we-met.jpg'); empty = placeholder.
@@ -17,9 +18,9 @@ export default function OurStorySection() {
     <Section id="story">
       <h2>
         {/* Little blueberry sprigs on either side (see .title-berry in index.css). */}
-        <span className="title-berry" aria-hidden="true" />
+        <Art file="blueberry.webp" className="title-berry" />
         Our Story
-        <span className="title-berry mirrored" aria-hidden="true" />
+        <Art file="blueberry.webp" className="title-berry mirrored" />
       </h2>
       <ol className="story-list">
         {moments.map((moment, index) => (

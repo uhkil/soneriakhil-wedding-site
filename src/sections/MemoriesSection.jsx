@@ -11,6 +11,7 @@ import { useEffect, useRef, useState } from 'react'
 import PhotoSlot from '../components/PhotoSlot.jsx'
 import IllustrationSlot from '../components/IllustrationSlot.jsx'
 import Lightbox from '../components/Lightbox.jsx'
+import Art from '../components/Art.jsx'
 
 // The photos, in order. For now these are placeholder pictures (in
 // public/assets/memories/) in a mix of shapes, to test how photos fit each
@@ -44,9 +45,9 @@ export default function MemoriesSection() {
         {/* The word stays centered on the page, between the two of us: Akhil on
             the left taking a photo of Soneri on the right. */}
         <span className="title-word">
-          <span className="title-side title-left title-photographer" aria-hidden="true" />
+          <Art file="photoshoot-boy.webp" className="title-side title-left title-photographer" />
           Memories
-          <span className="title-side title-right title-subject" aria-hidden="true" />
+          <Art file="photoshoot-girl.webp" className="title-side title-right title-subject" />
         </span>
       </h2>
 
@@ -175,7 +176,7 @@ function View({ id, view, children }) {
   )
 }
 
-// The film strip: the drawn film frame (public/assets/art/film-frame.svg)
+// The film strip: the drawn film frame (public/assets/art/film-frame.webp)
 // repeated side by side, one frame per photo, starting at the left edge of
 // the screen. Every frame holds a photo; only if there are too few photos to
 // reach across the screen do empty frames fill the rest. Each photo sits in a
@@ -227,7 +228,14 @@ function FilmStrip({ onOpen }) {
     ref.current.classList.remove('dragging')
   }
 
-  const empty = (count) => Array.from({ length: count }, (_, i) => <div key={i} className="film-frame" />)
+  // The drawn frame, on top of each frame's photo box.
+  const frameArt = <Art file="film-frame.webp" className="film-frame-art" />
+  const empty = (count) =>
+    Array.from({ length: count }, (_, i) => (
+      <div key={i} className="film-frame">
+        {frameArt}
+      </div>
+    ))
 
   return (
     <div
@@ -252,6 +260,7 @@ function FilmStrip({ onOpen }) {
         {photos.map((photo, i) => (
           <div key={photo.label} className="film-frame">
             <OpenablePhoto index={i} onOpen={onOpen} className="film-photo" />
+            {frameArt}
           </div>
         ))}
         <div className="film-trail">{empty(6)}</div>
@@ -260,7 +269,7 @@ function FilmStrip({ onOpen }) {
   )
 }
 
-// The drawn camera (public/assets/art/camera.svg, in the text color). The
+// The drawn camera (public/assets/art/camera.webp, in the dark blue). The
 // photo sits in the drawing's screen, and two invisible buttons sit over the
 // arrows on its dial. The arrows pulse gently until the pointer is over the dial.
 function Camera({ onOpen }) {
@@ -279,14 +288,7 @@ function Camera({ onOpen }) {
         </div>
 
         {/* The camera itself, drawn in the text color. */}
-        <div
-          className="camera-drawing"
-          aria-hidden="true"
-          style={{
-            WebkitMaskImage: `url(${import.meta.env.BASE_URL}assets/art/camera.svg)`,
-            maskImage: `url(${import.meta.env.BASE_URL}assets/art/camera.svg)`,
-          }}
-        />
+        <Art file="camera.webp" className="camera-drawing" />
 
         <div
           className="camera-dial"
