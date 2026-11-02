@@ -737,7 +737,7 @@ summary:focus-visible {
   display: inline-block;
   height: 0.85em;
   aspect-ratio: 632 / 752;
-  margin: 0 0.3em;
+  margin: 0 0.6em;
   vertical-align: -0.05em;
   background: var(--ink);
   -webkit-mask: url('/assets/art/blueberry.svg') center / contain no-repeat;
@@ -1077,8 +1077,7 @@ img.nugget-photo {
 
 /* Every memory photo is the same size in both views:
    320px wide (or 75% of a narrow phone screen), 4:3 shape. */
-.memory-photo.photo-slot {
-  width: min(320px, 75vw);
+.memory-photo .photo-slot {
   padding: 0;
   box-shadow: none;
   background: none;
@@ -1198,16 +1197,99 @@ img.nugget-photo {
   background: var(--ink);
 }
 
-/* ---------- Memories: grid view ---------- */
+/* ---------- Memories: any photo that opens full screen ---------- */
 
-.memory-grid {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 12px;
+.photo-button {
+  display: block;
+  width: 100%;
+  padding: 0;
+  border: none;
+  background: none;
+  cursor: zoom-in;
 }
 
-.memory-grid .memory-photo.photo-slot {
+.photo-button img {
+  transition: filter 0.2s ease;
+}
+
+.photo-button:hover img {
+  filter: brightness(1.06);
+}
+
+.photo-button:focus-visible {
+  outline: 2px solid var(--ink);
+  outline-offset: 3px;
+}
+
+/* ---------- Memories: grid view ---------- */
+
+/* Pages of photos side by side; the row scrolls sideways a whole page at a
+   time (snapping into place), and its scroll bar is hidden: the dots below
+   do that job. */
+.memory-pages {
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: 100%;
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  overscroll-behavior-x: contain;
+  scrollbar-width: none;
+}
+
+.memory-pages::-webkit-scrollbar {
+  display: none;
+}
+
+/* One page: 3 across and 2 down (2 by 2 on phones). A page with fewer
+   photos keeps the same size, so the dots don't jump. */
+.memory-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  align-content: start;
+  gap: 14px;
+  scroll-snap-align: start;
+}
+
+.memory-grid .photo-slot {
   width: 100%;
+}
+
+/* The page dots: small outlined circles; the current page's is filled. */
+.memory-dots {
+  display: flex;
+  justify-content: center;
+  gap: 4px;
+  margin-top: 20px;
+}
+
+.memory-dots button {
+  width: 24px;
+  height: 24px;
+  padding: 0;
+  border: none;
+  background: none;
+  cursor: pointer;
+}
+
+.memory-dots button::before {
+  content: '';
+  display: block;
+  width: 9px;
+  height: 9px;
+  margin: auto;
+  border: 1.5px solid var(--ink);
+  border-radius: 50%;
+  box-sizing: border-box;
+  transition: background-color 0.2s ease;
+}
+
+.memory-dots button.active::before {
+  background: var(--ink);
+}
+
+.memory-dots button:focus-visible {
+  outline: 2px solid var(--ink);
+  border-radius: 50%;
 }
 
 @media (max-width: 640px) {
@@ -1256,7 +1338,8 @@ img.nugget-photo {
   background: #f7fbff;
 }
 
-.camera-photo.photo-slot {
+.camera-photo,
+.camera-photo .photo-slot {
   width: 100%;
   height: 100%;
   padding: 0;
@@ -1582,6 +1665,150 @@ img.nugget-photo {
   from {
     opacity: 0;
     transform: translateY(4px);
+  }
+}
+
+/* ----- Lightbox: a photo full screen over a dark-blue overlay (Lightbox.jsx) ----- */
+
+.lightbox {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: max(64px, env(safe-area-inset-top, 0px)) 72px 40px;
+  background: rgba(0, 52, 89, 0.94);
+  color: var(--paper);
+  animation: lightbox-in 0.2s ease;
+}
+
+@keyframes lightbox-in {
+  from { opacity: 0; }
+}
+
+.lightbox-figure {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 14px;
+  margin: 0;
+  max-width: 100%;
+  max-height: 100%;
+}
+
+.lightbox-figure img,
+.lightbox-placeholder {
+  display: block;
+  max-width: min(100%, 1400px);
+  max-height: calc(100dvh - 160px);
+  border-radius: 6px;
+  animation: lightbox-in 0.25s ease;
+}
+
+.lightbox-placeholder {
+  width: min(80vw, 900px);
+  aspect-ratio: 3 / 2;
+  display: grid;
+  place-items: center;
+  background: var(--paper);
+  color: var(--ink);
+  font: 500 0.9rem var(--font-ui);
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+}
+
+.lightbox figcaption {
+  font: 500 0.8rem/1 var(--font-ui);
+  letter-spacing: 0.14em;
+}
+
+/* The × and the arrows: light circles with dark-blue icons. */
+.lightbox-close,
+.lightbox-arrow {
+  position: absolute;
+  display: grid;
+  place-items: center;
+  width: 48px;
+  height: 48px;
+  padding: 0;
+  border: none;
+  border-radius: 50%;
+  background: var(--paper);
+  color: var(--ink);
+  cursor: pointer;
+  transition: transform 0.15s ease;
+}
+
+.lightbox-close:hover,
+.lightbox-arrow:hover {
+  transform: scale(1.08);
+}
+
+.lightbox-close:focus-visible,
+.lightbox-arrow:focus-visible {
+  outline: 2px solid var(--paper);
+  outline-offset: 3px;
+}
+
+.lightbox-close svg,
+.lightbox-arrow svg {
+  width: 22px;
+  height: 22px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2.2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.lightbox-close {
+  top: calc(16px + env(safe-area-inset-top, 0px));
+  right: 16px;
+}
+
+.lightbox-arrow {
+  top: 50%;
+  translate: 0 -50%;
+}
+
+.lightbox-prev {
+  left: 12px;
+}
+
+.lightbox-next {
+  right: 12px;
+}
+
+/* Phones: the photo uses the full width; the arrows sit at the bottom corners. */
+@media (max-width: 640px) {
+  .lightbox {
+    padding: 72px 12px 96px;
+  }
+  .lightbox-arrow {
+    top: auto;
+    bottom: calc(20px + env(safe-area-inset-bottom, 0px));
+    translate: none;
+  }
+  .lightbox-prev {
+    left: 20px;
+  }
+  .lightbox-next {
+    right: 20px;
+  }
+  .lightbox figcaption {
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: calc(36px + env(safe-area-inset-bottom, 0px));
+    text-align: center;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .lightbox,
+  .lightbox-figure img {
+    animation: none;
   }
 }
 
@@ -2010,6 +2237,16 @@ img.nugget-photo {
 [data-design='honey'] .rsvp-event-name {
   font-family: var(--font-body);
   font-weight: 500;
+}
+
+/* The open FAQ question: bolder and a little larger, so it stands out. */
+[data-design='honey'] .faq-item summary {
+  transition: font-size 0.2s ease;
+}
+
+[data-design='honey'] .faq-item[open] summary {
+  font-weight: 600;
+  font-size: 1.35rem;
 }
 
 /* Buttons: solid chocolate blocks. */

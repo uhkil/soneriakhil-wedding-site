@@ -3,12 +3,15 @@
 //     page, scrolling sideways
 //   - "Camera" (shown first): one photo at a time on the screen of a drawn
 //     camera; its left and right arrows step through them
-//   - "Grid": all photos at once, in rows
+//   - "Grid": pages of photos in rows; dots underneath show how many pages
+//     there are and switch between them (phones can also swipe)
+// Clicking any photo opens it full screen (Lightbox.jsx).
 import Section from '../components/Section.jsx'
 import { useEffect, useRef, useState } from 'react'
 import PhotoSlot from '../components/PhotoSlot.jsx'
 import Doodle from '../components/Doodle.jsx'
 import IllustrationSlot from '../components/IllustrationSlot.jsx'
+import Lightbox from '../components/Lightbox.jsx'
 
 // The photos, in order. For now these are placeholder pictures (in
 // public/assets/memories/) in a mix of shapes, to test how photos fit each
@@ -31,6 +34,8 @@ export default function MemoriesSection() {
   // view = which view is showing; setView = the function that changes it.
   const [view, setView] = useState('camera')
   const viewIndex = VIEWS.findIndex((v) => v.id === view)
+  // Which photo is open full screen (null = none).
+  const [open, setOpen] = useState(null)
 
   return (
     <Section id="memories">
@@ -60,20 +65,97 @@ export default function MemoriesSection() {
           views never moves the title, the toggle, or anything else. */}
       <div className="memories-viewer">
         <View id="filmstrip" view={view}>
-          <FilmStrip />
+          <FilmStrip onOpen={setOpen} />
         </View>
         <View id="camera" view={view}>
-          <Camera />
+          <Camera onOpen={setOpen} />
         </View>
         <View id="grid" view={view}>
-          <div className="memory-grid">
-            {photos.map((photo) => (
-              <PhotoSlot key={photo.label} {...photo} className="memory-photo" />
-            ))}
-          </div>
+          <Grid onOpen={setOpen} />
         </View>
       </div>
+
+      {open !== null && <Lightbox photos={photos} index={open} onIndex={setOpen} onClose={() => setOpen(null)} />}
     </Section>
+  )
+}
+
+// A photo that opens full screen when clicked.
+function OpenablePhoto({ index, onOpen, className = '' }) {
+  const photo = photos[index]
+  return (
+    <button
+      type="button"
+      className={`photo-button ${className}`}
+      aria-label={`${photo.label}: view full screen`}
+      onClick={() => onOpen(index)}
+    >
+      <PhotoSlot {...photo} />
+    </button>
+  )
+}
+
+// How many photos fit on one page of the grid: 3 across and 2 down, or on
+// phones 2 by 2. Updates if the screen is resized past that point.
+const PHONE = '(max-width: 640px)'
+function usePerPage() {
+  const [phone, setPhone] = useState(() => window.matchMedia(PHONE).matches)
+  useEffect(() => {
+    const query = window.matchMedia(PHONE)
+    const onChange = () => setPhone(query.matches)
+    query.addEventListener('change', onChange)
+    return () => query.removeEventListener('change', onChange)
+  }, [])
+  return phone ? 4 : 6
+}
+
+// The grid: pages side by side in a row that scrolls sideways a whole page at
+// a time (a swipe on phones). The dots underneath show which page is showing;
+// clicking one goes to that page.
+function Grid({ onOpen }) {
+  const perPage = usePerPage()
+  const pages = Array.from({ length: Math.ceil(photos.length / perPage) }, (_, p) =>
+    photos.slice(p * perPage, (p + 1) * perPage).map((_, i) => p * perPage + i)
+  )
+  const ref = useRef(null)
+  const [page, setPage] = useState(0)
+
+  // Keep the dots in step with swiping.
+  const onScroll = () => {
+    const pager = ref.current
+    setPage(Math.round(pager.scrollLeft / pager.clientWidth))
+  }
+  const goTo = (p) => {
+    const smooth = !window.matchMedia('(prefers-reduced-motion: reduce)').matches
+    ref.current.scrollTo({ left: p * ref.current.clientWidth, behavior: smooth ? 'smooth' : 'auto' })
+  }
+
+  return (
+    <div className="memory-grid-wrap">
+      <div ref={ref} className="memory-pages" onScroll={onScroll}>
+        {pages.map((indexes, p) => (
+          <div key={p} className="memory-grid" inert={p !== page} aria-hidden={p !== page}>
+            {indexes.map((i) => (
+              <OpenablePhoto key={i} index={i} onOpen={onOpen} className="memory-photo" />
+            ))}
+          </div>
+        ))}
+      </div>
+      {pages.length > 1 && (
+        <div className="memory-dots" role="group" aria-label="Pages of photos">
+          {pages.map((_, p) => (
+            <button
+              key={p}
+              type="button"
+              className={p === page ? 'active' : ''}
+              aria-label={`Page ${p + 1} of ${pages.length}`}
+              aria-current={p === page}
+              onClick={() => goTo(p)}
+            />
+          ))}
+        </div>
+      )}
+    </div>
   )
 }
 
@@ -96,7 +178,7 @@ function View({ id, view, children }) {
 // Ways to move along it: a mouse wheel or trackpad (up/down scrolls it
 // sideways until either end, then the page carries on), clicking and dragging
 // the film, the thin scroll bar, or the arrow keys once it's been clicked.
-function FilmStrip() {
+function FilmStrip({ onOpen }) {
   const ref = useRef(null)
 
   // The wheel: turn up/down scrolling into sideways scrolling.
@@ -115,16 +197,25 @@ function FilmStrip() {
     return () => strip.removeEventListener('wheel', onWheel)
   }, [])
 
-  // Click and drag (with a mouse; fingers already swipe it).
+  // Click and drag (with a mouse; fingers already swipe it). It only counts
+  // as a drag once the mouse has moved a few pixels, so a plain click still
+  // opens the photo; the click that ends a drag is ignored.
   const drag = useRef(null)
+  const dragged = useRef(false)
   const onPointerDown = (e) => {
     if (e.pointerType !== 'mouse' || e.button !== 0) return
-    drag.current = { x: e.clientX, left: ref.current.scrollLeft }
-    ref.current.setPointerCapture(e.pointerId)
-    ref.current.classList.add('dragging')
+    drag.current = { x: e.clientX, left: ref.current.scrollLeft, id: e.pointerId }
+    dragged.current = false
   }
   const onPointerMove = (e) => {
-    if (drag.current) ref.current.scrollLeft = drag.current.left - (e.clientX - drag.current.x)
+    if (!drag.current) return
+    const dx = e.clientX - drag.current.x
+    if (!dragged.current && Math.abs(dx) > 5) {
+      dragged.current = true
+      ref.current.setPointerCapture(drag.current.id)
+      ref.current.classList.add('dragging')
+    }
+    if (dragged.current) ref.current.scrollLeft = drag.current.left - dx
   }
   const onPointerUp = () => {
     drag.current = null
@@ -145,13 +236,17 @@ function FilmStrip() {
       onPointerUp={onPointerUp}
       onPointerCancel={onPointerUp}
       onDragStart={(e) => e.preventDefault()}
+      onClickCapture={(e) => {
+        if (dragged.current) {
+          e.stopPropagation()
+          dragged.current = false
+        }
+      }}
     >
       <div className="film-track">
-        {photos.map((photo) => (
+        {photos.map((photo, i) => (
           <div key={photo.label} className="film-frame">
-            <div className="film-photo">
-              <PhotoSlot {...photo} />
-            </div>
+            <OpenablePhoto index={i} onOpen={onOpen} className="film-photo" />
           </div>
         ))}
         <div className="film-trail">{empty(6)}</div>
@@ -163,7 +258,7 @@ function FilmStrip() {
 // The drawn camera (public/assets/art/camera.svg, in the text color). The
 // photo sits in the drawing's screen, and two invisible buttons sit over the
 // arrows on its dial. The arrows pulse gently until the pointer is over the dial.
-function Camera() {
+function Camera({ onOpen }) {
   // Which photo is showing (0 = the first one).
   const [current, setCurrent] = useState(0)
 
@@ -175,7 +270,7 @@ function Camera() {
       <div className="camera-body">
         {/* The photo, in the camera's screen. */}
         <div className="camera-screen" aria-live="polite">
-          <PhotoSlot {...photos[current]} className="camera-photo" />
+          <OpenablePhoto index={current} onOpen={onOpen} className="camera-photo" />
         </div>
 
         {/* The camera itself, drawn in the text color. */}

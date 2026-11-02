@@ -1,6 +1,7 @@
 // Frequently asked questions. Each question can be clicked to show its answer.
 // This uses the built-in HTML <details> and <summary> tags, which handle
-// opening and closing on their own (no extra code needed).
+// opening and closing on their own. Only one answer is open at a time:
+// opening one closes the others.
 import Section from '../components/Section.jsx'
 import Doodle from '../components/Doodle.jsx'
 
@@ -60,7 +61,16 @@ export default function FaqSection() {
       </h2>
       <div className="faq-list">
         {faqs.map((faq) => (
-          <details key={faq.question} className="faq-item">
+          <details
+            key={faq.question}
+            className="faq-item"
+            name="faq" // newer browsers keep just one open on their own
+            onToggle={(e) => {
+              // Older browsers: close the others when this one opens.
+              if (!e.currentTarget.open) return
+              document.querySelectorAll('.faq-item[open]').forEach((d) => d !== e.currentTarget && (d.open = false))
+            }}
+          >
             <summary>{faq.question}</summary>
             <p>{faq.answer}</p>
           </details>
