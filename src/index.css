@@ -1322,47 +1322,68 @@ img.nugget-photo {
 }
 
 .filmstrip {
-  /* One frame, rounded to whole pixels so the repeated empty frames line up
-     exactly with the photo frames. */
+  /* One frame (rounded to whole pixels where the browser can, so neighbouring
+     frames meet without a hairline between them). */
+  --film-w: calc(min(660px, 100cqw) * 0.4949 * 412 / 365);
   --film-w: round(calc(min(660px, 100cqw) * 0.4949 * 412 / 365), 1px);
-  --film-h: round(calc(var(--film-w) * 369 / 412), 1px);
   width: 100vw;
   margin-left: calc(50% - 50vw);
   overflow-x: auto; /* scroll sideways through the frames */
+  overscroll-behavior-x: contain; /* a sideways swipe at the end doesn't go "back" a page */
   padding-bottom: 10px; /* a little room between the film and its scroll bar */
   outline-offset: -2px;
+  cursor: grab;
+}
+
+.filmstrip.dragging {
+  cursor: grabbing;
+  user-select: none;
 }
 
 .film-track {
-  position: relative;
   display: flex;
   width: max-content;
   min-width: 100%;
-  height: var(--film-h);
 }
 
-/* The drawn film, in the text color, laid over the whole strip as one
-   repeating pattern, its frames lined up with the photo boxes underneath
-   (the frame's rounded openings shape the photos' corners). */
-.film-track::after {
-  content: '';
-  position: absolute;
-  inset: 0;
-  background: var(--ink);
-  -webkit-mask: url('/assets/art/film-frame.svg') repeat-x;
-  mask: url('/assets/art/film-frame.svg') repeat-x;
-  -webkit-mask-size: var(--film-w) 100%;
-  mask-size: var(--film-w) 100%;
-  -webkit-mask-position: calc((100vw - 100cqw) / 2) 0;
-  mask-position: calc((100vw - 100cqw) / 2) 0;
-  pointer-events: none;
-}
-
-/* One frame: a box holding its photo. */
+/* One frame: a box (holding its photo, if it has one) with the drawn frame
+   laid on top in the text color, so the frame's rounded opening shapes the
+   photo's corners. */
 .film-frame {
   position: relative;
   flex: none;
   width: var(--film-w);
+  aspect-ratio: 412 / 369;
+}
+
+.film-frame::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: var(--ink);
+  -webkit-mask: url('/assets/art/film-frame.svg') 0 0 / 100% 100% no-repeat;
+  mask: url('/assets/art/film-frame.svg') 0 0 / 100% 100% no-repeat;
+  pointer-events: none;
+}
+
+/* Empty frames: before the first photo (out to the screen's left edge, so the
+   first photo lines up with the page's column) and after the last (filling
+   whatever's left of the screen). Extra frames are simply cut off. */
+.film-lead,
+.film-trail {
+  display: flex;
+  overflow: hidden;
+}
+
+.film-lead {
+  flex: none;
+  width: calc((100vw - 100cqw) / 2);
+  justify-content: flex-end;
+}
+
+.film-trail {
+  flex: 1 0 var(--film-w);
+  contain: inline-size; /* its spare frames don't make the strip longer */
 }
 
 /* The photo box, the size of the opening (plus a hair more, hidden under
@@ -1385,17 +1406,7 @@ img.nugget-photo {
 .film-photo .photo-placeholder {
   height: 100%;
   aspect-ratio: auto;
-}
-
-/* Room for empty frames: before the first photo (out to the screen's left
-   edge) and after the last (filling whatever's left of the screen). */
-.film-filler-start {
-  flex: none;
-  width: calc((100vw - 100cqw) / 2);
-}
-
-.film-filler-end {
-  flex: 1 0 var(--film-w);
+  -webkit-user-drag: none;
 }
 
 /* The scroll bar: hidden until the pointer is over the strip, then a thin

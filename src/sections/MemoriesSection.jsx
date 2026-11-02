@@ -5,17 +5,20 @@
 //     camera; its left and right arrows step through them
 //   - "Grid": all photos at once, in rows
 import Section from '../components/Section.jsx'
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import PhotoSlot from '../components/PhotoSlot.jsx'
 import Doodle from '../components/Doodle.jsx'
 import IllustrationSlot from '../components/IllustrationSlot.jsx'
 
-// For now these are just labels. Later each will point to a real photo file
-// (e.g. { label: 'Memory 1', src: 'assets/memories/first-date.jpg' }).
-const photos = [
-  'Memory 1', 'Memory 2', 'Memory 3', 'Memory 4',
-  'Memory 5', 'Memory 6', 'Memory 7', 'Memory 8',
-]
+// The photos, in order. For now these are placeholder pictures (in
+// public/assets/memories/) in a mix of shapes, to test how photos fit each
+// view. Swap in the real ones the same way, e.g.
+//   { label: 'First date', src: 'assets/memories/first-date.jpg', alt: 'Us at ...' },
+const photos = Array.from({ length: 8 }, (_, i) => ({
+  label: `Memory ${i + 1}`,
+  src: `assets/memories/placeholder-${i + 1}.jpg`,
+  alt: `Placeholder photo ${i + 1}`,
+}))
 
 const VIEWS = [
   { id: 'filmstrip', label: 'Film strip' },
@@ -65,7 +68,7 @@ export default function MemoriesSection() {
         <View id="grid" view={view}>
           <div className="memory-grid">
             {photos.map((photo) => (
-              <PhotoSlot key={photo} label={photo} className="memory-photo" />
+              <PhotoSlot key={photo.label} {...photo} className="memory-photo" />
             ))}
           </div>
         </View>
@@ -86,22 +89,72 @@ function View({ id, view, children }) {
 }
 
 // The film strip: the drawn film frame (public/assets/art/film-frame.svg)
-// repeated side by side, one frame per photo, with more empty frames filling
-// out the rest of the screen on both sides. Each photo sits in a box behind
-// its frame's opening, so it scrolls along with the film.
+// repeated side by side, one frame per photo, with empty frames filling out
+// the rest of the screen on both sides. Each photo sits in a box behind its
+// frame's opening, so it scrolls along with the film.
+// Ways to move along it: a mouse wheel or trackpad (up/down scrolls it
+// sideways until either end, then the page carries on), clicking and dragging
+// the film, the thin scroll bar, or the arrow keys once it's been clicked.
 function FilmStrip() {
+  const ref = useRef(null)
+
+  // The wheel: turn up/down scrolling into sideways scrolling.
+  useEffect(() => {
+    const strip = ref.current
+    const onWheel = (e) => {
+      if (Math.abs(e.deltaX) >= Math.abs(e.deltaY)) return // already sideways
+      const by = e.deltaY * (e.deltaMode === 1 ? 16 : 1)
+      const end = strip.scrollWidth - strip.clientWidth
+      const atEnd = by < 0 ? strip.scrollLeft <= 0 : strip.scrollLeft >= end - 1
+      if (atEnd) return // let the page scroll on
+      e.preventDefault()
+      strip.scrollLeft += by
+    }
+    strip.addEventListener('wheel', onWheel, { passive: false })
+    return () => strip.removeEventListener('wheel', onWheel)
+  }, [])
+
+  // Click and drag (with a mouse; fingers already swipe it).
+  const drag = useRef(null)
+  const onPointerDown = (e) => {
+    if (e.pointerType !== 'mouse' || e.button !== 0) return
+    drag.current = { x: e.clientX, left: ref.current.scrollLeft }
+    ref.current.setPointerCapture(e.pointerId)
+    ref.current.classList.add('dragging')
+  }
+  const onPointerMove = (e) => {
+    if (drag.current) ref.current.scrollLeft = drag.current.left - (e.clientX - drag.current.x)
+  }
+  const onPointerUp = () => {
+    drag.current = null
+    ref.current.classList.remove('dragging')
+  }
+
+  const empty = (count) => Array.from({ length: count }, (_, i) => <div key={i} className="film-frame" />)
+
   return (
-    <div className="filmstrip" tabIndex={0} role="region" aria-label="Photos on a film strip (scrolls sideways)">
+    <div
+      ref={ref}
+      className="filmstrip"
+      tabIndex={0}
+      role="region"
+      aria-label="Photos on a film strip (scrolls sideways)"
+      onPointerDown={onPointerDown}
+      onPointerMove={onPointerMove}
+      onPointerUp={onPointerUp}
+      onPointerCancel={onPointerUp}
+      onDragStart={(e) => e.preventDefault()}
+    >
       <div className="film-track">
-        <div className="film-filler film-filler-start" />
+        <div className="film-lead">{empty(4)}</div>
         {photos.map((photo) => (
-          <div key={photo} className="film-frame">
+          <div key={photo.label} className="film-frame">
             <div className="film-photo">
-              <PhotoSlot label={photo} />
+              <PhotoSlot {...photo} />
             </div>
           </div>
         ))}
-        <div className="film-filler film-filler-end" />
+        <div className="film-trail">{empty(6)}</div>
       </div>
     </div>
   )
@@ -122,7 +175,7 @@ function Camera() {
       <div className="camera-body">
         {/* The photo, in the camera's screen. */}
         <div className="camera-screen" aria-live="polite">
-          <PhotoSlot label={photos[current]} className="camera-photo" />
+          <PhotoSlot {...photos[current]} className="camera-photo" />
         </div>
 
         {/* The camera itself, drawn in the text color. */}
