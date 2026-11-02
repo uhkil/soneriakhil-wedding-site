@@ -728,6 +728,33 @@ summary:focus-visible {
   text-align: center;
 }
 
+/* ---------- Memories: a small drawing of us taking photos, beside the title ---------- */
+
+/* An accessory to the title (much smaller than the corner drawings): it hangs
+   off the left of the word, which stays centered on the page. The heart hangs
+   off the right the same way. */
+.title-photoshoot {
+  position: absolute;
+  right: 100%;
+  top: 50%;
+  translate: 0 -50%;
+  height: 0.95em;
+  aspect-ratio: 1286 / 761;
+  margin-right: 0.4em;
+  background: var(--ink);
+  -webkit-mask: url('/assets/art/photoshoot.svg') center / contain no-repeat;
+  mask: url('/assets/art/photoshoot.svg') center / contain no-repeat;
+}
+
+.title-heart {
+  position: absolute;
+  left: 100%;
+  top: 50%;
+  translate: 0 -50%;
+  margin-left: 0.3em;
+  line-height: 0;
+}
+
 /* ---------- Registry: two hands making a heart, beside the title ---------- */
 
 /* The word "Registry" is centered on the page; the drawing hangs off its
@@ -1999,6 +2026,12 @@ img.nugget-photo {
 
 /* ---------- FAQ ---------- */
 
+/* Start at the top (instead of centered up and down), so opening or closing
+   an answer only moves what's below it, never the title. */
+#faq {
+  justify-content: flex-start;
+}
+
 .faq-list {
   max-width: 680px;
   margin: 0 auto;
@@ -3122,13 +3155,18 @@ img.nugget-photo {
   padding-top: 32px;
 }
 
+/* The person's name: dark-blue letters in a light-blue pill, so each card
+   is easy to tell apart at a glance. */
 [data-design='honey'] .rsvp-guest legend {
   float: left; /* sits inside the card instead of on its edge */
-  width: 100%;
-  padding: 0;
-  margin: 0 0 4px;
-  color: var(--paper);
-  font-size: 1.3rem;
+  width: fit-content;
+  padding: 9px 20px 8px;
+  margin: 0 0 6px;
+  border-radius: 999px;
+  background: var(--paper);
+  color: var(--ink);
+  font-size: 1.15rem;
+  line-height: 1.2;
 }
 
 [data-design='honey'] .rsvp-guest legend + * {

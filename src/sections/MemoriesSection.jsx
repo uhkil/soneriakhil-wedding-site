@@ -42,7 +42,15 @@ export default function MemoriesSection() {
       {/* Corner art just above the title (see "corner-art" in index.css). */}
       <IllustrationSlot name="storyVignette" size="small" className="corner-art corner-art-right" />
       <h2>
-        Memories <Doodle type="heart" size={28} />
+        {/* The word stays centered on the page; a small drawing of the two of
+            us taking photos sits off its left side, the heart off its right. */}
+        <span className="title-word">
+          <span className="title-photoshoot" aria-hidden="true" />
+          Memories
+          <span className="title-heart">
+            <Doodle type="heart" size={28} />
+          </span>
+        </span>
       </h2>
 
       {/* The toggle: one pill with a highlight that slides to the chosen view. */}
