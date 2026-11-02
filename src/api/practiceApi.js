@@ -45,14 +45,17 @@ function partyDetails(partyId) {
     .map((g) => ({ guestId: g.guestId, firstName: g.firstName, lastName: g.lastName, isPlusOne: Boolean(g.isPlusOne), invitedEvents: g.events || party.events }))
   const invited = new Set(members.flatMap((g) => g.invitedEvents))
   const answers = saved[partyId] || { answers: {}, contact: {} }
+  // Like the real back end: only whether each person's contact info is on file, never the values.
+  const onFile = Object.fromEntries(
+    Object.entries(answers.contact).map(([id, c]) => [id, { email: Boolean(c.email), phone: Boolean(c.phone), note: Boolean(c.note) }])
+  )
   return {
     partyId,
     partyName: party.name,
     guests: members,
     events: events.filter((e) => invited.has(e.id)),
     answers: answers.answers,
-    // Like the real back end: only whether contact info is on file, never the values.
-    onFile: { email: Boolean(answers.contact.email), phone: Boolean(answers.contact.phone), note: Boolean(answers.contact.note) },
+    onFile,
     hasResponded: Boolean(saved[partyId]),
   }
 }
@@ -88,11 +91,15 @@ export async function handlePractice(req) {
 
   if (req.action === 'submit') {
     const answers = {}
-    req.guests.forEach((g) => (answers[g.guestId] = { name: g.name || '', dietary: g.dietary || '', attending: g.attending || {} }))
-    // A blank box keeps what was saved before.
+    const contact = {}
     const before = saved[req.partyId]?.contact || {}
-    const c = req.contact || {}
-    saved[req.partyId] = { answers, contact: { email: c.email || before.email, phone: c.phone || before.phone, note: c.note || before.note } }
+    req.guests.forEach((g) => {
+      answers[g.guestId] = { name: g.name || '', dietary: g.dietary || '', attending: g.attending || {} }
+      // A blank box keeps what was saved before.
+      const was = before[g.guestId] || {}
+      contact[g.guestId] = { email: g.email || was.email, phone: g.phone || was.phone, note: g.note || was.note }
+    })
+    saved[req.partyId] = { answers, contact }
     return { ok: true, party: partyDetails(req.partyId) }
   }
 

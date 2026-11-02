@@ -1,16 +1,20 @@
-// The RSVP form, for everyone on the invitation at once.
-//   - Each person: accept or decline each event they're invited to, plus dietary needs.
-//     (An unnamed plus-one also gets a box for their name.)
-//   - The whole party: email, phone, and an optional note for Soneri & Akhil.
+// The RSVP form, for everyone on the invitation at once. Each person has their
+// own card, closed to start; clicking their name (or the + beside it) opens it.
+// In each card:
+//   - Accept or decline each event they're invited to.
+//   - Dietary needs (optional).
+//   - Their email and phone number (both required), and an optional note for
+//     Soneri & Akhil. (An unnamed plus-one also gets a box for their name;
+//     if they're not coming and have no name, the rest can be left blank.)
 // Answers are saved to the Google Sheet. Guests can come back and change them.
 //
-// Saved email, phone, and notes are never sent back to the website, so those
+// Saved emails, phones, and notes are never sent back to the website, so those
 // boxes start empty and say "on file"; leaving them blank keeps what's saved.
 //
-// If something's missing when they press Send, each spot that needs an answer
-// is outlined in red with a short note, the page scrolls to the first one,
-// and a message by the button says what to do. The red goes away as each one
-// is fixed. Problems saving (no internet, a logged-out invitation) show by
+// If something's missing when they press Send, the cards that need something
+// open, each spot is outlined with a short note, the page scrolls to the first
+// one, and a message by the button says what to do. The marks go away as each
+// one is fixed. Problems saving (no internet, a logged-out invitation) show by
 // the button too, and nothing they've typed is lost.
 import { useState } from 'react'
 import Section from '../components/Section.jsx'
@@ -19,12 +23,14 @@ import { useGuest } from '../guest/GuestProvider.jsx'
 import { submitRsvp } from '../api/rsvpApi.js'
 import FormMessage from '../components/FormMessage.jsx'
 
-// The same check the Sheet does, so a typo is caught before sending.
+// The same checks the Sheet does, so a typo is caught before sending.
 const EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+const enoughDigits = (phone) => phone.replace(/\D/g, '').length >= 7
 // The Sheet's reply when the saved login no longer works (e.g. the passcode changed).
 const LOGGED_OUT = 'Please find your invitation again.'
 
-// Starts the form from whatever this party saved before (or blank).
+// Starts the form from whatever this party saved before (or blank). Contact
+// boxes always start empty (saved ones stay private).
 function savedAnswers(party) {
   const answers = {}
   party.guests.forEach((g) => {
@@ -33,25 +39,36 @@ function savedAnswers(party) {
       name: g.isPlusOne ? saved.name || '' : '',
       dietary: saved.dietary || '',
       attending: { ...(saved.attending || {}) },
+      email: '',
+      phone: '',
+      note: '',
     }
   })
   return answers
 }
 
-const blankContact = { email: '', phone: '', note: '' }
-
 export default function RsvpSection() {
   const { party, token, setParty, logout } = useGuest()
   const [answers, setAnswers] = useState(() => savedAnswers(party))
-  const [contact, setContact] = useState(blankContact)
   const [status, setStatus] = useState('editing') // 'editing' | 'saving' | 'saved'
   const [error, setError] = useState('')
   // Turns on after the first Send, so missing answers are only flagged once
   // the guest has tried to send (not while they're still filling it in).
   const [checked, setChecked] = useState(false)
+  // Which people's cards are open (all closed to start).
+  const [openCards, setOpenCards] = useState(() => new Set())
 
   const eventsById = Object.fromEntries(party.events.map((e) => [e.id, e]))
   const displayName = (g) => (g.isPlusOne ? 'Your guest' : `${g.firstName} ${g.lastName}`)
+  const onFile = (g) => party.onFile?.[g.guestId] || {}
+
+  function toggleCard(guestId) {
+    setOpenCards((open) => {
+      const next = new Set(open)
+      next.has(guestId) ? next.delete(guestId) : next.add(guestId)
+      return next
+    })
+  }
 
   // Updates one person's answer. "change" is a function that edits a copy.
   function updateGuest(guestId, change) {
@@ -63,32 +80,40 @@ export default function RsvpSection() {
     setStatus('editing')
   }
 
-  function updateContact(field, value) {
-    setContact((c) => ({ ...c, [field]: value }))
-    setStatus('editing')
-  }
+  // Does this person need to give an email and phone? Everyone does, except
+  // an unnamed plus-one who isn't coming.
+  const needsContact = (g) => !g.isPlusOne || answers[g.guestId].name.trim() !== ''
 
-  // Everything that needs fixing, in page order: { id (the spot on the
-  // page), message }. Empty when the form is ready to send.
-  function findProblems() {
-    const problems = []
-    for (const g of party.guests) {
-      const a = answers[g.guestId]
-      if (g.isPlusOne && Object.values(a.attending).includes('yes') && !a.name.trim()) {
-        problems.push({ id: `name-${g.guestId}`, message: 'Please add your guest’s name.' })
+  // One person's problems, in the order they appear in their card:
+  // { id (the spot on the page), message }.
+  function problemsFor(g) {
+    const a = answers[g.guestId]
+    const saved = onFile(g)
+    const list = []
+    if (g.isPlusOne && Object.values(a.attending).includes('yes') && !a.name.trim()) {
+      list.push({ id: `name-${g.guestId}`, message: 'Please add your guest’s name.' })
+    }
+    g.invitedEvents.forEach((eventId) => {
+      if (!a.attending[eventId]) {
+        list.push({ id: `${g.guestId}-${eventId}`, message: 'Please choose Accept or Decline.' })
       }
-      g.invitedEvents.forEach((eventId) => {
-        if (!a.attending[eventId]) {
-          problems.push({ id: `${g.guestId}-${eventId}`, message: 'Please choose Accept or Decline.' })
-        }
-      })
+    })
+    if (needsContact(g)) {
+      const email = a.email.trim()
+      const phone = a.phone.trim()
+      if (!email && !saved.email) list.push({ id: `email-${g.guestId}`, message: 'Please add an email address.' })
+      else if (email && !EMAIL.test(email)) {
+        list.push({ id: `email-${g.guestId}`, message: 'Please check the email address (e.g. name@example.com).' })
+      }
+      if (!phone && !saved.phone) list.push({ id: `phone-${g.guestId}`, message: 'Please add a phone number.' })
+      else if (phone && !enoughDigits(phone)) {
+        list.push({ id: `phone-${g.guestId}`, message: 'Please check the phone number.' })
+      }
     }
-    if (contact.email.trim() && !EMAIL.test(contact.email.trim())) {
-      problems.push({ id: 'rsvp-email', message: 'Please check the email address (e.g. name@example.com).' })
-    }
-    return problems
+    return list
   }
 
+  const findProblems = () => party.guests.flatMap(problemsFor)
   const problems = checked ? findProblems() : []
   const problemFor = (id) => problems.find((p) => p.id === id)
 
@@ -98,11 +123,15 @@ export default function RsvpSection() {
     const found = findProblems()
     if (found.length) {
       setError('')
-      // Bring the first one into view and put the keyboard there.
-      const first = document.getElementById(found[0].id)
-      const smooth = !window.matchMedia('(prefers-reduced-motion: reduce)').matches
-      first?.scrollIntoView({ behavior: smooth ? 'smooth' : 'auto', block: 'center' })
-      ;(first?.querySelector('input') ?? first)?.focus({ preventScroll: true })
+      // Open every card that needs something, then bring the first problem
+      // into view and put the keyboard there.
+      setOpenCards((open) => new Set([...open, ...party.guests.filter((g) => problemsFor(g).length).map((g) => g.guestId)]))
+      requestAnimationFrame(() => {
+        const first = document.getElementById(found[0].id)
+        const smooth = !window.matchMedia('(prefers-reduced-motion: reduce)').matches
+        first?.scrollIntoView({ behavior: smooth ? 'smooth' : 'auto', block: 'center' })
+        ;(first?.querySelector('input') ?? first)?.focus({ preventScroll: true })
+      })
       return
     }
     setError('')
@@ -113,18 +142,18 @@ export default function RsvpSection() {
         partyId: party.partyId,
         token,
         guests: party.guests.map((g) => ({ guestId: g.guestId, ...answers[g.guestId] })),
-        contact,
       })
       setParty(updated) // the site now shows the saved version
-      setContact(blankContact) // saved contact info stays private, so clear the boxes
+      // Saved contact info stays private, so clear those boxes (they'll say "on file").
+      setAnswers((all) =>
+        Object.fromEntries(Object.entries(all).map(([id, a]) => [id, { ...a, email: '', phone: '', note: '' }]))
+      )
       setStatus('saved')
     } catch (err) {
       setError(err.message)
       setStatus('editing')
     }
   }
-
-  const onFile = party.onFile || {}
 
   return (
     <Section id="rsvp" className="rsvp">
@@ -134,130 +163,147 @@ export default function RsvpSection() {
       <p className="rsvp-intro">
         {party.hasResponded
           ? 'We have your RSVP. You can change anything below and save again.'
-          : 'Let us know who’s coming. One form covers everyone on your invitation.'}
+          : 'Let us know who’s coming. Open each person’s card to fill in their answers.'}
       </p>
 
       <form onSubmit={save} noValidate>
         {party.guests.map((g) => {
           const a = answers[g.guestId]
+          const open = openCards.has(g.guestId)
+          const saved = onFile(g)
+          const bodyId = `rsvp-card-${g.guestId}`
+          const flagged = checked && problemsFor(g).length > 0
           return (
             // A <fieldset> groups one person's questions; <legend> is its title.
-            <fieldset key={g.guestId} className="rsvp-guest">
-              <legend>{displayName(g)}</legend>
+            <fieldset key={g.guestId} className={`rsvp-guest${open ? ' open' : ''}${flagged ? ' needs-attention' : ''}`}>
+              <legend>
+                {/* The whole header opens and closes the card. */}
+                <button
+                  type="button"
+                  className="rsvp-card-toggle"
+                  aria-expanded={open}
+                  aria-controls={bodyId}
+                  onClick={() => toggleCard(g.guestId)}
+                >
+                  <span className="rsvp-name">{displayName(g)}</span>
+                  <span className="rsvp-plus" aria-hidden="true" />
+                </button>
+              </legend>
 
-              {g.isPlusOne && (
-                <div className="rsvp-field">
-                  <label htmlFor={`name-${g.guestId}`}>Your guest’s name</label>
-                  <input
-                    id={`name-${g.guestId}`}
-                    type="text"
-                    autoComplete="off"
-                    value={a.name}
-                    onChange={(e) => updateGuest(g.guestId, (c) => (c.name = e.target.value))}
-                    {...invalid(problemFor(`name-${g.guestId}`), `name-${g.guestId}-note`)}
-                  />
-                  <FieldNote problem={problemFor(`name-${g.guestId}`)} id={`name-${g.guestId}-note`} />
-                </div>
-              )}
-
-              {g.invitedEvents.map((eventId) => {
-                const ev = eventsById[eventId]
-                const group = `${g.guestId}-${eventId}`
-                const problem = problemFor(group)
-                return (
-                  <div
-                    key={eventId}
-                    id={group}
-                    tabIndex={-1}
-                    className={problem ? 'rsvp-event missing' : 'rsvp-event'}
-                    role="radiogroup"
-                    aria-label={`${ev.name}, ${displayName(g)}`}
-                    {...invalid(problem, `${group}-note`)}
-                  >
-                    <p className="rsvp-event-name">
-                      {ev.name}
-                      <span>
-                        {ev.date} · {ev.timeOfDay}
-                      </span>
-                    </p>
-                    <div className="rsvp-choices">
-                      {[
-                        ['yes', 'Accept'],
-                        ['no', 'Decline'],
-                      ].map(([value, label]) => (
-                        <span key={value} className="rsvp-choice">
-                          <input
-                            type="radio"
-                            id={`${group}-${value}`}
-                            name={group}
-                            value={value}
-                            checked={a.attending[eventId] === value}
-                            onChange={() => updateGuest(g.guestId, (c) => (c.attending[eventId] = value))}
-                          />
-                          <label htmlFor={`${group}-${value}`}>{label}</label>
-                        </span>
-                      ))}
-                    </div>
-                    <FieldNote problem={problem} id={`${group}-note`} />
+              <div className="rsvp-card-body" id={bodyId} hidden={!open}>
+                {g.isPlusOne && (
+                  <div className="rsvp-field">
+                    <label htmlFor={`name-${g.guestId}`}>Your guest’s name</label>
+                    <input
+                      id={`name-${g.guestId}`}
+                      type="text"
+                      autoComplete="off"
+                      value={a.name}
+                      onChange={(e) => updateGuest(g.guestId, (c) => (c.name = e.target.value))}
+                      {...invalid(problemFor(`name-${g.guestId}`), `name-${g.guestId}-note`)}
+                    />
+                    <FieldNote problem={problemFor(`name-${g.guestId}`)} id={`name-${g.guestId}-note`} />
                   </div>
-                )
-              })}
+                )}
 
-              <div className="rsvp-field">
-                <label htmlFor={`diet-${g.guestId}`}>Dietary needs</label>
-                <input
-                  id={`diet-${g.guestId}`}
-                  type="text"
-                  placeholder="Allergies, vegetarian, etc. (optional)"
-                  value={a.dietary}
-                  onChange={(e) => updateGuest(g.guestId, (c) => (c.dietary = e.target.value))}
-                />
+                {g.invitedEvents.map((eventId) => {
+                  const ev = eventsById[eventId]
+                  const group = `${g.guestId}-${eventId}`
+                  const problem = problemFor(group)
+                  return (
+                    <div
+                      key={eventId}
+                      id={group}
+                      tabIndex={-1}
+                      className={problem ? 'rsvp-event missing' : 'rsvp-event'}
+                      role="radiogroup"
+                      aria-label={`${ev.name}, ${displayName(g)}`}
+                      {...invalid(problem, `${group}-note`)}
+                    >
+                      <p className="rsvp-event-name">
+                        {ev.name}
+                        <span>
+                          {ev.date} · {ev.timeOfDay}
+                        </span>
+                      </p>
+                      <div className="rsvp-choices">
+                        {[
+                          ['yes', 'Accept'],
+                          ['no', 'Decline'],
+                        ].map(([value, label]) => (
+                          <span key={value} className="rsvp-choice">
+                            <input
+                              type="radio"
+                              id={`${group}-${value}`}
+                              name={group}
+                              value={value}
+                              checked={a.attending[eventId] === value}
+                              onChange={() => updateGuest(g.guestId, (c) => (c.attending[eventId] = value))}
+                            />
+                            <label htmlFor={`${group}-${value}`}>{label}</label>
+                          </span>
+                        ))}
+                      </div>
+                      <FieldNote problem={problem} id={`${group}-note`} />
+                    </div>
+                  )
+                })}
+
+                <div className="rsvp-field">
+                  <label htmlFor={`diet-${g.guestId}`}>Dietary needs</label>
+                  <input
+                    id={`diet-${g.guestId}`}
+                    type="text"
+                    placeholder="Allergies, vegetarian, etc. (optional)"
+                    value={a.dietary}
+                    onChange={(e) => updateGuest(g.guestId, (c) => (c.dietary = e.target.value))}
+                  />
+                </div>
+
+                <div className="rsvp-field">
+                  <label htmlFor={`email-${g.guestId}`}>Email</label>
+                  <input
+                    id={`email-${g.guestId}`}
+                    type="email"
+                    autoComplete={g.isPlusOne ? 'off' : 'email'}
+                    placeholder={saved.email ? 'On file. Leave blank to keep it.' : 'name@example.com'}
+                    value={a.email}
+                    onChange={(e) => updateGuest(g.guestId, (c) => (c.email = e.target.value))}
+                    {...invalid(problemFor(`email-${g.guestId}`), `email-${g.guestId}-note`)}
+                  />
+                  <FieldNote problem={problemFor(`email-${g.guestId}`)} id={`email-${g.guestId}-note`} />
+                </div>
+
+                <div className="rsvp-field">
+                  <label htmlFor={`phone-${g.guestId}`}>Phone</label>
+                  <input
+                    id={`phone-${g.guestId}`}
+                    type="tel"
+                    autoComplete={g.isPlusOne ? 'off' : 'tel'}
+                    placeholder={saved.phone ? 'On file. Leave blank to keep it.' : '(555) 555-5555'}
+                    value={a.phone}
+                    onChange={(e) => updateGuest(g.guestId, (c) => (c.phone = e.target.value))}
+                    {...invalid(problemFor(`phone-${g.guestId}`), `phone-${g.guestId}-note`)}
+                  />
+                  <FieldNote problem={problemFor(`phone-${g.guestId}`)} id={`phone-${g.guestId}-note`} />
+                </div>
+
+                <div className="rsvp-field">
+                  <label htmlFor={`note-${g.guestId}`}>A note for Soneri &amp; Akhil</label>
+                  <textarea
+                    id={`note-${g.guestId}`}
+                    rows="3"
+                    placeholder={
+                      saved.note ? 'We have your note. Write a new one to replace it, or leave blank to keep it.' : 'Optional'
+                    }
+                    value={a.note}
+                    onChange={(e) => updateGuest(g.guestId, (c) => (c.note = e.target.value))}
+                  />
+                </div>
               </div>
             </fieldset>
           )
         })}
-
-        <fieldset className="rsvp-guest">
-          <legend>How can we reach you?</legend>
-          <div className="rsvp-field">
-            <label htmlFor="rsvp-email">Email</label>
-            <input
-              id="rsvp-email"
-              type="email"
-              autoComplete="email"
-              placeholder={onFile.email ? 'On file. Leave blank to keep it.' : 'you@example.com'}
-              value={contact.email}
-              onChange={(e) => updateContact('email', e.target.value)}
-              {...invalid(problemFor('rsvp-email'), 'rsvp-email-note')}
-            />
-            <FieldNote problem={problemFor('rsvp-email')} id="rsvp-email-note" />
-          </div>
-          <div className="rsvp-field">
-            <label htmlFor="rsvp-phone">Phone</label>
-            <input
-              id="rsvp-phone"
-              type="tel"
-              autoComplete="tel"
-              placeholder={onFile.phone ? 'On file. Leave blank to keep it.' : 'Optional'}
-              value={contact.phone}
-              onChange={(e) => updateContact('phone', e.target.value)}
-            />
-          </div>
-          <div className="rsvp-field">
-            <label htmlFor="rsvp-note">A note for Soneri &amp; Akhil</label>
-            <textarea
-              id="rsvp-note"
-              rows="4"
-              placeholder={
-                onFile.note
-                  ? 'We have your note. Write a new one to replace it, or leave blank to keep it.'
-                  : 'Optional'
-              }
-              value={contact.note}
-              onChange={(e) => updateContact('note', e.target.value)}
-            />
-          </div>
-        </fieldset>
 
         {problems.length > 0 && (
           <FormMessage>

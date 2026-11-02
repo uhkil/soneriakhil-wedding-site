@@ -7,13 +7,15 @@
  * This code lives inside the wedding Google Sheet (Extensions → Apps Script).
  * The website sends it requests; it reads the guest list from the Sheet and
  * writes RSVPs back. Guests log in with their name plus the wedding passcode
- * (one passcode for everyone, set in the Settings tab). Saved email, phone,
- * and notes never leave the Sheet.
+ * (one passcode for everyone, set in the Settings tab). Each person gives
+ * their own email and phone (both required) and can leave a note; saved
+ * emails, phones, and notes never leave the Sheet.
  *
  * Tabs it uses (setup() creates them):
  *   You fill in:      Settings (the passcode), Parties, Guests, Events
- *   It fills in:      Summary (headcounts), RSVPs (one row per guest),
- *                     Party Responses (one row per party), Change Log (every submission)
+ *   It fills in:      Summary (headcounts), RSVPs (one row per guest, with
+ *                     their email, phone, and note), Party Responses (when
+ *                     each party last saved), Change Log (every submission)
  *
  * The website can ask for four things ("actions"):
  *   search   — find guests by first + last name
@@ -46,7 +48,7 @@ const HEADERS = {
   Guests: ['guest_id', 'party_id', 'first_name', 'last_name', 'invited_events', 'plus_one'],
   Events: ['event_id', 'name', 'date', 'time_of_day', 'time', 'location', 'address', 'attire', 'description'],
   // One extra column per event (yes / no) is added automatically after these.
-  RSVPs: ['updated_at', 'party_id', 'party_name', 'guest_id', 'guest_name', 'plus_one', 'dietary'],
+  RSVPs: ['updated_at', 'party_id', 'party_name', 'guest_id', 'guest_name', 'plus_one', 'dietary', 'email', 'phone', 'note'],
   'Party Responses': ['updated_at', 'party_id', 'party_name', 'email', 'phone', 'note'],
   'Change Log': ['submitted_at', 'party_id', 'party_name', 'who', 'answers', 'dietary'],
 }
@@ -189,8 +191,10 @@ function partyDetails(partyId) {
       description: ev.description,
     }))
 
-  // Previous answers, so guests can review and change them.
+  // Previous answers, so guests can review and change them. Contact info
+  // stays private: the website only learns whether each person's is on file.
   const answers = {}
+  const onFile = {}
   readTab(TAB.rsvps)
     .filter((r) => r.party_id === partyId)
     .forEach((r) => {
@@ -199,6 +203,7 @@ function partyDetails(partyId) {
         if (r[ev.id]) attending[ev.id] = r[ev.id]
       })
       answers[r.guest_id] = { name: r.guest_name, dietary: r.dietary, attending }
+      onFile[r.guest_id] = { email: Boolean(r.email), phone: Boolean(r.phone), note: Boolean(r.note) }
     })
   const response = readTab(TAB.responses).find((r) => r.party_id === partyId) || {}
 
@@ -208,8 +213,7 @@ function partyDetails(partyId) {
     guests,
     events,
     answers,
-    // Saved contact info stays private: the website only learns whether it's on file.
-    onFile: { email: Boolean(response.email), phone: Boolean(response.phone), note: Boolean(response.note) },
+    onFile, // by guest id: { email, phone, note } — true if saved, never the values
     hasResponded: Boolean(response.updated_at),
   }
 }
@@ -223,6 +227,7 @@ function saveRsvp(req) {
   const guestsById = byId(details.guests, 'guestId')
   const eventsById = byId(details.events, 'id')
   const allEventIds = readTab(TAB.events).map((ev) => ev.event_id)
+  const savedRows = byId(readTab(TAB.rsvps).filter((r) => r.party_id === details.partyId), 'guest_id')
   const now = new Date()
 
   // Check everything first, so a mistake never leaves a half-saved RSVP.
@@ -243,6 +248,19 @@ function saveRsvp(req) {
         throw new UserError("Please add your guest's name.")
       }
     }
+    // Everyone gives an email and a phone number (an unnamed plus-one who
+    // isn't coming is skipped). A blank box keeps what's already saved.
+    const saved = savedRows[guest.guestId] || {}
+    const email = limit(g.email, 200) || saved.email || ''
+    const phone = limit(g.phone, 40) || saved.phone || ''
+    const note = limit(g.note, 1000) || saved.note || ''
+    const who = name || 'your guest'
+    if (name) {
+      if (!email) throw new UserError(`Please add an email for ${who}.`)
+      if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) throw new UserError(`Please check the email for ${who}.`)
+      if (!phone) throw new UserError(`Please add a phone number for ${who}.`)
+      if (phone.replace(/\D/g, '').length < 7) throw new UserError(`Please check the phone number for ${who}.`)
+    }
     guestRows.push({
       updated_at: now,
       party_id: details.partyId,
@@ -251,6 +269,9 @@ function saveRsvp(req) {
       guest_name: name,
       plus_one: guest.isPlusOne ? 'yes' : '',
       dietary: limit(g.dietary, 500),
+      email,
+      phone,
+      note,
       ...attending,
       // For the Change Log: "Sangeet: yes · Reception: no"
       _summary: guest.invitedEvents
@@ -259,20 +280,15 @@ function saveRsvp(req) {
     })
   })
 
-  // A blank box keeps what's already saved (the website never sees saved values).
-  const saved = readTab(TAB.responses).find((r) => r.party_id === details.partyId) || {}
-  const contact = req.contact || {}
-  const email = limit(contact.email, 200) || saved.email || ''
-  if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-    throw new UserError('Please check the email address.')
-  }
-  const contactRow = {
+  // When this party last saved (any older party-wide contact info is kept as it was).
+  const savedResponse = readTab(TAB.responses).find((r) => r.party_id === details.partyId) || {}
+  const responseRow = {
     updated_at: now,
     party_id: details.partyId,
     party_name: details.partyName,
-    email,
-    phone: limit(contact.phone, 40) || saved.phone || '',
-    note: limit(contact.note, 1000) || saved.note || '',
+    email: savedResponse.email || '',
+    phone: savedResponse.phone || '',
+    note: savedResponse.note || '',
   }
 
   // Only one save at a time, so two guests saving at once can't collide.
@@ -284,7 +300,7 @@ function saveRsvp(req) {
     guestRows.forEach((row) => upsertRow(rsvps, rsvpHeader, 'guest_id', row))
 
     const responses = getTab(TAB.responses)
-    upsertRow(responses, ensureColumns(responses, HEADERS['Party Responses']), 'party_id', contactRow)
+    upsertRow(responses, ensureColumns(responses, HEADERS['Party Responses']), 'party_id', responseRow)
 
     const log = getTab(TAB.log)
     const logHeader = ensureColumns(log, HEADERS['Change Log'])
@@ -297,8 +313,13 @@ function saveRsvp(req) {
         answers,
         dietary,
       })
-    guestRows.forEach((r) => logRow(r.guest_name || '(unnamed plus-one)', r._summary, r.dietary))
-    logRow('(contact info)', `email: ${email || '—'} · phone: ${contactRow.phone || '—'} · note: ${contactRow.note || '—'}`, '')
+    guestRows.forEach((r) =>
+      logRow(
+        r.guest_name || '(unnamed plus-one)',
+        `${r._summary} · email: ${r.email || '—'} · phone: ${r.phone || '—'} · note: ${r.note || '—'}`,
+        r.dietary
+      )
+    )
   } finally {
     lock.releaseLock()
   }

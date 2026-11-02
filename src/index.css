@@ -1867,7 +1867,8 @@ img.nugget-photo {
   }
 }
 
-/* ----- Lightbox: a photo full screen over a dark-blue overlay (Lightbox.jsx) ----- */
+/* ----- Lightbox: a photo full screen over an almost-white overlay, so the
+   photo's own colors stand out (Lightbox.jsx) ----- */
 
 .lightbox {
   position: fixed;
@@ -1877,8 +1878,8 @@ img.nugget-photo {
   align-items: center;
   justify-content: center;
   padding: max(64px, env(safe-area-inset-top, 0px)) 72px 40px;
-  background: rgba(0, 52, 89, 0.94);
-  color: var(--paper);
+  background: rgba(248, 249, 250, 0.97);
+  color: var(--ink);
   animation: lightbox-in 0.2s ease;
 }
 
@@ -1902,6 +1903,7 @@ img.nugget-photo {
   max-width: min(100%, 1400px);
   max-height: calc(100dvh - 160px);
   border-radius: 6px;
+  box-shadow: 0 10px 40px rgba(0, 20, 40, 0.14);
   animation: lightbox-in 0.25s ease;
 }
 
@@ -1922,7 +1924,7 @@ img.nugget-photo {
   letter-spacing: 0.14em;
 }
 
-/* The × and the arrows: light circles with dark-blue icons. */
+/* The × and the arrows: dark-blue circles with light icons. */
 .lightbox-close,
 .lightbox-arrow {
   position: absolute;
@@ -1933,8 +1935,8 @@ img.nugget-photo {
   padding: 0;
   border: none;
   border-radius: 50%;
-  background: var(--paper);
-  color: var(--ink);
+  background: var(--ink);
+  color: #f8f9fa;
   cursor: pointer;
   transition: transform 0.15s ease;
 }
@@ -1946,7 +1948,7 @@ img.nugget-photo {
 
 .lightbox-close:focus-visible,
 .lightbox-arrow:focus-visible {
-  outline: 2px solid var(--paper);
+  outline: 2px solid var(--ink);
   outline-offset: 3px;
 }
 
@@ -2142,8 +2144,8 @@ img.nugget-photo {
 .travel-card .card-pill {
   width: fit-content;
   margin: 0 0 24px;
-  padding: 9px 20px 8px;
-  border-radius: 999px;
+  padding: 9px 18px 8px;
+  border-radius: 10px; /* in proportion to the card's 24px corners */
   background: var(--paper);
   color: var(--ink);
   font-family: var(--font-display);
@@ -2295,6 +2297,34 @@ img.nugget-photo {
 
 .faq-item[open] summary::after {
   content: '–';
+}
+
+/* Each answer is a short bulleted list: small dark-blue dots, a little
+   space between points. */
+.faq-answer {
+  margin: 10px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.faq-answer li {
+  position: relative;
+  padding-left: 1.2em;
+}
+
+.faq-answer li + li {
+  margin-top: 6px;
+}
+
+.faq-answer li::before {
+  content: '';
+  position: absolute;
+  left: 0.2em;
+  top: 0.72em;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--ink);
 }
 
 .faq-item p {
@@ -2616,12 +2646,14 @@ img.nugget-photo {
   margin-top: 4px;
 }
 
+/* Corners inside the cards are gently rounded (not full pills), in
+   proportion to the card's own corners. */
 [data-design='honey'] .rsvp-choices {
   display: inline-flex;
   gap: 0;
   padding: 3px;
   border: 1.5px solid var(--ink);
-  border-radius: 999px;
+  border-radius: 12px;
 }
 
 [data-design='honey'] .rsvp-choice label {
@@ -2629,7 +2661,7 @@ img.nugget-photo {
   min-width: 7.5em;
   padding: 8px 18px;
   border: none;
-  border-radius: 999px;
+  border-radius: 9px; /* the box's 12px, less its 3px inner padding */
   font: 500 0.75rem/1 var(--font-ui);
   letter-spacing: 0.14em;
   text-align: center;
@@ -2657,16 +2689,12 @@ img.nugget-photo {
 
 [data-design='honey'] .rsvp-field input,
 [data-design='honey'] .rsvp-field textarea {
-  padding: 11px 18px;
+  padding: 11px 16px;
   border: 1.5px solid var(--ink);
-  border-radius: 999px;
+  border-radius: 12px;
   background: transparent;
   font-family: var(--font-ui);
   font-size: 0.95rem;
-}
-
-[data-design='honey'] .rsvp-field textarea {
-  border-radius: 18px;
 }
 
 [data-design='honey'] .rsvp-field input::placeholder,
@@ -2694,9 +2722,9 @@ img.nugget-photo {
 /* ----- Login form: pill boxes and button, like the RSVP form ----- */
 
 [data-design='honey'] .field-row input {
-  padding: 12px 20px;
+  padding: 12px 18px;
   border: 1.5px solid var(--ink);
-  border-radius: 999px;
+  border-radius: 10px; /* inside the invitation card: gently rounded, not a pill */
   background: transparent;
   font-family: var(--font-ui);
   font-size: 0.95rem;
@@ -2715,7 +2743,7 @@ img.nugget-photo {
 [data-design='honey'] .field-row .button {
   padding: 12px 26px;
   border-width: 1.5px;
-  border-radius: 999px;
+  border-radius: 10px;
 }
 
 /* ----- Form messages and problems (login and RSVP) ----- */
@@ -3378,25 +3406,116 @@ img.nugget-photo {
   background: var(--ink);
   border-color: var(--ink);
   color: var(--paper);
-  padding-top: 32px;
+  padding: 22px 24px;
 }
 
-/* The person's name: dark-blue letters in a light-blue pill, so each card
-   is easy to tell apart at a glance. */
+[data-design='honey'] .rsvp-guest.open {
+  padding-bottom: 28px;
+}
+
+/* The card's header: the person's name, and a + on the right that turns into
+   a − when the card is open. The whole header is one button. */
 [data-design='honey'] .rsvp-guest legend {
   float: left; /* sits inside the card instead of on its edge */
-  width: fit-content;
-  padding: 9px 20px 8px;
-  margin: 0 0 6px;
-  border-radius: 999px;
-  background: var(--paper);
-  color: var(--ink);
-  font-size: 1.15rem;
-  line-height: 1.2;
+  width: 100%;
+  padding: 0;
+  margin: 0;
 }
 
-[data-design='honey'] .rsvp-guest legend + * {
+.rsvp-card-toggle {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  width: 100%;
+  padding: 0;
+  border: none;
+  background: none;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.rsvp-card-toggle:focus-visible {
+  outline: 2px solid var(--paper);
+  outline-offset: 6px;
+  border-radius: 12px;
+}
+
+/* The name: dark-blue letters in a light-blue label with gently rounded
+   corners (in proportion to the card's), so each card is easy to spot. */
+.rsvp-name {
+  padding: 9px 16px 8px;
+  border-radius: 10px;
+  background: var(--paper);
+  color: var(--ink);
+  font-family: var(--font-display);
+  font-weight: 900;
+  font-stretch: 125%;
+  font-size: 1.15rem;
+  line-height: 1.2;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+}
+
+/* The + / −: two light lines; the upright one folds away when open. */
+.rsvp-plus {
+  position: relative;
+  flex: none;
+  width: 32px;
+  height: 32px;
+  border: 1.5px solid rgba(202, 233, 255, 0.6);
+  border-radius: 50%;
+}
+
+.rsvp-plus::before,
+.rsvp-plus::after {
+  content: '';
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 12px;
+  height: 2px;
+  border-radius: 1px;
+  background: var(--paper);
+  translate: -50% -50%;
+  transition: transform 0.25s ease;
+}
+
+.rsvp-plus::after {
+  transform: rotate(90deg);
+}
+
+.rsvp-guest.open .rsvp-plus::after {
+  transform: rotate(0deg);
+}
+
+.rsvp-card-toggle:hover .rsvp-plus {
+  border-color: var(--paper);
+}
+
+/* A closed card with something to fix: a coral ring around the + / −. */
+[data-design='honey'] .rsvp-guest.needs-attention .rsvp-plus {
+  border-color: #ffb4a9;
+}
+
+.rsvp-card-body {
   clear: both;
+  display: grid;
+  gap: 22px;
+  padding-top: 4px; /* the card's own spacing adds the rest */
+}
+
+.rsvp-card-body[hidden] {
+  display: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .rsvp-plus::before,
+  .rsvp-plus::after {
+    transition: none;
+  }
 }
 
 [data-design='honey'] .rsvp-event-name,
