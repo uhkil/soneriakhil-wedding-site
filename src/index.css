@@ -2307,6 +2307,19 @@ img.nugget-photo {
   color: var(--ink);
 }
 
+/* Event names: the heavy, wide face of the section titles, so each event
+   stands out at a glance. */
+[data-design='honey'] .event-details h3 {
+  margin: 6px 0 18px;
+  font-family: var(--font-display);
+  font-weight: 900;
+  font-stretch: 125%;
+  font-size: clamp(1.35rem, 2.4vw, 1.9rem);
+  line-height: 1.1;
+  letter-spacing: -0.005em;
+  color: var(--ink);
+}
+
 /* RSVP form: the same look as the rest of this design. Cards and boxes are
    outlined in the dark blue (1.5px, like the Memories toggle), with rounded
    corners; small labels are spaced-out capitals (like the countdown);

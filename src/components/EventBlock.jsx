@@ -21,7 +21,8 @@ export default function EventBlock({ event, flipped }) {
         <p className="event-when">
           {event.date} · {event.timeOfDay}
         </p>
-        <h3>{event.name}</h3>
+        {/* The "|" stays at the end of the first line if the name wraps. */}
+        <h3>{event.name.replaceAll(' | ', '\u00a0| ')}</h3>
         {/* A "definition list": pairs of labels (dt) and values (dd).
             Rows left blank are skipped. */}
         <dl className="event-facts">
