@@ -1292,6 +1292,14 @@ img.nugget-photo {
   visibility: visible;
 }
 
+/* The film strip starts level with the top of the camera's screen, so the
+   photos sit at the same height in both views. (The camera is
+   min(660px, 100%) wide; its screen starts 19.68% of that width down:
+   31.92% of the drawing's height, which is 542/879 of its width.) */
+.memories-view-filmstrip {
+  padding-top: calc(min(660px, 100%) * 0.1968);
+}
+
 /* Every memory photo is the same size in both views:
    320px wide (or 75% of a narrow phone screen), 4:3 shape. */
 .memory-photo.photo-slot {
@@ -3514,6 +3522,46 @@ img.nugget-photo {
   margin-right: -0.32em; /* keeps the spaced-out word centered */
 }
 
+/* ----- The flowers on either side of the countdown ----- */
+
+/* Each side's flowers stand in a row as tall as a number plus its label,
+   their stems all ending level with the bottom of the labels. The font size
+   matches the numbers, so the "em" spaces between them grow and shrink with
+   the numbers. */
+.countdown-units {
+  position: relative;
+}
+
+.countdown-flowers {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  display: flex;
+  align-items: flex-end;
+  font-size: clamp(1.7rem, 3.4vw, 3.2rem);
+  pointer-events: none;
+}
+
+.countdown-flowers-left {
+  right: calc(100% + 1.1em);
+}
+
+.countdown-flowers-right {
+  left: calc(100% + 1.35em);
+}
+
+.countdown-flower {
+  display: block;
+  flex: none;
+  background: var(--ink);
+  -webkit-mask-size: 100% 100%;
+  mask-size: 100% 100%;
+}
+
+.countdown-flower.mirrored {
+  transform: scaleX(-1);
+}
+
 /* ----- The butterfly beside the countdown ----- */
 
 .butterfly {
@@ -3593,6 +3641,22 @@ img.nugget-photo {
     right: 4px;
     top: -76px;
     width: 46px;
+  }
+  /* No room beside the numbers on a phone, so the flowers stand just above
+     the two ends of the countdown instead. */
+  .countdown-flowers {
+    top: auto;
+    bottom: calc(100% + 14px);
+    height: 100%; /* still as tall as a number plus its label */
+    font-size: 1.7rem;
+  }
+  .countdown-flowers-left {
+    right: auto;
+    left: 0;
+  }
+  .countdown-flowers-right {
+    left: auto;
+    right: 0;
   }
 }
 

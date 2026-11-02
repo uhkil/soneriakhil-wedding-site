@@ -84,7 +84,7 @@ export default function MemoriesSection() {
 function View({ id, view, children }) {
   const shown = id === view
   return (
-    <div className={shown ? 'memories-view shown' : 'memories-view'} inert={!shown} aria-hidden={!shown}>
+    <div className={`memories-view memories-view-${id}${shown ? ' shown' : ''}`} inert={!shown} aria-hidden={!shown}>
       {children}
     </div>
   )

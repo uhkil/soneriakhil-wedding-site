@@ -1,7 +1,7 @@
 // The Home banner for the House of Honey design: huge bold names with a
 // flowing script ampersand, the date and place on the left, a welcome on the
 // right, then the animation of the two of them dancing and waving hello.
-// Further down (after some space): a countdown to the wedding with a butterfly.
+// Further down (after some space): a countdown to the wedding, with a few flowers on each side.
 // (The photo carousel it used before is still in PhotoCarousel.jsx.)
 import HoneyDance from './HoneyDance.jsx'
 import Countdown from './Countdown.jsx'

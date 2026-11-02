@@ -1,8 +1,8 @@
 // A countdown to the wedding: days, hours, minutes, and seconds, ticking
-// every second. A small butterfly flutters beside it.
+// every second, with a few small flowers on either side.
+// (The butterfly that used to flutter beside it is still in Butterfly.jsx.)
 // Once the day arrives, it shows zeros.
 import { useEffect, useState } from 'react'
-import Butterfly from './Butterfly.jsx'
 
 // Midnight at the start of April 9, 2027, Arlington time (Central, UTC−5 in April).
 const WEDDING = new Date('2027-04-09T00:00:00-05:00').getTime()
@@ -40,6 +40,8 @@ export default function Countdown() {
       {/* Screen readers get one short sentence instead of numbers changing every second. */}
       <p className="visually-hidden">{left.days} days until the wedding</p>
       <div className="countdown-units" aria-hidden="true">
+        <Flowers side="left" />
+        <Flowers side="right" />
         {units.map(([value, label]) => (
           <div key={label} className="countdown-unit">
             <span className="countdown-value">{value}</span>
@@ -47,7 +49,57 @@ export default function Countdown() {
           </div>
         ))}
       </div>
-      <Butterfly />
+    </div>
+  )
+}
+
+// The flower drawings (public/assets/art/flower-*.svg), each with its width ÷ height.
+const FLOWERS = {
+  foxglove: 346 / 1059,
+  sunflower: 523 / 1118,
+  tulip: 498 / 1040,
+}
+
+// Each side's flowers, from the outside in: [flower, height, space before it,
+// mirrored?]. Height is a share of the height of a number plus its label
+// (0.75 = 75%); all of them stay between 62% and 75%, so the shortest is
+// within 20% of the tallest. Spaces are in "em" (about the height of a number).
+// The two sides are deliberately different, so it looks hand-placed.
+const BEDS = {
+  left: [
+    ['sunflower', 0.66, 0],
+    ['foxglove', 0.75, 0.3],
+    ['tulip', 0.68, 0.18],
+  ],
+  right: [
+    ['tulip', 0.64, 0, true],
+    ['sunflower', 0.72, 0.22],
+    ['foxglove', 0.7, 0.34],
+  ],
+}
+
+function Flowers({ side }) {
+  const bed = side === 'left' ? BEDS.left : [...BEDS.right].reverse()
+  return (
+    <div className={`countdown-flowers countdown-flowers-${side}`}>
+      {bed.map(([name, height, space, mirrored], i) => {
+        // On the right the list is read inside-out, so each space goes after its flower.
+        const gap = side === 'left' ? space : bed[i - 1]?.[2] ?? 0
+        const src = `url(${import.meta.env.BASE_URL}assets/art/flower-${name}.svg)`
+        return (
+          <span
+            key={name}
+            className={mirrored ? 'countdown-flower mirrored' : 'countdown-flower'}
+            style={{
+              height: `${height * 100}%`,
+              aspectRatio: FLOWERS[name],
+              marginLeft: `${gap}em`,
+              WebkitMaskImage: src,
+              maskImage: src,
+            }}
+          />
+        )
+      })}
     </div>
   )
 }
