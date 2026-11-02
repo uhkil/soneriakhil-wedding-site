@@ -3613,44 +3613,33 @@ img.nugget-photo {
 
 /* ----- The flowers on either side of the countdown ----- */
 
-/* Each side's row of flowers runs from beside the numbers out toward the
-   edge of the page (stopping 24px short). The row is 120% as tall as a number
-   plus its label, with every stem ending level with the bottom of the labels.
-   Flowers that don't fit wrap onto a second line, which is hidden, so only
-   whole flowers show. The font size matches the numbers, so the "em" spaces
-   between flowers grow and shrink with them. */
+/* Each side's three flowers sit centered in the space between the numbers
+   and the edge of the screen, so there's equal room on either side of them.
+   They're 120% as tall as a number plus its label, every stem ending level
+   with the bottom of the labels. */
 .countdown-units {
   position: relative;
 }
 
 .countdown-flowers {
-  --beside: 1.1em; /* space between the numbers and the first flower */
   position: absolute;
   bottom: 0;
   height: 120%;
-  width: calc((100vw - 100%) / 2 - var(--beside) - 24px);
+  width: calc((100vw - 100%) / 2);
   display: flex;
-  flex-wrap: wrap;
-  overflow: hidden;
-  font-size: clamp(1.7rem, 3.4vw, 3.2rem);
+  align-items: flex-end;
+  justify-content: center;
+  gap: 0.6em; /* the space between flowers */
+  font-size: clamp(1.7rem, 3.4vw, 3.2rem); /* matches the numbers, so the gap grows with them */
   pointer-events: none;
 }
 
 .countdown-flowers-left {
-  right: calc(100% + var(--beside));
-  flex-direction: row-reverse; /* starts beside the numbers, heads left */
+  right: 100%;
 }
 
 .countdown-flowers-right {
-  --beside: 1.35em;
-  left: calc(100% + var(--beside));
-}
-
-/* Each flower's spot is the full height of the row; the flower stands at its bottom. */
-.countdown-flower-spot {
-  display: flex;
-  align-items: flex-end;
-  height: 100%;
+  left: 100%;
 }
 
 .countdown-flower {
@@ -3745,18 +3734,18 @@ img.nugget-photo {
     top: -76px;
     width: 46px;
   }
-  /* No room beside the numbers on a phone, so each row stands just above
-     its half of the countdown instead, starting from the middle. */
+  /* No room beside the numbers on a phone, so each group stands just above
+     its half of the countdown instead, centered in that half. */
   .countdown-flowers {
     bottom: calc(100% + 14px);
-    width: calc(50% - 0.25em); /* a little space where the two rows meet */
+    width: 50%;
     font-size: 1.7rem;
   }
   .countdown-flowers-left {
-    right: calc(50% + 0.25em);
+    right: 50%;
   }
   .countdown-flowers-right {
-    left: calc(50% + 0.25em);
+    left: 50%;
   }
 }
 

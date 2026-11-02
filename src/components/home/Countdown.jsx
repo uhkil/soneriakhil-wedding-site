@@ -60,52 +60,29 @@ const FLOWERS = {
   tulip: 498 / 1040,
 }
 
-// Each side's row of flowers, starting next to the numbers and heading out
-// toward the edge of the page: [flower, height, space before it, mirrored?].
-// Height 1 = 120% of a number plus its label; the shortest (0.84) is within
-// 20% of the tallest. Spaces are in "em" (about the height of a number).
-// The rows run as far as there's room: any flower that wouldn't fit before
-// the edge of the page is left out (so on smaller screens there are fewer).
-// The two sides are deliberately different, so it looks hand-planted.
-const BEDS = {
-  left: [
-    ['tulip', 0.92, 0],
-    ['foxglove', 1, 0.55],
-    ['sunflower', 0.86, 0.45],
-    ['tulip', 0.95, 0.6, true],
-    ['foxglove', 0.88, 0.5],
-    ['sunflower', 0.97, 0.62],
-    ['tulip', 0.84, 0.42],
-    ['foxglove', 0.94, 0.58],
-    ['sunflower', 0.9, 0.5, true],
-    ['tulip', 0.98, 0.6],
-  ],
-  right: [
-    ['foxglove', 0.9, 0],
-    ['sunflower', 1, 0.5],
-    ['tulip', 0.87, 0.6, true],
-    ['foxglove', 0.96, 0.44],
-    ['tulip', 0.85, 0.58],
-    ['sunflower', 0.93, 0.52],
-    ['foxglove', 0.99, 0.62],
-    ['tulip', 0.9, 0.46, true],
-    ['sunflower', 0.86, 0.56],
-    ['foxglove', 0.95, 0.5],
-  ],
-}
+// Three flowers on each side, the right side a mirror image of the left.
+// Each group sits centered in the space between the numbers and the edge of
+// the screen. [flower, height]: height 1 = 120% of a number plus its label
+// (the shortest is within 20% of the tallest). Listed left to right for the
+// left side; the right side is the same, flipped.
+const BED = [
+  ['tulip', 0.9],
+  ['foxglove', 1],
+  ['sunflower', 0.86],
+]
 
 function Flowers({ side }) {
+  const bed = side === 'left' ? BED : [...BED].reverse()
   return (
     <div className={`countdown-flowers countdown-flowers-${side}`}>
-      {BEDS[side].map(([name, height, space, mirrored], i) => {
+      {bed.map(([name, height]) => {
         const src = `url(${import.meta.env.BASE_URL}assets/art/flower-${name}.svg)`
         return (
-          <span key={i} className="countdown-flower-spot" style={{ [side === 'left' ? 'marginRight' : 'marginLeft']: `${space}em` }}>
-            <span
-              className={mirrored ? 'countdown-flower mirrored' : 'countdown-flower'}
-              style={{ height: `${height * 100}%`, aspectRatio: FLOWERS[name], WebkitMaskImage: src, maskImage: src }}
-            />
-          </span>
+          <span
+            key={name}
+            className={side === 'right' ? 'countdown-flower mirrored' : 'countdown-flower'}
+            style={{ height: `${height * 100}%`, aspectRatio: FLOWERS[name], WebkitMaskImage: src, maskImage: src }}
+          />
         )
       })}
     </div>
