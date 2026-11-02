@@ -2,14 +2,14 @@
 //
 // Each spot has a stable name (like "rsvpCouple") that the page uses.
 // To swap in real artwork:
-//   1. Put the image file in public/assets/prototype/ (e.g. hero-couple.png)
-//   2. Fill in "src" below with the file name: src: 'assets/prototype/hero-couple.png'
+//   1. Put the image file in public/assets/art/ (e.g. rsvp-couple.svg)
+//   2. Fill in "src" below with the file name: src: 'assets/art/rsvp-couple.svg'
 // The page will show the image instead of the placeholder. No other changes needed.
 //
 // "ratio" is the shape of the spot (width / height). Final art should
 // roughly match it. "note" describes what the art is meant to show.
 // "tint: true" draws a one-color drawing in the page's text color instead of
-// its own colors, so it matches every design (its see-through parts stay see-through).
+// its own colors, so it matches the text (its see-through parts stay see-through).
 // "nugget" is a little extra about us that pops up when a guest hovers over
 // (or taps) the drawing: an optional heading, some text, and an optional
 // list of links. A link with an empty href shows as plain text until it has one.
@@ -71,11 +71,6 @@ const art = {
       text: 'fun fact: soneri has beaten akhil in p\u2011i\u2011g 3 times!',
     },
   },
-  transitionWalk: {
-    src: '',
-    ratio: '3 / 1',
-    note: 'Tiny couple walking hand in hand',
-  },
   'event-ceremony': {
     src: 'assets/art/ceremony.svg',
     ratio: '614 / 1040',
@@ -100,11 +95,6 @@ const art = {
     ratio: '561 / 1140',
     tint: true,
     note: 'The two of us dressed for the reception, raising a toast',
-  },
-  indianAttire: {
-    src: '',
-    ratio: '16 / 9',
-    note: 'Couple in Indian attire, a quiet in-between moment',
   },
   rsvpCouple: {
     // Top left of the RSVP section, beside the title (one of the corner drawings).

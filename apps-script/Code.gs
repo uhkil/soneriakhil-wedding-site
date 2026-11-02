@@ -93,7 +93,12 @@ function doPost(e) {
 // Actions
 // ---------------------------------------------------------------------------
 
-/** Finds guests whose first and last names start with what was typed. */
+/**
+ * Finds guests by their full first and last name. Each typed name must match a
+ * whole name on the guest list (ignoring case and accents), so the guest list
+ * can't be pieced together by trying a few letters at a time. Middle names and
+ * two-part names work: "Mary Smith" finds "Mary Ann Smith".
+ */
 function searchGuests(name) {
   const words = normalize(name).split(' ').filter(Boolean)
   if (words.length < 2) throw new UserError('Please enter your first and last name.')
@@ -105,11 +110,11 @@ function searchGuests(name) {
     if (isYes(g.plus_one)) return false // unnamed plus-ones can't log in
     const firstNames = normalize(g.first_name).split(' ')
     const lastNames = normalize(g.last_name).split(' ')
-    return firstNames.some((n) => n.startsWith(first)) && lastNames.some((n) => n.startsWith(last))
+    return firstNames.includes(first) && lastNames.includes(last)
   })
 
   if (matches.length === 0) {
-    throw new UserError("We couldn't find that name. Try the name on your invitation.")
+    throw new UserError("We couldn't find that name. Try your full first and last name, as on your invitation.")
   }
   if (matches.length > MAX_MATCHES) {
     throw new UserError('Please type your full first and last name.')
@@ -364,10 +369,20 @@ function ensureColumns(sheet, columns) {
   return header
 }
 
+/**
+ * Guest-typed text is always saved as plain text. Without this, an answer
+ * starting with "=" (or + - @) would become a formula in the Sheet, and a
+ * crafted formula could send other cells to an outside website. A leading
+ * apostrophe tells Sheets "this is text"; it isn't shown in the cell.
+ */
+function asText(value) {
+  return typeof value === 'string' && /^[=+\-@]/.test(value) ? "'" + value : value
+}
+
 /** Updates the row whose keyColumn matches, or adds a new row. */
 function upsertRow(sheet, header, keyColumn, data) {
   const keyIndex = header.indexOf(keyColumn)
-  const values = header.map((h) => (h in data ? data[h] : ''))
+  const values = header.map((h) => asText(h in data ? data[h] : ''))
   const keys = sheet.getLastRow() > 1
     ? sheet.getRange(2, keyIndex + 1, sheet.getLastRow() - 1, 1).getDisplayValues().map((r) => r[0])
     : []
@@ -381,7 +396,7 @@ function upsertRow(sheet, header, keyColumn, data) {
 
 /** Adds a new row at the bottom, matching values to the header's columns. */
 function appendObject(sheet, header, data) {
-  sheet.appendRow(header.map((h) => (h in data ? data[h] : '')))
+  sheet.appendRow(header.map((h) => asText(h in data ? data[h] : '')))
 }
 
 // ---------------------------------------------------------------------------

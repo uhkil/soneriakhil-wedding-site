@@ -1,8 +1,6 @@
 // The whole site is one long scrolling page.
 // Before a guest finds their invitation, they only see the invitation-card
 // login page. After, the nav bar and every section appear.
-// DecorativeTransitions are small illustrated pauses BETWEEN sections.
-// They aren't in the nav; delete a line to remove one.
 import NavBar from './components/NavBar.jsx'
 import HomeSection from './sections/HomeSection.jsx'
 import OurStorySection from './sections/OurStorySection.jsx'
@@ -13,7 +11,6 @@ import RegistrySection from './sections/RegistrySection.jsx'
 import FaqSection from './sections/FaqSection.jsx'
 import RsvpSection from './sections/RsvpSection.jsx'
 import LoginPage from './components/login/LoginPage.jsx'
-import DesignToggle from './design/DesignToggle.jsx'
 import Toaster from './components/Toast.jsx'
 import { useGuest } from './guest/GuestProvider.jsx'
 import { isPractice } from './api/rsvpApi.js'
@@ -24,7 +21,6 @@ export default function App() {
 
   return (
     <>
-      <DesignToggle />
       <Toaster />
       {isPractice && (
         <p className="practice-banner">

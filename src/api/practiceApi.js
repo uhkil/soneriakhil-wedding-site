@@ -65,9 +65,9 @@ export async function handlePractice(req) {
     if (words.length < 2) fail('Please enter your first and last name.')
     const [first, last] = [words[0], words[words.length - 1]]
     const matches = guests.filter(
-      (g) => !g.isPlusOne && clean(g.firstName).startsWith(first) && clean(g.lastName).startsWith(last)
+      (g) => !g.isPlusOne && clean(g.firstName).split(/\s+/).includes(first) && clean(g.lastName).split(/\s+/).includes(last)
     )
-    if (!matches.length) fail("We couldn't find that name. Try the name on your invitation.")
+    if (!matches.length) fail("We couldn't find that name. Try your full first and last name, as on your invitation.")
     return { ok: true, matches: matches.map((g) => ({ guestId: g.guestId, name: `${g.firstName} ${g.lastName}`, partyName: parties[g.partyId].name })) }
   }
 

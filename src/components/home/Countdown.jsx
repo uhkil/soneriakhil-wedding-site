@@ -1,6 +1,5 @@
 // A countdown to the wedding: days, hours, minutes, and seconds, ticking
 // every second, with a few small flowers on either side.
-// (The butterfly that used to flutter beside it is still in Butterfly.jsx.)
 // Once the day arrives, it shows zeros.
 import { useEffect, useState } from 'react'
 

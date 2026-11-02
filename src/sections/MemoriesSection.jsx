@@ -150,7 +150,7 @@ function FilmStrip() {
         {photos.map((photo) => (
           <div key={photo.label} className="film-frame">
             <div className="film-photo">
-              <PhotoSlot {...photo} loading="eager" />
+              <PhotoSlot {...photo} />
             </div>
           </div>
         ))}

@@ -1,22 +1,13 @@
-// The Home picture for the House of Honey design: Soneri and Akhil, drawn in
-// navy, dancing a few steps, then turning to wave hello. When the last frame
-// lands, each says hello in a speech bubble.
+// The Home picture: Soneri and Akhil, drawn in navy, dancing a few steps,
+// then turning to wave hello. When the last frame lands, each says hello in a
+// speech bubble.
 //
-// There are two versions to choose between (the preview switch in the corner
-// flips them; see useHoneyHero in design/useDesign.js):
-//
-//   1 — the first set of six drawings (public/assets/hero-honey/), with
-//       outlined chat bubbles.
-//   2 — the newer set of seven drawings (public/assets/hero-honey-2/), with
-//       filled navy bubbles.
-//
-// Both sets were prepared so the frames match: cropped to the same window
-// around the couple, lined up so their heads and feet don't jump, and every
-// light area (skin, eyes, highlights) made see-through, so the page's blue
-// shows through. In version 1, frame 6 is frame 5 with only the waving arm
-// swapped in. In version 2, frames 5, 6 and 7 share frame 6's faces and body
-// and differ only in his arm, and frame 1 borrows frame 2's closed eye, so
-// every frame has the same dash-style eyes.
+// The seven drawings (public/assets/hero/) were prepared so the frames match:
+// cropped to the same window around the couple, lined up so their heads and
+// feet don't jump, and every light area (skin, eyes, highlights) made
+// see-through, so the page's blue shows through. Frames 5, 6 and 7 share
+// frame 6's faces and body and differ only in his arm, and frame 1 borrows
+// frame 2's closed eye, so every frame has the same dash-style eyes.
 // The couple is drawn in the page's text color (--ink in index.css): each
 // frame's shape is filled with that color, so they always match the text.
 import { useEffect, useRef, useState } from 'react'
@@ -29,60 +20,41 @@ function frameFiles(folder, count, version) {
   )
 }
 
-// Each version: its frames, and the order to play them in.
+// The frames, and the order to play them in.
 // Sequence steps are [frame, how long it stays up (ms), how long it fades in
 // over the last one (ms), and optionally a blur (px)]. Edit these to change
 // the pacing. The blur briefly softens the picture during that change, which
 // makes a big jump in pose (arms moving somewhere new) read as quick movement
 // instead of a glitch.
-// Bump the last number in frameFiles(...) whenever that set's files change, so
+// Bump the last number in frameFiles(...) whenever the files change, so
 // browsers fetch the new ones instead of reusing old saved copies.
-const VERSIONS = {
-  1: {
-    sources: frameFiles('hero-honey', 6, 3),
-    sequence: [
-      ['frame-1', 560, 160], // dancing
-      ['frame-2', 560, 160], // stepping out
-      ['frame-3', 620, 160], // the big step
-      ['frame-2', 560, 160], // stepping back
-      ['frame-1', 600, 160],
-      // From here the poses change more, so the fades are short: a long fade
-      // would briefly show both poses at once.
-      ['frame-4', 720, 100], // a close moment
-      ['frame-5', 640, 80], // turning toward you
-      ['frame-6', 520, 70], // waving
-      ['frame-5', 460, 70],
-      ['frame-6', 0, 70], // waving again, and stopping here
-    ],
-  },
-  2: {
-    sources: frameFiles('hero-honey-2', 7, 3),
-    // The dissolves are fairly long (see .honey-frames in index.css): the new
-    // pose fades in over the first half, the old one fades out over the second,
-    // so moving limbs blend instead of jumping.
-    sequence: [
-      ['frame-1', 640, 280], // dancing
-      ['frame-2', 620, 280], // stepping out
-      ['frame-3', 700, 280], // the big step
-      ['frame-2', 620, 280], // stepping back
-      ['frame-1', 680, 280],
-      ['frame-4', 880, 300, 1.2], // a close moment, eyes closed
-      ['frame-5', 760, 360, 2], // turning toward you, hand coming up (the biggest change)
-      ['frame-6', 620, 220], // waving (only his arm moves in these)
-      ['frame-5', 520, 220],
-      ['frame-7', 0, 260], // arm down, settled, and stopping here
-    ],
-  },
-}
+const SOURCES = frameFiles('hero', 7, 3)
 
-export default function HoneyDance({ version = 2 }) {
+// The dissolves are fairly long (see .honey-frames in index.css): the new
+// pose fades in over the first half, the old one fades out over the second,
+// so moving limbs blend instead of jumping.
+const SEQUENCE = [
+  ['frame-1', 640, 280], // dancing
+  ['frame-2', 620, 280], // stepping out
+  ['frame-3', 700, 280], // the big step
+  ['frame-2', 620, 280], // stepping back
+  ['frame-1', 680, 280],
+  ['frame-4', 880, 300, 1.2], // a close moment, eyes closed
+  ['frame-5', 760, 360, 2], // turning toward you, hand coming up (the biggest change)
+  ['frame-6', 620, 220], // waving (only his arm moves in these)
+  ['frame-5', 520, 220],
+  ['frame-7', 0, 260], // arm down, settled, and stopping here
+]
+
+export default function HoneyDance() {
   // Each replay remounts the animation, so it starts again from frame 1.
   const [runs, setRuns] = useState(0)
-  return <Dance key={runs} version={version} onReplay={() => setRuns((n) => n + 1)} />
+  return <Dance key={runs} onReplay={() => setRuns((n) => n + 1)} />
 }
 
-function Dance({ version, onReplay }) {
-  const { sources, sequence } = VERSIONS[version] ?? VERSIONS[2]
+function Dance({ onReplay }) {
+  const sources = SOURCES
+  const sequence = SEQUENCE
   const talkAt = sequence.length - 1 // the bubbles appear with the last frame
   const { frame, previous, fade, talking, step } = useFrameSequence(sources, sequence, talkAt)
   const framesRef = useRef(null)
@@ -101,7 +73,7 @@ function Dance({ version, onReplay }) {
   const [stillOnly] = useState(() => window.matchMedia('(prefers-reduced-motion: reduce)').matches)
 
   return (
-    <div className={`honey-stage-wrap honey-hero-${version}`}>
+    <div className="honey-stage-wrap">
       <div className={talking ? 'honey-stage talking' : 'honey-stage'}>
         <div
           ref={framesRef}

@@ -7,14 +7,22 @@
 //     tabbing to it) pops up that little extra about us.
 // Usage: <IllustrationSlot name="heroCouple" size="large" />
 // size: "small", "medium", or "large" (sets the maximum width).
+// Drawings only download once the guest scrolls near them, so the top of the
+// page loads first.
+import { useRef } from 'react'
 import art from '../data/art.js'
+import { useNearScreen } from './useNearScreen.js'
 
 export default function IllustrationSlot({ name, size = 'medium', className = '' }) {
   const item = art[name]
   const nugget = item.nugget
+  const ref = useRef(null)
+  const near = useNearScreen(ref)
+  const mask = near && item.src ? `url(${import.meta.env.BASE_URL + item.src})` : undefined
 
   return (
     <div
+      ref={ref}
       className={`illustration-slot size-${size} ${className}${nugget ? ' has-nugget' : ''}`}
       // With a nugget, it can be reached with the keyboard (and tapped on phones).
       tabIndex={nugget ? 0 : undefined}
@@ -28,10 +36,7 @@ export default function IllustrationSlot({ name, size = 'medium', className = ''
         <div
           className="illustration-tint"
           aria-hidden="true"
-          style={{
-            WebkitMaskImage: `url(${import.meta.env.BASE_URL + item.src})`,
-            maskImage: `url(${import.meta.env.BASE_URL + item.src})`,
-          }}
+          style={{ WebkitMaskImage: mask, maskImage: mask }}
         />
       ) : item.src ? (
         // import.meta.env.BASE_URL adds the site's folder name when it's online
