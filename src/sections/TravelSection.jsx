@@ -27,7 +27,7 @@ export default function TravelSection() {
       <div className="travel-cards">
         <TravelCard title="Getting there" details={gettingThere} />
         <TravelCard title="Where to stay" details={whereToStay}>
-          {/* A drawing of the hotel, Live! by Loews (light blue, framed). */}
+          {/* A drawing of the hotel, Live! by Loews, on light blue. */}
           <PhotoSlot
             src="assets/travel/live-by-loews.webp"
             alt="A drawing of the Live! by Loews hotel in Arlington"

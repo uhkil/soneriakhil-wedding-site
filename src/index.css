@@ -2090,16 +2090,6 @@ img.nugget-photo {
   border-radius: 14px;
 }
 
-/* The hotel drawing sits on light blue; a thin light-blue frame just
-   outside its edge sets it off from the dark card. */
-.travel-photo img {
-  outline: 1.5px solid var(--paper);
-  outline-offset: 5px;
-}
-
-.travel-photo.photo-slot {
-  margin: 6px 6px 30px;
-}
 
 .travel-photo .photo-placeholder {
   background: rgba(202, 233, 255, 0.14);
