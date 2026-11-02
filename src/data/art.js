@@ -100,10 +100,10 @@ const art = {
   },
   rsvpCouple: {
     // Top right of the RSVP section, above the title (one of the corner drawings).
-    src: 'assets/art/pool-date.webp',
-    ratio: '1200 / 896',
+    src: 'assets/art/hiking-date.webp',
+    ratio: '799 / 1104',
     tint: true,
-    note: 'The two of us playing pool',
+    note: 'The two of us out on a hike',
   },
 
 }
