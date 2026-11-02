@@ -105,10 +105,12 @@ const art = {
     note: 'Couple in Indian attire, a quiet in-between moment',
   },
   rsvpCouple: {
+    // Top left of the RSVP section, beside the title (one of the corner drawings).
     src: '',
-    ratio: '4 / 3',
-    note: 'Closing scene: couple walking away together',
+    ratio: '900 / 1000',
+    note: 'Drawing of couple looking eager',
   },
+
 }
 
 export default art

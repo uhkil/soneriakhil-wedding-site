@@ -2171,8 +2171,19 @@ img.nugget-photo {
   cursor: pointer;
 }
 
-.rsvp-art {
-  margin-top: 48px;
+/* ---------- Footer ---------- */
+
+.site-footer {
+  /* a line across the page's column, then the words centered below it */
+  width: min(980px, 100% - 48px);
+  margin: 0 auto;
+  padding: 40px 0 calc(48px + env(safe-area-inset-bottom, 0px));
+  border-top: 1.5px solid var(--ink);
+  text-align: center;
+  font-family: var(--font-ui);
+  font-size: 0.8rem;
+  letter-spacing: 0.06em;
+  color: var(--ink);
 }
 
 /* =====================================================================

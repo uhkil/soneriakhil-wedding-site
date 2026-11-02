@@ -94,6 +94,8 @@ export default function RsvpSection() {
 
   return (
     <Section id="rsvp" className="rsvp">
+      {/* Corner art just above the title (see "corner-art" in index.css). */}
+      <IllustrationSlot name="rsvpCouple" size="small" className="corner-art corner-art-left" />
       <h2>RSVP</h2>
       <p className="rsvp-intro">
         {party.hasResponded
@@ -224,8 +226,6 @@ export default function RsvpSection() {
           {status === 'saving' ? 'Saving…' : party.hasResponded ? 'Update RSVP' : 'Send RSVP'}
         </button>
       </form>
-
-      <IllustrationSlot name="rsvpCouple" size="large" className="rsvp-art" />
     </Section>
   )
 }
