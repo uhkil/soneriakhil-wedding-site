@@ -1,4 +1,4 @@
-// Link out to the gift registry.
+// The gift registry. For now, just a note that details are coming.
 import Section from '../components/Section.jsx'
 import IllustrationSlot from '../components/IllustrationSlot.jsx'
 
@@ -8,13 +8,14 @@ export default function RegistrySection() {
       {/* Corner art just above the title (see "corner-art" in index.css). */}
       <IllustrationSlot name="registryVignette" size="small" className="corner-art corner-art-left" />
       <h2>
-        Registry
-        {/* Two hands making a heart (see .title-hands in index.css). */}
-        <span className="title-hands" aria-hidden="true" />
+        {/* The word stays centered on the page; the drawing of two hands
+            making a heart hangs off its right side (see .title-hands). */}
+        <span className="title-word">
+          Registry
+          <span className="title-hands" aria-hidden="true" />
+        </span>
       </h2>
-      <p>Placeholder text about the registry.</p>
-      {/* Replace "#" with the real registry URL later. */}
-      <a className="button button-outline" href="#">View our registry</a>
+      <p className="registry-note">More details to come.</p>
     </Section>
   )
 }

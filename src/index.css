@@ -730,20 +730,26 @@ summary:focus-visible {
 
 /* ---------- Registry: two hands making a heart, beside the title ---------- */
 
-/* The Registry section is narrow, so its title is allowed the page's full
-   width: the word and the drawing stay on one line, centered. */
-#registry h2 {
-  width: 100vw;
-  margin-left: calc(50% - 50vw);
+/* The word "Registry" is centered on the page; the drawing hangs off its
+   right side, so it doesn't push the word off-center. */
+.title-word {
+  position: relative;
   white-space: nowrap;
 }
 
+/* Plenty of room between the title and the note below it. */
+#registry h2 {
+  margin-bottom: 72px;
+}
+
 .title-hands {
-  display: inline-block;
+  position: absolute;
+  left: 100%;
+  top: 50%;
+  translate: 0 -50%;
   height: 0.9em;
   aspect-ratio: 1376 / 457;
   margin-left: 0.35em;
-  vertical-align: -0.08em;
   background: var(--ink);
   -webkit-mask: url('/assets/art/heart-hands.svg') center / contain no-repeat;
   mask: url('/assets/art/heart-hands.svg') center / contain no-repeat;
@@ -2261,14 +2267,9 @@ img.nugget-photo {
   font-weight: 500;
 }
 
-/* The open FAQ question: bolder and a little larger, so it stands out. */
-[data-design='honey'] .faq-item summary {
-  transition: font-size 0.2s ease;
-}
-
+/* The open FAQ question turns bold, so it's clear which one you're reading. */
 [data-design='honey'] .faq-item[open] summary {
-  font-weight: 600;
-  font-size: 1.35rem;
+  font-weight: 700;
 }
 
 /* Buttons: solid chocolate blocks. */
@@ -2913,22 +2914,39 @@ img.nugget-photo {
   border-radius: 999px;
 }
 
-/* Hers sits a little further out, so it never touches her hair. */
-.honey-stage-wrap .honey-bubble-her {
-  right: 80%;
-  top: 5%;
+/* Each bubble is centered up and down on its speaker's face, and sits to
+   the side with some room: hers to the left of her hair, his to the right
+   of his. (Positions are shares of the drawing, so they hold at any size.) */
+.honey-stage-wrap .honey-bubble {
+  translate: 0 -50%;
 }
 
-/* Wider screens (1200px+): both a little higher and closer in, so the two
-   read as one conversation, still clear of their heads and the text above. */
-@media (min-width: 1200px) {
-  .honey-stage-wrap .honey-bubble-her {
-    right: 66%;
-    top: -6%;
+.honey-stage-wrap .honey-bubble-her {
+  right: 85%;
+  top: 19.6%;
+}
+
+.honey-stage-wrap .honey-bubble-him {
+  left: 75%;
+  top: 12.8%;
+}
+
+/* Narrower screens: less room beside them, so the sentences wrap onto two
+   lines instead of running off the edge. */
+@media (max-width: 1100px) {
+  .honey-stage-wrap .honey-bubble {
+    max-width: 11em;
+    border-radius: 22px;
   }
   .honey-stage-wrap .honey-bubble-him {
-    left: 64%;
-    top: -11%;
+    left: 78%; /* a little further out, clear of his shoulder */
+  }
+}
+
+@media (max-width: 860px) {
+  .honey-stage-wrap .honey-bubble {
+    max-width: 8.5em;
+    font-size: 0.9rem;
   }
 }
 
@@ -2938,6 +2956,9 @@ img.nugget-photo {
   }
   /* Side by side above their heads, meeting near the middle (so they never
      run into each other), high enough to stay clear of their hair. */
+  .honey-stage-wrap .honey-bubble {
+    translate: none;
+  }
   .honey-stage-wrap .honey-bubble-her {
     left: auto;
     right: 52%;
@@ -3090,52 +3111,18 @@ img.nugget-photo {
   }
 }
 
-/* =====================================================================
-   RSVP style options (PREVIEW ONLY — compare, pick one, delete the rest).
-   The form's data-style picks one: "outlined" is the current look (no
-   extra rules); the others are below. The little switch in the corner
-   only appears on the local preview.
-   ===================================================================== */
+/* ----- RSVP form: filled cards. Each person's card (and the contact card)
+   is solid dark blue with light-blue text, like the pop-up cards on the
+   drawings; these rules override the outlined look above. ----- */
 
-.rsvp-style-switch {
-  position: fixed;
-  left: 12px;
-  bottom: calc(12px + env(safe-area-inset-bottom, 0px));
-  z-index: 50;
-  display: flex;
-  flex-wrap: wrap;
-  gap: 4px;
-  padding: 4px;
-  border-radius: 999px;
-  background: rgba(20, 24, 30, 0.88);
-}
-
-.rsvp-style-switch button {
-  font: 500 12px/1 system-ui, -apple-system, sans-serif;
-  padding: 7px 12px;
-  border: none;
-  border-radius: 999px;
-  background: transparent;
-  color: #f3eee9;
-  cursor: pointer;
-}
-
-.rsvp-style-switch button.selected {
-  background: #f3eee9;
-  color: #14181e;
-}
-
-/* ----- Filled cards: dark-blue cards with light-blue text (like the
-   pop-up cards on the drawings) ----- */
-
-[data-design='honey'] form[data-style='filled'] .rsvp-guest {
+[data-design='honey'] .rsvp-guest {
   background: var(--ink);
   border-color: var(--ink);
   color: var(--paper);
   padding-top: 32px;
 }
 
-[data-design='honey'] form[data-style='filled'] .rsvp-guest legend {
+[data-design='honey'] .rsvp-guest legend {
   float: left; /* sits inside the card instead of on its edge */
   width: 100%;
   padding: 0;
@@ -3144,196 +3131,55 @@ img.nugget-photo {
   font-size: 1.3rem;
 }
 
-[data-design='honey'] form[data-style='filled'] .rsvp-guest legend + * {
+[data-design='honey'] .rsvp-guest legend + * {
   clear: both;
 }
 
-[data-design='honey'] form[data-style='filled'] .rsvp-event-name,
-[data-design='honey'] form[data-style='filled'] .rsvp-event-name span,
-[data-design='honey'] form[data-style='filled'] .rsvp-field label {
+[data-design='honey'] .rsvp-event-name,
+[data-design='honey'] .rsvp-event-name span,
+[data-design='honey'] .rsvp-field label {
   color: var(--paper);
 }
 
-[data-design='honey'] form[data-style='filled'] .rsvp-choices,
-[data-design='honey'] form[data-style='filled'] .rsvp-field input,
-[data-design='honey'] form[data-style='filled'] .rsvp-field textarea {
+[data-design='honey'] .rsvp-choices,
+[data-design='honey'] .rsvp-field input,
+[data-design='honey'] .rsvp-field textarea {
   border-color: rgba(202, 233, 255, 0.7);
   color: var(--paper);
 }
 
-[data-design='honey'] form[data-style='filled'] .rsvp-field input::placeholder,
-[data-design='honey'] form[data-style='filled'] .rsvp-field textarea::placeholder {
+[data-design='honey'] .rsvp-field input::placeholder,
+[data-design='honey'] .rsvp-field textarea::placeholder {
   color: var(--paper);
 }
 
-[data-design='honey'] form[data-style='filled'] .rsvp-choice label:hover {
+[data-design='honey'] .rsvp-choice label:hover {
   background: rgba(202, 233, 255, 0.12);
 }
 
-[data-design='honey'] form[data-style='filled'] .rsvp-choice input:checked + label {
+[data-design='honey'] .rsvp-choice input:checked + label {
   background: var(--paper);
   color: var(--ink);
 }
 
-[data-design='honey'] form[data-style='filled'] .rsvp-field input:focus,
-[data-design='honey'] form[data-style='filled'] .rsvp-field textarea:focus,
-[data-design='honey'] form[data-style='filled'] .rsvp-choice input:focus-visible + label {
+[data-design='honey'] .rsvp-field input:focus,
+[data-design='honey'] .rsvp-field textarea:focus,
+[data-design='honey'] .rsvp-choice input:focus-visible + label {
   outline-color: var(--paper);
 }
 
-[data-design='honey'] form[data-style='filled'] .rsvp-event.missing .rsvp-choices,
-[data-design='honey'] form[data-style='filled'] input[aria-invalid='true'] {
+/* Problems inside the dark cards: a soft coral instead of red, so they
+   stand out against the dark blue. */
+[data-design='honey'] .rsvp-guest .rsvp-event.missing .rsvp-choices,
+[data-design='honey'] .rsvp-guest input[aria-invalid='true'] {
   border-color: #ffb4a9;
 }
 
-[data-design='honey'] form[data-style='filled'] .rsvp-event.missing .rsvp-event-name,
-[data-design='honey'] form[data-style='filled'] .field-note {
+[data-design='honey'] .rsvp-guest input[aria-invalid='true']:focus {
+  outline-color: #ffb4a9;
+}
+
+[data-design='honey'] .rsvp-guest .rsvp-event.missing .rsvp-event-name,
+[data-design='honey'] .rsvp-guest .field-note {
   color: #ffb4a9;
 }
-
-/* ----- Open rows: no boxes. Each person's name over a line, then one row
-   per event (name on the left, Accept / Decline on the right), and
-   underlined fields ----- */
-
-[data-design='honey'] form[data-style='open'] {
-  gap: 48px;
-}
-
-[data-design='honey'] form[data-style='open'] .rsvp-guest {
-  padding: 0;
-  border: none;
-  border-radius: 0;
-  gap: 0;
-}
-
-[data-design='honey'] form[data-style='open'] .rsvp-guest legend {
-  float: left;
-  width: 100%;
-  padding: 0 0 12px;
-  margin: 0;
-  border-bottom: 1.5px solid var(--ink);
-  font-size: 1.5rem;
-}
-
-[data-design='honey'] form[data-style='open'] .rsvp-guest legend + * {
-  clear: both;
-}
-
-[data-design='honey'] form[data-style='open'] .rsvp-event {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  justify-content: space-between;
-  gap: 10px 24px;
-  padding: 16px 0;
-  border-bottom: 1px solid var(--line);
-}
-
-[data-design='honey'] form[data-style='open'] .rsvp-event-name {
-  margin: 0;
-}
-
-[data-design='honey'] form[data-style='open'] .rsvp-event .field-note {
-  flex-basis: 100%;
-  margin: 0;
-}
-
-[data-design='honey'] form[data-style='open'] .rsvp-field {
-  padding-top: 20px;
-}
-
-[data-design='honey'] form[data-style='open'] .rsvp-field input,
-[data-design='honey'] form[data-style='open'] .rsvp-field textarea {
-  padding: 8px 0;
-  border: none;
-  border-bottom: 1.5px solid var(--ink);
-  border-radius: 0;
-}
-
-[data-design='honey'] form[data-style='open'] .rsvp-field textarea {
-  border: 1.5px solid var(--ink);
-  border-radius: 12px;
-  padding: 10px 14px;
-}
-
-[data-design='honey'] form[data-style='open'] .rsvp-field input:focus {
-  outline: none;
-  border-bottom-width: 3px;
-}
-
-/* ----- Tickets: each event is its own little ticket, with two big
-   choices that say what they mean (a check to accept, a cross to
-   decline) ----- */
-
-[data-design='honey'] form[data-style='tickets'] .rsvp-guest {
-  gap: 14px;
-}
-
-[data-design='honey'] form[data-style='tickets'] .rsvp-event {
-  display: grid;
-  grid-template-columns: 1fr auto;
-  align-items: center;
-  gap: 8px 20px;
-  padding: 16px 20px;
-  border: 1.5px solid var(--ink);
-  border-radius: 16px;
-}
-
-[data-design='honey'] form[data-style='tickets'] .rsvp-event-name {
-  margin: 0;
-}
-
-[data-design='honey'] form[data-style='tickets'] .rsvp-choices {
-  gap: 8px;
-  padding: 0 0 0 20px;
-  border: none;
-  border-left: 1.5px dashed var(--ink);
-  border-radius: 0;
-}
-
-[data-design='honey'] form[data-style='tickets'] .rsvp-choice label {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  min-width: 0;
-  padding: 10px 14px;
-  border: 1.5px solid var(--ink);
-}
-
-[data-design='honey'] form[data-style='tickets'] .rsvp-choice label::before {
-  font-size: 0.9rem;
-  letter-spacing: 0;
-}
-
-[data-design='honey'] form[data-style='tickets'] .rsvp-choice:first-child label::before {
-  content: '✓';
-}
-
-[data-design='honey'] form[data-style='tickets'] .rsvp-choice:last-child label::before {
-  content: '✕';
-}
-
-[data-design='honey'] form[data-style='tickets'] .rsvp-event .field-note {
-  grid-column: 1 / -1;
-  margin: 0;
-}
-
-[data-design='honey'] form[data-style='tickets'] .rsvp-event.missing {
-  border-color: var(--error);
-}
-
-[data-design='honey'] form[data-style='tickets'] .rsvp-event.missing .rsvp-choices {
-  border-color: var(--error);
-}
-
-@media (max-width: 560px) {
-  [data-design='honey'] form[data-style='tickets'] .rsvp-event {
-    grid-template-columns: 1fr;
-  }
-  [data-design='honey'] form[data-style='tickets'] .rsvp-choices {
-    padding: 12px 0 0;
-    border-left: none;
-    border-top: 1.5px dashed var(--ink);
-  }
-}
-
