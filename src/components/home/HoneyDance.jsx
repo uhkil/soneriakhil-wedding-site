@@ -55,7 +55,8 @@ export default function HoneyDance() {
 function Dance({ onReplay }) {
   const sources = SOURCES
   const sequence = SEQUENCE
-  const talkAt = sequence.length - 1 // the bubbles appear with the last frame
+  // The bubbles appear with the second wave, just before the last frame.
+  const talkAt = sequence.length - 2
   const { frame, previous, fade, talking, step } = useFrameSequence(sources, sequence, talkAt)
   const framesRef = useRef(null)
 
@@ -101,7 +102,7 @@ function Dance({ onReplay }) {
 
       {/* Once the animation has finished: shows in the bottom-right corner
           while the pointer is over this area (always, on touch screens). */}
-      {!stillOnly && talking && (
+      {!stillOnly && step === sequence.length - 1 && (
         <button type="button" className="honey-replay" aria-label="Play the animation again" onClick={onReplay}>
           <svg className="honey-replay-icon" viewBox="0 0 24 24" aria-hidden="true">
             <path d="M20 12a8 8 0 1 1-2.34-5.66" />

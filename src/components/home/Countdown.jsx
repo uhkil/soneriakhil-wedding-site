@@ -1,13 +1,15 @@
-// A countdown to the wedding: days, hours, minutes, and seconds, ticking
+// A countdown to the guest's first event (passed in as "to"; e.g. the
+// ceremony at 9 AM on April 9, or for guests invited only on April 10, the
+// wedding at 10 AM that day): days, hours, minutes, and seconds, ticking
 // every second, with a few small flowers on either side.
-// Once the day arrives, it shows zeros.
+// Once it arrives, it shows zeros.
 import { useEffect, useState } from 'react'
 
-// Midnight at the start of April 9, 2027, Arlington time (Central, UTC−5 in April).
-const WEDDING = new Date('2027-04-09T00:00:00-05:00').getTime()
+// If there's no event to go by: the start of the weekend, Arlington time.
+const WEEKEND = new Date('2027-04-09T00:00:00-05:00')
 
-function timeLeft() {
-  const ms = Math.max(0, WEDDING - Date.now())
+function timeLeft(to) {
+  const ms = Math.max(0, to - Date.now())
   const s = Math.floor(ms / 1000)
   return {
     days: Math.floor(s / 86400),
@@ -19,13 +21,13 @@ function timeLeft() {
 
 const two = (n) => String(n).padStart(2, '0')
 
-export default function Countdown() {
-  const [left, setLeft] = useState(timeLeft)
+export default function Countdown({ to = WEEKEND }) {
+  const [left, setLeft] = useState(() => timeLeft(to))
 
   useEffect(() => {
-    const timer = setInterval(() => setLeft(timeLeft()), 1000)
+    const timer = setInterval(() => setLeft(timeLeft(to)), 1000)
     return () => clearInterval(timer)
-  }, [])
+  }, [to])
 
   const units = [
     [left.days, 'days'],

@@ -1,9 +1,11 @@
 // The top of the site after login: the names in big bold letters, the date,
 // place, and a welcome, then the animation of the two of them dancing and
-// waving hello, and further down, the countdown.
+// waving hello, and further down, the countdown. The dates shown are this
+// guest's own (see src/data/schedule.js).
 import Section from '../components/Section.jsx'
 import HoneyBanner from '../components/home/HoneyBanner.jsx'
 import { useGuest } from '../guest/GuestProvider.jsx'
+import { dateRange, firstEvent } from '../data/schedule.js'
 
 // "Jordan, Sam & Max": first names of everyone on the invitation
 // (plus-ones once they've been named).
@@ -19,7 +21,9 @@ export default function HomeSection() {
   const { party } = useGuest()
   return (
     <Section id="home" className="hero hero-honey">
-      <HoneyBanner welcome={welcomeNames(party)} />
+      {/* Only this guest's dates: e.g. "April 10, 2027" if all their events are
+          that day, and the countdown runs to their first event. */}
+      <HoneyBanner welcome={welcomeNames(party)} dates={dateRange(party.events)} countdownTo={firstEvent(party.events)?.start.getTime()} />
     </Section>
   )
 }

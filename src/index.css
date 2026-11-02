@@ -728,6 +728,27 @@ summary:focus-visible {
   text-align: center;
 }
 
+/* ---------- Registry: two hands making a heart, beside the title ---------- */
+
+/* The Registry section is narrow, so its title is allowed the page's full
+   width: the word and the drawing stay on one line, centered. */
+#registry h2 {
+  width: 100vw;
+  margin-left: calc(50% - 50vw);
+  white-space: nowrap;
+}
+
+.title-hands {
+  display: inline-block;
+  height: 0.9em;
+  aspect-ratio: 1376 / 457;
+  margin-left: 0.35em;
+  vertical-align: -0.08em;
+  background: var(--ink);
+  -webkit-mask: url('/assets/art/heart-hands.svg') center / contain no-repeat;
+  mask: url('/assets/art/heart-hands.svg') center / contain no-repeat;
+}
+
 /* ---------- Our Story: photo beside text ---------- */
 
 /* A blueberry sprig on each side of the title, leaning outward (the right
@@ -2797,7 +2818,7 @@ img.nugget-photo {
 }
 
 .honey-stage.talking .honey-bubble-her {
-  transition-delay: 0.6s;
+  transition-delay: 0.25s;
 }
 
 /* Phones: no room beside them, so the stage moves down a little and both
@@ -2896,6 +2917,19 @@ img.nugget-photo {
 .honey-stage-wrap .honey-bubble-her {
   right: 80%;
   top: 5%;
+}
+
+/* Wider screens (1200px+): both a little higher and closer in, so the two
+   read as one conversation, still clear of their heads and the text above. */
+@media (min-width: 1200px) {
+  .honey-stage-wrap .honey-bubble-her {
+    right: 66%;
+    top: -6%;
+  }
+  .honey-stage-wrap .honey-bubble-him {
+    left: 64%;
+    top: -11%;
+  }
 }
 
 @media (max-width: 720px) {

@@ -1,7 +1,8 @@
 // A pretend back end with fake guests, used when the address has ?practice.
 // It behaves like the real Google Sheet script, without touching the Sheet.
 //
-// Try: "Jordan Lee" or "Priya Shah" (two matches), with the passcode CELEBRATE.
+// Try: "Jordan Lee", "Priya Shah" (two matches), or "Sam Rivera" (invited
+// only to April 10's events), with the passcode CELEBRATE.
 
 const events = [
   { id: 'ceremony', name: 'Intimate Ceremony', date: 'April 9', timeOfDay: 'Morning', time: '10:00 AM', location: 'Practice Venue', address: '123 Example St, Dallas, TX', attire: 'Formal', description: 'Practice-mode details.' },
@@ -16,6 +17,7 @@ const parties = {
   P001: { name: 'The Shah Family', events: ['ceremony', 'sangeet', 'indian-wedding', 'reception'] },
   P002: { name: 'Priya Shah', events: ['sangeet', 'reception'] },
   P003: { name: 'The Lee Family', events: ['sangeet', 'indian-wedding', 'reception'] },
+  P004: { name: 'Sam Rivera', events: ['indian-wedding', 'reception'] }, // April 10 only
 }
 
 const guests = [
@@ -26,6 +28,7 @@ const guests = [
   { guestId: 'G004', partyId: 'P003', firstName: 'Jordan', lastName: 'Lee' },
   { guestId: 'G005', partyId: 'P003', firstName: 'Sam', lastName: 'Lee' },
   { guestId: 'G006', partyId: 'P003', firstName: 'Max', lastName: 'Lee', events: ['sangeet', 'indian-wedding'] },
+  { guestId: 'G008', partyId: 'P004', firstName: 'Sam', lastName: 'Rivera' },
 ]
 
 // Saved answers live only in memory: refreshing the page clears them.
