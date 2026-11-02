@@ -2275,6 +2275,138 @@ img.nugget-photo {
   color: var(--ink);
 }
 
+/* RSVP form: the same look as the rest of this design. Cards and boxes are
+   outlined in the dark blue (1.5px, like the Memories toggle), with rounded
+   corners; small labels are spaced-out capitals (like the countdown);
+   Accept / Decline is a two-part pill, like the Memories toggle. */
+[data-design='honey'] .rsvp-guest {
+  padding: 24px 28px 28px;
+  border: 1.5px solid var(--ink);
+  border-radius: 24px;
+  background: transparent;
+  gap: 22px;
+}
+
+[data-design='honey'] .rsvp-guest legend {
+  padding: 0 10px;
+  margin-left: -10px;
+  font-family: var(--font-display);
+  font-size: 1.1rem;
+  font-weight: 900;
+  font-stretch: 125%;
+  letter-spacing: 0.02em;
+  color: var(--ink);
+}
+
+[data-design='honey'] .rsvp-event-name {
+  margin: 0 0 10px;
+  font-family: var(--font-ui);
+  font-weight: 600;
+  font-size: 1.05rem;
+  color: var(--ink);
+}
+
+[data-design='honey'] .rsvp-event-name span,
+[data-design='honey'] .rsvp-field label {
+  font-family: var(--font-ui);
+  font-size: 0.68rem;
+  font-weight: 500;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--ink);
+}
+
+[data-design='honey'] .rsvp-event-name span {
+  margin-top: 4px;
+}
+
+[data-design='honey'] .rsvp-choices {
+  display: inline-flex;
+  gap: 0;
+  padding: 3px;
+  border: 1.5px solid var(--ink);
+  border-radius: 999px;
+}
+
+[data-design='honey'] .rsvp-choice label {
+  display: block;
+  min-width: 7.5em;
+  padding: 8px 18px;
+  border: none;
+  border-radius: 999px;
+  font: 500 0.75rem/1 var(--font-ui);
+  letter-spacing: 0.14em;
+  text-align: center;
+  text-transform: uppercase;
+  transition: background-color 0.25s ease, color 0.25s ease;
+}
+
+[data-design='honey'] .rsvp-choice label:hover {
+  background: rgba(0, 52, 89, 0.08);
+}
+
+[data-design='honey'] .rsvp-choice input:checked + label {
+  background: var(--ink);
+  color: var(--paper);
+}
+
+[data-design='honey'] .rsvp-choice input:focus-visible + label {
+  outline: 2px solid var(--ink);
+  outline-offset: 2px;
+}
+
+[data-design='honey'] .rsvp-field {
+  gap: 8px;
+}
+
+[data-design='honey'] .rsvp-field input,
+[data-design='honey'] .rsvp-field textarea {
+  padding: 11px 18px;
+  border: 1.5px solid var(--ink);
+  border-radius: 999px;
+  background: transparent;
+  font-family: var(--font-ui);
+  font-size: 0.95rem;
+}
+
+[data-design='honey'] .rsvp-field textarea {
+  border-radius: 18px;
+}
+
+[data-design='honey'] .rsvp-field input::placeholder,
+[data-design='honey'] .rsvp-field textarea::placeholder {
+  color: var(--ink);
+  opacity: 0.5;
+}
+
+[data-design='honey'] .rsvp-field input:focus,
+[data-design='honey'] .rsvp-field textarea:focus {
+  outline: 2px solid var(--ink);
+  outline-offset: 2px;
+}
+
+[data-design='honey'] .rsvp-submit {
+  margin-top: 8px;
+  padding: 14px 40px;
+  border-width: 1.5px;
+  border-radius: 999px;
+  font-size: 0.8rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+}
+
+[data-design='honey'] .rsvp .form-error,
+[data-design='honey'] .form-success {
+  font-family: var(--font-ui);
+  color: var(--ink);
+}
+
+@media (max-width: 480px) {
+  [data-design='honey'] .rsvp-guest {
+    padding: 20px 18px 22px;
+  }
+}
+
 /* Nav: brand, then links on the left; RSVP pushed to the right with an arrow. */
 [data-design='honey'] .navbar {
   display: flex;
