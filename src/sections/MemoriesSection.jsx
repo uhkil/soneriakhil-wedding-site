@@ -51,10 +51,11 @@ export default function MemoriesSection() {
         ))}
       </div>
 
-      {/* The "memories-viewer" box has a fixed height, so switching views
-          doesn't make the page (or the "Memories" title) jump around. */}
+      {/* All three views are stacked in the same spot, with only the chosen
+          one visible. The box is as tall as the tallest view, so switching
+          views never moves the title, the toggle, or anything else. */}
       <div className="memories-viewer">
-        {view === 'filmstrip' && (
+        <View id="filmstrip" view={view}>
           <div className="filmstrip">
             {photos.map((photo) => (
               <div key={photo} className="filmstrip-frame">
@@ -62,17 +63,30 @@ export default function MemoriesSection() {
               </div>
             ))}
           </div>
-        )}
-        {view === 'grid' && (
+        </View>
+        <View id="camera" view={view}>
+          <Camera />
+        </View>
+        <View id="grid" view={view}>
           <div className="memory-grid">
             {photos.map((photo) => (
               <PhotoSlot key={photo} label={photo} className="memory-photo" />
             ))}
           </div>
-        )}
-        {view === 'camera' && <Camera />}
+        </View>
       </div>
     </Section>
+  )
+}
+
+// One of the views. The hidden ones still take up room (so the box stays the
+// same height) but can't be seen, clicked, or reached with the keyboard.
+function View({ id, view, children }) {
+  const shown = id === view
+  return (
+    <div className={shown ? 'memories-view shown' : 'memories-view'} inert={!shown} aria-hidden={!shown}>
+      {children}
+    </div>
   )
 }
 

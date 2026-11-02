@@ -68,7 +68,7 @@ const art = {
     nugget: {
       oneLine: true,
       // (non-breaking hyphens keep “p-i-g” on one line)
-      text: 'fun fact: soneri has beat akhil in p\u2011i\u2011g 3 times!',
+      text: 'fun fact: soneri has beaten akhil in p\u2011i\u2011g 3 times!',
     },
   },
   transitionWalk: {

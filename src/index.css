@@ -1274,13 +1274,22 @@ img.nugget-photo {
 
 /* ---------- Memories: shared sizing ---------- */
 
-/* A fixed-height area for both views, so switching views
-   doesn't move anything else on the page. */
+/* All three views sit in the same grid cell, so the area is as tall as the
+   tallest one and switching views doesn't move anything else on the page.
+   Each view starts just under the toggle; any spare room is below it. */
 .memories-viewer {
-  min-height: 400px;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
+  display: grid;
+}
+
+.memories-view {
+  grid-area: 1 / 1;
+  align-self: start;
+  min-width: 0;
+  visibility: hidden;
+}
+
+.memories-view.shown {
+  visibility: visible;
 }
 
 /* Every memory photo is the same size in both views:
