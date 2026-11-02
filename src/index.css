@@ -2338,16 +2338,6 @@ img.nugget-photo {
   min-width: 0; /* lets the card shrink on narrow phones */
 }
 
-.rsvp-guest legend {
-  padding: 0 8px;
-  font-family: var(--font-display);
-  font-size: 1.05rem;
-  font-weight: 400;
-  color: var(--rust);
-  letter-spacing: 0.18em;
-  text-transform: uppercase;
-}
-
 .rsvp-event-name {
   margin: 0 0 8px;
   font-family: var(--font-display);
@@ -2590,17 +2580,6 @@ img.nugget-photo {
   border-radius: 24px;
   background: transparent;
   gap: 22px;
-}
-
-[data-design='honey'] .rsvp-guest legend {
-  padding: 0 10px;
-  margin-left: -10px;
-  font-family: var(--font-display);
-  font-size: 1.1rem;
-  font-weight: 900;
-  font-stretch: 125%;
-  letter-spacing: 0.02em;
-  color: var(--ink);
 }
 
 [data-design='honey'] .rsvp-event-name {
@@ -3568,11 +3547,8 @@ img.nugget-photo {
 
 /* The card's header: the person's name, and a + on the right that turns into
    a − when the card is open. The whole header is one button. */
-[data-design='honey'] .rsvp-guest legend {
-  float: left; /* sits inside the card instead of on its edge */
+.rsvp-card-head {
   width: 100%;
-  padding: 0;
-  margin: 0;
 }
 
 .rsvp-card-toggle {

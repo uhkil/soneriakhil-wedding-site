@@ -174,9 +174,15 @@ export default function RsvpSection() {
           const bodyId = `rsvp-card-${g.guestId}`
           const flagged = checked && problemsFor(g).length > 0
           return (
-            // A <fieldset> groups one person's questions; <legend> is its title.
-            <fieldset key={g.guestId} className={`rsvp-guest${open ? ' open' : ''}${flagged ? ' needs-attention' : ''}`}>
-              <legend>
+            // One person's card. (A plain group, not a <fieldset>: Safari puts a
+            // fieldset's title on the card's top edge, half outside the card.)
+            <div
+              key={g.guestId}
+              role="group"
+              aria-labelledby={`rsvp-name-${g.guestId}`}
+              className={`rsvp-guest${open ? ' open' : ''}${flagged ? ' needs-attention' : ''}`}
+            >
+              <div className="rsvp-card-head">
                 {/* The whole header opens and closes the card. */}
                 <button
                   type="button"
@@ -185,10 +191,12 @@ export default function RsvpSection() {
                   aria-controls={bodyId}
                   onClick={() => toggleCard(g.guestId)}
                 >
-                  <span className="rsvp-name">{displayName(g)}</span>
+                  <span className="rsvp-name" id={`rsvp-name-${g.guestId}`}>
+                    {displayName(g)}
+                  </span>
                   <span className="rsvp-plus" aria-hidden="true" />
                 </button>
-              </legend>
+              </div>
 
               <div className="rsvp-card-body" id={bodyId} hidden={!open}>
                 {g.isPlusOne && (
@@ -301,7 +309,7 @@ export default function RsvpSection() {
                   />
                 </div>
               </div>
-            </fieldset>
+            </div>
           )
         })}
 
