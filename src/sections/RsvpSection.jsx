@@ -6,11 +6,23 @@
 //
 // Saved email, phone, and notes are never sent back to the website, so those
 // boxes start empty and say "on file"; leaving them blank keeps what's saved.
+//
+// If something's missing when they press Send, each spot that needs an answer
+// is outlined in red with a short note, the page scrolls to the first one,
+// and a message by the button says what to do. The red goes away as each one
+// is fixed. Problems saving (no internet, a logged-out invitation) show by
+// the button too, and nothing they've typed is lost.
 import { useState } from 'react'
 import Section from '../components/Section.jsx'
 import IllustrationSlot from '../components/IllustrationSlot.jsx'
 import { useGuest } from '../guest/GuestProvider.jsx'
 import { submitRsvp } from '../api/rsvpApi.js'
+import FormMessage from '../components/FormMessage.jsx'
+
+// The same check the Sheet does, so a typo is caught before sending.
+const EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+// The Sheet's reply when the saved login no longer works (e.g. the passcode changed).
+const LOGGED_OUT = 'Please find your invitation again.'
 
 // Starts the form from whatever this party saved before (or blank).
 function savedAnswers(party) {
@@ -29,11 +41,14 @@ function savedAnswers(party) {
 const blankContact = { email: '', phone: '', note: '' }
 
 export default function RsvpSection() {
-  const { party, token, setParty } = useGuest()
+  const { party, token, setParty, logout } = useGuest()
   const [answers, setAnswers] = useState(() => savedAnswers(party))
   const [contact, setContact] = useState(blankContact)
   const [status, setStatus] = useState('editing') // 'editing' | 'saving' | 'saved'
   const [error, setError] = useState('')
+  // Turns on after the first Send, so missing answers are only flagged once
+  // the guest has tried to send (not while they're still filling it in).
+  const [checked, setChecked] = useState(false)
 
   const eventsById = Object.fromEntries(party.events.map((e) => [e.id, e]))
   const displayName = (g) => (g.isPlusOne ? 'Your guest' : `${g.firstName} ${g.lastName}`)
@@ -53,25 +68,44 @@ export default function RsvpSection() {
     setStatus('editing')
   }
 
-  // Returns a message if something is missing, or '' if the form is complete.
-  function findProblem() {
+  // Everything that needs fixing, in page order: { id (the spot on the
+  // page), message }. Empty when the form is ready to send.
+  function findProblems() {
+    const problems = []
     for (const g of party.guests) {
       const a = answers[g.guestId]
-      if (g.invitedEvents.some((id) => !a.attending[id])) {
-        return `Please answer every event for ${g.isPlusOne ? 'your guest' : g.firstName}.`
-      }
       if (g.isPlusOne && Object.values(a.attending).includes('yes') && !a.name.trim()) {
-        return "Please add your guest's name."
+        problems.push({ id: `name-${g.guestId}`, message: 'Please add your guest’s name.' })
       }
+      g.invitedEvents.forEach((eventId) => {
+        if (!a.attending[eventId]) {
+          problems.push({ id: `${g.guestId}-${eventId}`, message: 'Please choose Accept or Decline.' })
+        }
+      })
     }
-    return ''
+    if (contact.email.trim() && !EMAIL.test(contact.email.trim())) {
+      problems.push({ id: 'rsvp-email', message: 'Please check the email address (e.g. name@example.com).' })
+    }
+    return problems
   }
+
+  const problems = checked ? findProblems() : []
+  const problemFor = (id) => problems.find((p) => p.id === id)
 
   async function save(event) {
     event.preventDefault()
-    const problem = findProblem()
-    setError(problem)
-    if (problem) return
+    setChecked(true)
+    const found = findProblems()
+    if (found.length) {
+      setError('')
+      // Bring the first one into view and put the keyboard there.
+      const first = document.getElementById(found[0].id)
+      const smooth = !window.matchMedia('(prefers-reduced-motion: reduce)').matches
+      first?.scrollIntoView({ behavior: smooth ? 'smooth' : 'auto', block: 'center' })
+      ;(first?.querySelector('input') ?? first)?.focus({ preventScroll: true })
+      return
+    }
+    setError('')
 
     setStatus('saving')
     try {
@@ -120,15 +154,26 @@ export default function RsvpSection() {
                     autoComplete="off"
                     value={a.name}
                     onChange={(e) => updateGuest(g.guestId, (c) => (c.name = e.target.value))}
+                    {...invalid(problemFor(`name-${g.guestId}`), `name-${g.guestId}-note`)}
                   />
+                  <FieldNote problem={problemFor(`name-${g.guestId}`)} id={`name-${g.guestId}-note`} />
                 </div>
               )}
 
               {g.invitedEvents.map((eventId) => {
                 const ev = eventsById[eventId]
                 const group = `${g.guestId}-${eventId}`
+                const problem = problemFor(group)
                 return (
-                  <div key={eventId} className="rsvp-event" role="radiogroup" aria-label={`${ev.name}, ${displayName(g)}`}>
+                  <div
+                    key={eventId}
+                    id={group}
+                    tabIndex={-1}
+                    className={problem ? 'rsvp-event missing' : 'rsvp-event'}
+                    role="radiogroup"
+                    aria-label={`${ev.name}, ${displayName(g)}`}
+                    {...invalid(problem, `${group}-note`)}
+                  >
                     <p className="rsvp-event-name">
                       {ev.name}
                       <span>
@@ -153,6 +198,7 @@ export default function RsvpSection() {
                         </span>
                       ))}
                     </div>
+                    <FieldNote problem={problem} id={`${group}-note`} />
                   </div>
                 )
               })}
@@ -182,7 +228,9 @@ export default function RsvpSection() {
               placeholder={onFile.email ? 'On file. Leave blank to keep it.' : 'you@example.com'}
               value={contact.email}
               onChange={(e) => updateContact('email', e.target.value)}
+              {...invalid(problemFor('rsvp-email'), 'rsvp-email-note')}
             />
+            <FieldNote problem={problemFor('rsvp-email')} id="rsvp-email-note" />
           </div>
           <div className="rsvp-field">
             <label htmlFor="rsvp-phone">Phone</label>
@@ -211,15 +259,29 @@ export default function RsvpSection() {
           </div>
         </fieldset>
 
+        {problems.length > 0 && (
+          <FormMessage>
+            {problems.length === 1
+              ? 'One answer still needs your attention. It’s marked in red above.'
+              : `${problems.length} answers still need your attention. They’re marked in red above.`}
+          </FormMessage>
+        )}
         {error && (
-          <p className="form-error" role="alert">
-            {error}
-          </p>
+          <FormMessage>
+            {error === LOGGED_OUT ? (
+              <>
+                Your invitation has been signed out (the passcode may have changed).{' '}
+                <button type="button" className="link-button" onClick={logout}>
+                  Find your invitation again
+                </button>
+              </>
+            ) : (
+              error
+            )}
+          </FormMessage>
         )}
         {status === 'saved' && (
-          <p className="form-success" role="status">
-            Thank you! Your RSVP is saved. You can change it any time.
-          </p>
+          <FormMessage kind="success">Thank you! Your RSVP is saved. You can change it anytime before January 15.</FormMessage>
         )}
 
         <button className="button rsvp-submit" type="submit" disabled={status === 'saving'}>
@@ -227,5 +289,21 @@ export default function RsvpSection() {
         </button>
       </form>
     </Section>
+  )
+}
+
+// For a box or question with a problem: tells screen readers it needs fixing
+// and which note explains why.
+function invalid(problem, noteId) {
+  return problem ? { 'aria-invalid': true, 'aria-describedby': noteId } : {}
+}
+
+// The short red note under a box or question that needs fixing.
+function FieldNote({ problem, id }) {
+  if (!problem) return null
+  return (
+    <p id={id} className="field-note">
+      {problem.message}
+    </p>
   )
 }

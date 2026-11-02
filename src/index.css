@@ -2195,6 +2195,7 @@ img.nugget-photo {
   --petal: #ddf0ff;
   --stem: #e2f3ff;
   --ink: #003459;          /* body text: dark blue */
+  --error: #b3261e;        /* problems to fix in a form: a clear red */
   --font-display: 'Archivo', 'Arial Black', Helvetica, sans-serif;
   --font-script: 'Pinyon Script', 'Snell Roundhand', cursive;
   --font-ui: 'Archivo', Helvetica, Arial, sans-serif;
@@ -2409,11 +2410,111 @@ img.nugget-photo {
   text-transform: uppercase;
 }
 
-[data-design='honey'] .rsvp .form-error,
-[data-design='honey'] .form-success {
+/* ----- Login form: pill boxes and button, like the RSVP form ----- */
+
+[data-design='honey'] .field-row input {
+  padding: 12px 20px;
+  border: 1.5px solid var(--ink);
+  border-radius: 999px;
+  background: transparent;
   font-family: var(--font-ui);
-  color: var(--ink);
+  font-size: 0.95rem;
 }
+
+[data-design='honey'] .field-row input::placeholder {
+  color: var(--ink);
+  opacity: 0.5;
+}
+
+[data-design='honey'] .field-row input:focus {
+  outline: 2px solid var(--ink);
+  outline-offset: 2px;
+}
+
+[data-design='honey'] .field-row .button {
+  padding: 12px 26px;
+  border-width: 1.5px;
+  border-radius: 999px;
+}
+
+/* ----- Form messages and problems (login and RSVP) ----- */
+
+/* A message under a form, with a small round icon: red "!" for a problem,
+   dark-blue check for success. */
+[data-design='honey'] .form-error,
+[data-design='honey'] .form-success {
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  gap: 8px;
+  margin: 14px 0 0;
+  font-family: var(--font-ui);
+  font-size: 0.9rem;
+  line-height: 1.4;
+  text-align: left;
+}
+
+[data-design='honey'] .form-error {
+  color: var(--error);
+}
+
+[data-design='honey'] .form-success {
+  color: var(--ink);
+  font-weight: 600;
+}
+
+[data-design='honey'] .rsvp .form-error,
+[data-design='honey'] .rsvp .form-success {
+  margin: 0;
+}
+
+.form-message-icon {
+  flex: none;
+  width: 18px;
+  height: 18px;
+  margin-top: 0.05em;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+/* The link inside a message ("Find your invitation again"). */
+[data-design='honey'] .form-error .link-button {
+  margin: 0;
+  padding: 0;
+  font-size: inherit;
+  color: inherit;
+}
+
+/* A box or question that needs fixing: outlined in red, with a short red
+   note underneath. */
+[data-design='honey'] input[aria-invalid='true'],
+[data-design='honey'] .rsvp-event.missing .rsvp-choices {
+  border-color: var(--error);
+}
+
+/* Typing in a box that needs fixing: its focus ring is red too. */
+[data-design='honey'] input[aria-invalid='true']:focus {
+  outline-color: var(--error);
+}
+
+[data-design='honey'] .rsvp-event.missing .rsvp-event-name {
+  color: var(--error);
+}
+
+[data-design='honey'] .field-note {
+  margin: 8px 0 0;
+  color: var(--error);
+  font-family: var(--font-ui);
+  font-size: 0.82rem;
+}
+
+[data-design='honey'] .rsvp-event:focus {
+  outline: none; /* it's only focused to bring the keyboard to it */
+}
+
 
 @media (max-width: 480px) {
   [data-design='honey'] .rsvp-guest {

@@ -2,9 +2,13 @@
 //   Step 1: type your first and last name.
 //   (If several guests share that name, a popup asks which one you are.)
 //   Step 2: type the wedding passcode (the same for everyone, printed on the invitation).
+// If something's wrong (a blank box, a name that isn't on the list, the wrong
+// passcode, no internet), a message appears under the box, the box is outlined
+// in red, and the cursor goes back into it so the guest can fix it.
 import { useRef, useState } from 'react'
 import { searchGuests } from '../../api/rsvpApi.js'
 import { useGuest } from '../../guest/GuestProvider.jsx'
+import FormMessage from '../FormMessage.jsx'
 
 export default function FindInvitation() {
   const { login } = useGuest()
@@ -15,10 +19,19 @@ export default function FindInvitation() {
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState('')
   const dialog = useRef(null)
+  const nameBox = useRef(null)
+  const codeBox = useRef(null)
+
+  // Shows a problem and puts the cursor back in the box to fix it.
+  function fail(message, box) {
+    setError(message)
+    box.current?.focus()
+  }
 
   // Step 1: look up the name.
   async function findName(event) {
     event.preventDefault() // stop the browser from reloading the page
+    if (!name.trim()) return fail('Please enter your first and last name.', nameBox)
     setError('')
     setBusy(true)
     try {
@@ -30,7 +43,7 @@ export default function FindInvitation() {
         dialog.current.showModal() // "Which one is you?"
       }
     } catch (err) {
-      setError(err.message)
+      fail(err.message, nameBox)
     } finally {
       setBusy(false)
     }
@@ -44,13 +57,14 @@ export default function FindInvitation() {
   // Step 2: check the passcode. On success the whole site opens, so this form goes away.
   async function openInvitation(event) {
     event.preventDefault()
+    if (!code.trim()) return fail('Please enter the passcode from your invitation.', codeBox)
     setError('')
     setBusy(true)
     try {
       await login(guest.guestId, code)
     } catch (err) {
-      setError(err.message)
       setBusy(false)
+      fail(err.message, codeBox)
     }
   }
 
@@ -63,36 +77,38 @@ export default function FindInvitation() {
   return (
     <div className="find-invitation">
       {!guest ? (
-        <form onSubmit={findName}>
+        <form onSubmit={findName} noValidate>
           <label htmlFor="guest-name">Find your invitation</label>
           <div className="field-row">
             <input
+              ref={nameBox}
               id="guest-name"
               type="text"
               autoComplete="name"
               placeholder="First and last name"
               value={name}
-              onChange={(e) => setName(e.target.value)}
+              onChange={(e) => {
+                setName(e.target.value)
+                setError('') // the message goes away once they start fixing it
+              }}
               required
+              aria-invalid={Boolean(error)}
+              aria-describedby={error ? 'login-error' : undefined}
             />
             <button className="button" type="submit" disabled={busy}>
               {busy ? 'Searching…' : 'Continue'}
             </button>
           </div>
-          {/* role="alert" makes screen readers announce the message. */}
-          {error && (
-            <p className="form-error" role="alert">
-              {error}
-            </p>
-          )}
+          {error && <FormMessage id="login-error">{error}</FormMessage>}
         </form>
       ) : (
-        <form onSubmit={openInvitation}>
+        <form onSubmit={openInvitation} noValidate>
           <label htmlFor="invite-code">
             Hi, {guest.name.split(' ')[0]}! Enter the passcode from your invitation.
           </label>
           <div className="field-row">
             <input
+              ref={codeBox}
               id="invite-code"
               type="text"
               autoComplete="off"
@@ -100,20 +116,20 @@ export default function FindInvitation() {
               spellCheck="false"
               placeholder="Passcode"
               value={code}
-              onChange={(e) => setCode(e.target.value)}
+              onChange={(e) => {
+                setCode(e.target.value)
+                setError('')
+              }}
               required
               autoFocus
+              aria-invalid={Boolean(error)}
+              aria-describedby={error ? 'login-error' : undefined}
             />
             <button className="button" type="submit" disabled={busy}>
               {busy ? 'Opening…' : 'Open invitation'}
             </button>
           </div>
-          {/* role="alert" makes screen readers announce the message. */}
-          {error && (
-            <p className="form-error" role="alert">
-              {error}
-            </p>
-          )}
+          {error && <FormMessage id="login-error">{error}</FormMessage>}
           <button type="button" className="link-button" onClick={startOver}>
             Not {guest.name.split(' ')[0]}? Search again
           </button>
