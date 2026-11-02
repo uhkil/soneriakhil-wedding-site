@@ -2714,7 +2714,7 @@ img.nugget-photo {
   margin-top: 8px;
   padding: 14px 40px;
   border-width: 1.5px;
-  border-radius: 999px;
+  border-radius: 20px; /* softly rounded, like the RSVP button under the countdown */
   font-size: 0.8rem;
   letter-spacing: 0.16em;
   text-transform: uppercase;
@@ -3517,24 +3517,33 @@ img.nugget-photo {
   white-space: nowrap;
 }
 
-/* The countdown: about 40% of the page wide, with plenty of space above it
-   (so the couple gets the spotlight) and below it. */
+/* The countdown and the RSVP button below it share one amount of space
+   (--home-gap) above and below: from the couple's feet to the countdown,
+   and from the button to the "Our Story" title. */
+.honey {
+  --home-gap: clamp(160px, 28vh, 300px);
+}
+
+/* The countdown: about a third of the page wide. (28px less margin than
+   the gap: the drawing's feet sit about 12px above the bottom of the
+   animation's area, and there's 16px of room below that area.) */
 .countdown {
   position: relative;
   width: 32%;
   min-width: min(300px, calc(100% - 32px));
-  margin: clamp(96px, 22vh, 240px) auto 0;
+  margin: calc(var(--home-gap) - 28px) auto 0;
   color: var(--ink);
 }
 
-/* The RSVP button under the countdown, then plenty of room before Our Story. */
+/* The RSVP button under the countdown. Below it: the same space as above
+   the countdown, less Our Story's own 96px of top padding. */
 .countdown-rsvp {
   display: block;
   width: fit-content;
-  margin: 44px auto clamp(140px, 26vh, 280px);
+  margin: 55px auto calc(var(--home-gap) - 96px);
   padding: 14px 40px;
   border-width: 1.5px;
-  border-radius: 999px;
+  border-radius: 20px; /* softly rounded, not a full pill */
   font-size: 0.8rem;
   letter-spacing: 0.16em;
   text-transform: uppercase;
@@ -3576,9 +3585,11 @@ img.nugget-photo {
 
 /* Phones: the countdown spans most of the width. */
 @media (max-width: 720px) {
+  .honey {
+    --home-gap: clamp(130px, 20vh, 190px);
+  }
   .countdown {
     width: calc(100% - 32px);
-    margin-top: 96px;
   }
   .countdown-label {
     font-size: 0.56rem;
