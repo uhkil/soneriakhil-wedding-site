@@ -739,7 +739,7 @@ summary:focus-visible {
   position: absolute;
   top: 50%;
   translate: 0 -50%;
-  height: 0.95em;
+  height: 1.425em;
   background: var(--ink);
 }
 
@@ -761,7 +761,7 @@ summary:focus-visible {
 
 /* ---------- Events: a disco ball beside the title ---------- */
 
-/* 140% as tall as the capital letters, hanging off the right of the word
+/* 2.8 times as tall as the capital letters, hanging off the right of the word
    (which stays centered). It's taller than the letters, so the title gets
    extra room below before the first date. */
 .title-disco {
@@ -769,10 +769,10 @@ summary:focus-visible {
   left: 100%;
   top: 50%;
   translate: 0 -50%;
-  height: 1em; /* older browsers: about 1.4 × the capital letters */
-  height: 1.4cap;
+  height: 2em; /* older browsers: about 2.8 × the capital letters */
+  height: 2.8cap;
   aspect-ratio: 758 / 721;
-  margin-left: 0.3em;
+  margin-left: 0.9em;
   background: var(--ink);
   -webkit-mask: url('/assets/art/discoball.svg') center / contain no-repeat;
   mask: url('/assets/art/discoball.svg') center / contain no-repeat;
