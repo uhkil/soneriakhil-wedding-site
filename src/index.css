@@ -790,6 +790,20 @@ summary:focus-visible {
   aspect-ratio: 552 / 750;
 }
 
+/* The hummingbird Soneri is trying to see: to the left of Akhil, facing
+   right toward him, its beak just above the top of his hair. Positions are
+   shares of the title's letter size, so it stays put at any screen size
+   (0.42em ≈ 34px between the beak's tip and Akhil's back on laptops).
+   (Akhil's drawing is 1.096em wide and ends 0.4em left of the word, so it
+   starts 1.496em left of the word.) */
+.title-hummingbird {
+  position: absolute;
+  right: calc(100% + 1.496em + var(--bird-gap, 0.42em));
+  bottom: var(--bird-bottom, 1.31em);
+  height: 0.55em;
+  aspect-ratio: 755 / 800;
+}
+
 /* ---------- Events: a disco ball beside the title ---------- */
 
 /* 2.8 times as tall as the capital letters, hanging off the right of the word
@@ -806,8 +820,10 @@ summary:focus-visible {
   margin-left: 0.9em;
 }
 
+/* The disco ball hangs below the letters (about 0.48 of the letter size),
+   so the space under the title counts from the bottom of the ball. */
 #events h2 {
-  margin-bottom: 96px; /* the other titles have 56px */
+  --title-hang: 0.48em;
 }
 
 /* Titles with a drawing beside them that rises above the letters (the two
@@ -835,11 +851,6 @@ summary:focus-visible {
 .title-word {
   position: relative;
   white-space: nowrap;
-}
-
-/* Plenty of room between the title and the note below it. */
-#registry h2 {
-  margin-bottom: 72px;
 }
 
 .title-hands {
@@ -961,10 +972,11 @@ h2:hover .title-berry.mirrored {
 
 /* Scale: drawing units → pixels. 0.3323 makes the coffee date 320px wide;
    each drawing's width comes from its own size (--art-width, from art.js),
-   so the people in every drawing come out the same size. */
+   times its "peopleSize" (--art-adjust), so the two of us come out the same
+   size in every drawing. */
 .illustration-slot.corner-art {
   --corner-art-scale: 0.3323;
-  max-width: calc(var(--art-width) * var(--corner-art-scale) * 1px);
+  max-width: calc(var(--art-width) * var(--corner-art-scale) * var(--art-adjust, 1) * 1px);
   /* It's the first thing in its section, just above the title, with 240px
      of space above and below it (iPad and laptop; phones have their own
      rule below). Above, the two sections' padding (96px each) makes 192px,
@@ -1002,7 +1014,7 @@ h2:hover .title-berry.mirrored {
   }
 }
 
-/* Phones: about half the width, on its own side (right-hand drawings on
+/* Phones: about half the width (each sized so the people match), on its own side (right-hand drawings on
    the right, left-hand ones on the left), leaving room beside it for its
    pop-up. Phones also get enough empty space above and below each drawing
    that, scrolled to the middle of the screen, it's the only thing showing:
@@ -1011,8 +1023,11 @@ h2:hover .title-berry.mirrored {
    space above already includes the two sections' padding (96px each). */
 @media (max-width: 699px) {
   .illustration-slot.corner-art {
-    width: 55%;
-    --art-height: calc((100vw - 48px) * 0.55 / var(--art-ratio));
+    /* The coffee date takes 55% of the width; the others are sized from it
+       the same way as on bigger screens, so the people match here too. */
+    --phone-share: calc(0.55 * var(--art-width) * var(--art-adjust, 1) / 963);
+    width: calc(var(--phone-share) * 100%);
+    --art-height: calc((100vw - 48px) * var(--phone-share) / var(--art-ratio));
     --clear-space: calc((100lvh - var(--nav-height) - var(--art-height)) / 2 + 24px);
     margin-top: max(0px, calc(var(--clear-space) - 192px));
     margin-bottom: max(192px, var(--clear-space));
@@ -1181,6 +1196,11 @@ li.has-thin {
 img.nugget-photo {
   border: none;
   border-radius: 0;
+}
+
+/* A light-blue frame around the photos (the strip's rounded window). */
+.nugget-carousel-strip {
+  border: 2px solid var(--paper);
 }
 
 /* Round arrows over the photo's left and right edges; faded at either end. */
@@ -1850,6 +1870,24 @@ img.nugget-photo {
 .memory-grid .photo-placeholder {
   height: 100%;
   aspect-ratio: auto;
+}
+
+/* Each grid photo sits in a thin dark-blue frame (3px) with rounded corners
+   (12px, like the site's pills and inner boxes), with a light-blue line
+   (3px) between the frame and the photo. The frame's padding holds both:
+   3px of dark blue, then the 3px line drawn just outside the photo. The
+   photo's corners (6px) follow the frame's curve. */
+.memory-grid .photo-button {
+  box-sizing: border-box;
+  padding: 6px;
+  border-radius: 12px;
+  background: var(--ink);
+}
+
+.memory-grid .photo-slot {
+  overflow: hidden;
+  border-radius: 6px;
+  box-shadow: 0 0 0 3px var(--paper); /* the light-blue line */
 }
 
 /* The page dots: small outlined circles; the current page's is filled. */
@@ -2616,17 +2654,8 @@ img.nugget-photo {
   margin-left: calc(50% - 50vw);
 }
 
-/* Two dark-blue cards side by side (like the RSVP cards), stacked on
-   phones. Each title sits in a light-blue pill; the details are rows of a
-   small spaced-out label and its value. */
-.travel-cards {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 24px;
-  align-items: start; /* each card only as tall as its content */
-  margin-top: 56px;
-}
-
+/* The dark-blue card (like the RSVP cards). Its title sits in a light-blue
+   pill; details are rows of a small spaced-out label and its value. */
 .travel-card {
   padding: 32px 28px 30px;
   border-radius: 24px;
@@ -2706,6 +2735,7 @@ img.nugget-photo {
 .external-link {
   color: inherit;
   text-decoration: none;
+  white-space: nowrap; /* the icon never ends up on a line by itself */
 }
 
 .external-link:hover,
@@ -2726,12 +2756,6 @@ img.nugget-photo {
   stroke-linejoin: round;
 }
 
-@media (max-width: 760px) {
-  .travel-cards {
-    grid-template-columns: 1fr;
-  }
-}
-
 @media (max-width: 420px) {
   .travel-card {
     padding: 24px 20px;
@@ -2739,6 +2763,162 @@ img.nugget-photo {
   .travel-facts > div {
     grid-template-columns: 1fr;
     gap: 4px;
+  }
+}
+
+/* ----- Travel: a toggle picks a topic, shown in one big card ----- */
+
+/* The Memories toggle, with one button per topic. */
+.travel-toggle {
+  grid-template-columns: repeat(var(--count), auto);
+  margin: 56px auto 40px; /* 40px between the toggle and the card below */
+}
+
+.travel-toggle::before {
+  width: calc((100% - 6px) / var(--count));
+}
+
+.travel-toggle button {
+  min-width: 10.5em;
+}
+
+/* One big card for the chosen topic: as tall as its text needs. */
+.travel-panel {
+  padding: 36px 40px 38px;
+}
+
+/* Phones: the toggle spans the width, its buttons sharing it evenly. */
+@media (max-width: 699px) {
+  .travel-toggle {
+    grid-template-columns: repeat(var(--count), 1fr);
+    width: 100%;
+    box-sizing: border-box;
+  }
+  .travel-toggle button {
+    min-width: 0;
+    padding: 9px 8px;
+  }
+  .travel-panel {
+    padding: 26px 22px 28px;
+  }
+}
+
+/* What a topic says: paragraphs, lists, boxes. */
+.travel-text p {
+  margin: 0 0 14px;
+}
+
+.travel-text ul {
+  margin: 0 0 14px;
+  padding-left: 1.1em;
+}
+
+.travel-text li + li {
+  margin-top: 6px;
+}
+
+.travel-text .travel-facts {
+  margin: 4px 0 22px;
+}
+
+/* Two boxes side by side (e.g. one for each airport), stacked on phones. */
+.travel-boxes {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 18px;
+  margin: 18px 0 6px;
+}
+
+.travel-box {
+  padding: 18px 20px 6px;
+  border: 1.5px solid currentColor;
+  border-radius: 18px;
+}
+
+.travel-box h4 {
+  margin: 2px 0 8px;
+  font: 700 1.05rem/1.2 var(--font-ui);
+}
+
+.travel-text .travel-box-label {
+  margin: 0;
+  font: 500 0.66rem/1.3 var(--font-ui);
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+}
+
+@media (max-width: 699px) {
+  .travel-boxes {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Where to stay: a short opening, the key details in a row, then a
+   light-blue box that makes sure guests book through the room block. */
+.travel-text .travel-lead {
+  margin-bottom: 26px;
+}
+
+.travel-stats {
+  /* Each detail gets an equal share of the row. */
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: 1fr;
+  gap: 18px;
+  margin: 0 0 28px;
+  padding: 20px 0;
+  border-block: 1px solid rgba(202, 233, 255, 0.25);
+}
+
+.travel-stats dt {
+  margin-bottom: 6px;
+  font: 500 0.66rem/1.3 var(--font-ui);
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+}
+
+.travel-stats dd {
+  margin: 0;
+}
+
+.travel-callout {
+  padding: 24px 26px 26px;
+  border-radius: 18px;
+  background: var(--paper);
+  color: var(--ink);
+}
+
+.travel-text .travel-callout-title {
+  margin-bottom: 6px;
+  font: 700 1.1rem/1.25 var(--font-ui);
+}
+
+.travel-text .travel-callout p {
+  margin-bottom: 20px;
+}
+
+.travel-text .travel-callout .travel-callout-title {
+  margin-bottom: 6px;
+}
+
+[data-design='honey'] .travel-callout-button {
+  display: inline-flex;
+  align-items: center;
+  padding: 13px 26px;
+  border-radius: 16px;
+  font-size: 0.78rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  text-decoration: none;
+}
+
+@media (max-width: 699px) {
+  .travel-callout {
+    padding: 20px 18px 22px;
+  }
+  [data-design='honey'] .travel-callout-button {
+    display: flex;
+    justify-content: center;
   }
 }
 
@@ -2832,7 +3012,7 @@ img.nugget-photo {
 
 .rsvp-intro {
   text-align: center;
-  margin: -24px 0 32px;
+  margin: 0 0 32px;
 }
 
 .rsvp form {
@@ -3038,6 +3218,20 @@ img.nugget-photo {
 
 [data-design='honey'] h2::after {
   display: none;
+}
+
+/* Under every section title: 56px of space between the lowest point of the
+   title row (the letters, or a drawing beside them that hangs lower) and
+   the first thing below. --title-hang is how far below the letters' box
+   that lowest point is, as a share of the letter size: the words with
+   drawings beside them sit in a box that runs a hair lower, and the disco
+   ball hangs well below (see #events h2). Measured in the browser. */
+.section h2 {
+  margin-bottom: calc(56px + var(--title-hang, 0em));
+}
+
+.section h2:has(.title-word) {
+  --title-hang: 0.065em;
 }
 
 /* Reading text and smaller titles stay in the serif. */
@@ -3421,6 +3615,27 @@ img.nugget-photo {
 
 @keyframes spin {
   to { transform: rotate(360deg); }
+}
+
+/* Phones only: under the name box, one short line suggesting a laptop or
+   tablet. Small and soft so it doesn't compete with the form, and sized to
+   the screen so it always fits on one line. */
+.invitation-device-note {
+  display: none;
+}
+
+@media (max-width: 699px) {
+  .invitation-device-note {
+    display: block;
+    margin: 14px 0 0;
+    font-family: var(--font-ui);
+    font-size: min(0.78rem, 2.95vw);
+    font-style: normal;
+    line-height: 1.3;
+    white-space: nowrap;
+    text-align: center;
+    color: rgba(0, 52, 89, 0.8);
+  }
 }
 
 [data-design='honey'] .find-invitation .link-button {
@@ -3883,6 +4098,16 @@ img.nugget-photo {
   margin: 0;
 }
 
+/* Each block's two lines (the dates and the place; "Welcome," and the
+   names), with 8px between them. */
+.honey-details p span {
+  display: block;
+}
+
+.honey-details p span + span {
+  margin-top: 8px;
+}
+
 .honey-welcome {
   text-align: right;
 }
@@ -4296,6 +4521,88 @@ img.nugget-photo {
   letter-spacing: 0.32em;
   text-transform: uppercase;
   margin-right: -0.32em; /* keeps the spaced-out word centered */
+}
+
+/* The ticker: "get ready to dance in" repeated in one line across the whole
+   page, level with the numbers and behind them, drifting slowly left to
+   right. Each number-and-label pair sits on a patch of the page's light
+   blue (with room either side), so the moving words only show in the gaps
+   between them. The line is written out twice; moving it by exactly one
+   copy and starting again loops without a jump. Still, for anyone who has
+   asked their device for less motion. */
+.countdown-ticker {
+  position: absolute;
+  z-index: 0;
+  top: 0;
+  left: calc(50% - 50vw);
+  width: 100vw;
+  height: clamp(1.36rem, 2.72vw, 2.56rem); /* the numbers' height */
+  overflow: hidden;
+  user-select: none;
+}
+
+.countdown-ticker-track {
+  display: flex;
+  width: max-content;
+  height: 100%;
+  animation: ticker-right 145s linear infinite; /* about 65px a second on laptops */
+}
+
+.countdown-ticker-track span {
+  display: flex;
+  align-items: center;
+  white-space: pre;
+  font-family: var(--font-display);
+  /* The same size and face as the numbers, in a softer blue so the
+     numbers stay the focus. */
+  font-weight: 900;
+  font-stretch: 125%;
+  font-size: clamp(1.36rem, 2.72vw, 2.56rem);
+  line-height: 1;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: rgba(0, 52, 89, 0.42);
+}
+
+/* It stops while the pointer is over the moving words or the countdown. */
+.countdown:hover .countdown-ticker-track {
+  animation-play-state: paused;
+}
+
+@keyframes ticker-right {
+  from {
+    translate: -50% 0;
+  }
+  to {
+    translate: 0 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .countdown-ticker-track {
+    animation: none;
+  }
+}
+
+/* Phones: no ticker (the gaps between the numbers are too narrow for it). */
+@media (max-width: 699px) {
+  .countdown-ticker {
+    display: none;
+  }
+}
+
+.countdown-units {
+  position: relative;
+  z-index: 1; /* on top of the ticker */
+}
+
+.countdown-unit {
+  padding: 0 14px;
+  background: var(--paper);
+}
+
+#home {
+  overflow-x: clip; /* the full-width ticker never makes the page scroll sideways */
 }
 
 /* Phones: the countdown spans most of the width. */

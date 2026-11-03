@@ -19,15 +19,14 @@ export default function HoneyBanner({ welcome, dates, countdownTo }) {
             <span>Akhil</span>
           </h1>
           <div className="honey-details">
+            {/* Two lines each, with a little room between them (see .honey-details). */}
             <p>
-              {dates}
-              <br />
-              Arlington, TX
+              <span>{dates}</span>
+              <span>Arlington, TX</span>
             </p>
             <p className="honey-welcome">
-              Welcome,
-              <br />
-              {welcome}
+              <span>Welcome,</span>
+              <span>{welcome}</span>
             </p>
           </div>
         </div>

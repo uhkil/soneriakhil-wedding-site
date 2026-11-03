@@ -21,6 +21,10 @@ function timeLeft(to) {
 
 const two = (n) => String(n).padStart(2, '0')
 
+// How many times the line repeats in each half of the ticker (enough to
+// reach across the widest screens).
+const TICKER_REPEATS = 12
+
 export default function Countdown({ to = WEEKEND }) {
   const [left, setLeft] = useState(() => timeLeft(to))
 
@@ -40,6 +44,15 @@ export default function Countdown({ to = WEEKEND }) {
     <div className="countdown">
       {/* Screen readers get one short sentence instead of numbers changing every second. */}
       <p className="visually-hidden">{left.days} days until the wedding</p>
+      {/* Behind the numbers: "get ready to dance in" repeated, drifting left to
+          right, showing in the gaps between the numbers (see .countdown-ticker). */}
+      <div className="countdown-ticker" aria-hidden="true">
+        <div className="countdown-ticker-track">
+          {Array.from({ length: 2 }, (_, half) => (
+            <span key={half}>{'get ready to dance in · '.repeat(TICKER_REPEATS)}</span>
+          ))}
+        </div>
+      </div>
       <div className="countdown-units" aria-hidden="true">
         {units.map(([value, label]) => (
           <div key={label} className="countdown-unit">

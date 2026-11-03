@@ -53,7 +53,13 @@ export default function IllustrationSlot({ name, size = 'medium', className = ''
       // --art-width: the drawing's own width, so drawings in a group (e.g.
       // "corner-art" in index.css) can share one scale. --art-ratio: its
       // shape (width ÷ height), used to work out its height on phones.
-      style={{ aspectRatio: item.ratio, '--art-width': parseFloat(item.ratio), '--art-ratio': ratioValue(item.ratio) }}
+      // --art-adjust: "peopleSize" from art.js, so the people match in size.
+      style={{
+        aspectRatio: item.ratio,
+        '--art-width': parseFloat(item.ratio),
+        '--art-ratio': ratioValue(item.ratio),
+        '--art-adjust': item.peopleSize ?? 1,
+      }}
     >
       {item.src && item.tint ? (
         // The drawing, already in the dark blue (see "tint" in art.js).

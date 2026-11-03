@@ -20,6 +20,9 @@
 // after it in lighter letters (e.g. Zion + "National Park").
 // Also optional: "gap" (space between the drawing and the card, in px),
 // "width" (the card's width, e.g. '20em'), "oneLine" (keep it on one line),
+// "peopleSize" (side drawings only): makes the drawing bigger or smaller so
+// the two of us come out the same size in every drawing (the coffee date is
+// the 1). Measured by eye from Akhil's head; nudge it if one looks off.
 // "gallery" (photos shown one at a time, with arrows and dots to step through
 // them: { src: 'assets/...', alt: '...' }; a plain label string shows a
 // placeholder instead).
@@ -44,7 +47,7 @@ const art = {
         { label: 'Phase 10', href: 'https://www.amazon.com/dp/B01N3489RH?plpRedirect=mhFallback&ref=clp_hp_h_pc&th=1' },
         {
           label: 'Tailspin',
-          note: '– only available in India :-/',
+          note: '– only available in India',
           href: 'https://www.amazon.in/Tailspin-Word-Game-Intelligent-Building/dp/B09HSL5W4W',
         },
         { label: 'Anthropeum', href: 'https://anthropeum.com/' },
@@ -53,6 +56,7 @@ const art = {
   },
   eventsVignette: {
     src: 'assets/art/museum-date.webp',
+    peopleSize: 1.34, // so the two of us come out the same size as in the coffee date
     ratio: '597 / 784',
     tint: true,
     note: 'The two of us at a museum, looking at a painting',
@@ -61,7 +65,7 @@ const art = {
       heading: 'museums we’ve enjoyed',
       text: 'go check them out for yourself :-)',
       links: [
-        { label: 'Guggenheim Museum', href: 'https://maps.app.goo.gl/Cx2BtPArGGPXj9d67' },
+        { label: 'Guggenheim Museum', href: 'https://maps.app.goo.gl/9N26RML1zH1MLGu69' },
         { label: 'Frida Kahlo Museum', href: 'https://maps.app.goo.gl/5jcZPBLdUXwp6aUq5' },
         { label: 'The Met Cloisters', href: 'https://maps.app.goo.gl/eWqjgf25a5Jh2CPV6' },
         { label: 'Blanton Museum of Art', href: 'https://maps.app.goo.gl/3DLSNmFDV7U6J1rw8' },
@@ -74,6 +78,7 @@ const art = {
   },
   registryVignette: {
     src: 'assets/art/pottery-date.webp',
+    peopleSize: 0.78, // so the two of us come out the same size as in the coffee date
     ratio: '885 / 1017',
     tint: true,
     note: 'The two of us at a pottery class',
@@ -94,6 +99,7 @@ const art = {
   },
   travelVignette: {
     src: 'assets/art/basketball-date.webp',
+    peopleSize: 1.15, // so the two of us come out the same size as in the coffee date
     ratio: '1015 / 775',
     tint: true,
     note: 'The two of us playing basketball',
@@ -131,6 +137,7 @@ const art = {
   rsvpCouple: {
     // Top right of the RSVP section, above the title (one of the corner drawings).
     src: 'assets/art/hiking-date.webp',
+    peopleSize: 1.09, // so the two of us come out the same size as in the coffee date
     ratio: '799 / 1104',
     tint: true,
     note: 'The two of us out on a hike',

@@ -1,29 +1,71 @@
-// Getting there and where to stay: two dark-blue cards side by side (stacked
-// on phones), each with its title in a light-blue pill and a few details.
+// Getting there and where to stay: a pill toggle (like Memories') picks a
+// topic, shown in one big dark-blue card that grows to fit its text.
+import { useState } from 'react'
 import Section from '../components/Section.jsx'
-import PhotoSlot from '../components/PhotoSlot.jsx'
 import IllustrationSlot from '../components/IllustrationSlot.jsx'
 
-// Edit these to fill in the details. Each line is [label, what to show].
-const gettingThere = [
-  ['Fly into', 'Details to come'],
-  ['From the airport', 'Details to come'],
-  ['Getting around', 'Details to come'],
-]
-
+// ----- The details. -----
 const ROOM_BLOCK = 'https://www.loewshotels.com/arlington-hotel/wedding-soneri-akhil-patel-wedding-room-block'
 
-const whereToStay = [
-  ['Hotel', 'Loews Arlington'],
-  [
-    'Room block',
-    // Opens the hotel's booking page in a new tab.
-    <a className="external-link" href={ROOM_BLOCK} target="_blank" rel="noreferrer">
-      Soneri &amp; Akhil room block
-      <ExternalIcon />
-    </a>,
-  ],
-  ['Book by', 'March 1, 2027'],
+// ----- The topics (one tab each, in this order; the first shows first). -----
+// A topic can hold as much as it needs: paragraphs, lists, boxes and links.
+const topics = [
+  {
+    id: 'where-to-stay',
+    title: 'Where to stay',
+    body: (
+      <>
+        <p className="travel-lead">
+          We recommend staying at <strong>Loews Arlington</strong>. It’s connected to Live! by Loews, where most of the
+          wedding events will be held, and we’ve secured a discounted room rate for our guests.
+        </p>
+
+        {/* The key details, side by side (stacked on phones). */}
+        <dl className="travel-stats">
+          <div>
+            <dt>Hotel</dt>
+            <dd>Loews Arlington</dd>
+          </div>
+          <div>
+            <dt>Book by</dt>
+            <dd>March 1, 2027</dd>
+          </div>
+        </dl>
+
+        {/* The one thing not to miss: book through the room block. */}
+        <div className="travel-callout">
+          <p className="travel-callout-title">Please book through our room block</p>
+          <p>The discounted rate is only available through our link. Rooms booked any other way will cost more.</p>
+          {/* Opens the hotel's booking page in a new tab. */}
+          <a className="button travel-callout-button" href={ROOM_BLOCK} target="_blank" rel="noreferrer">
+            Book with our room block
+            <ExternalIcon />
+          </a>
+        </div>
+      </>
+    ),
+  },
+  {
+    id: 'getting-there',
+    title: 'Getting there',
+    body: (
+      <>
+        <p>Arlington sits between Dallas and Fort Worth, so there are two airports to choose from.</p>
+        <div className="travel-boxes">
+          <div className="travel-box">
+            <p className="travel-box-label">Likely your best option</p>
+            <h4>DFW International</h4>
+            <p>A 15-minute drive (12 miles) from the hotel.</p>
+          </div>
+          <div className="travel-box">
+            <p className="travel-box-label">If you fly Southwest or Delta</p>
+            <h4>Dallas Love Field</h4>
+            <p>A 25-minute drive (21 miles) from the hotel.</p>
+          </div>
+        </div>
+      </>
+    ),
+  },
 ]
 
 export default function TravelSection() {
@@ -32,36 +74,38 @@ export default function TravelSection() {
       {/* Corner art just above the title (see "corner-art" in index.css). */}
       <IllustrationSlot name="travelVignette" size="small" className="corner-art corner-art-right" />
       <h2>Travel &amp; Accommodations</h2>
-
-      <div className="travel-cards">
-        <TravelCard title="Getting there" details={gettingThere} />
-        <TravelCard title="Where to stay" details={whereToStay}>
-          {/* A drawing of the hotel, Live! by Loews, on light blue. */}
-          <PhotoSlot
-            src="assets/travel/live-by-loews.webp"
-            alt="A drawing of the Live! by Loews hotel in Arlington"
-            className="travel-photo"
-          />
-        </TravelCard>
-      </div>
+      <TravelTabs />
     </Section>
   )
 }
 
-function TravelCard({ title, details, children }) {
+// The pill toggle (the same look as Memories') picks a topic; that topic
+// fills one big dark-blue card.
+function TravelTabs() {
+  const [current, setCurrent] = useState(topics[0].id)
+  const index = topics.findIndex((t) => t.id === current)
+  const topic = topics[index]
   return (
-    <article className="travel-card">
-      <h3 className="card-pill">{title}</h3>
-      {children}
-      <dl className="travel-facts">
-        {details.map(([label, value]) => (
-          <div key={label}>
-            <dt>{label}</dt>
-            <dd>{value}</dd>
-          </div>
+    <div className="travel-tabs">
+      <div className="view-toggle travel-toggle" role="tablist" aria-label="Travel topics" style={{ '--index': index, '--count': topics.length }}>
+        {topics.map((t) => (
+          <button
+            key={t.id}
+            type="button"
+            role="tab"
+            aria-selected={t.id === current}
+            className={t.id === current ? 'selected' : ''}
+            onClick={() => setCurrent(t.id)}
+          >
+            {t.title}
+          </button>
         ))}
-      </dl>
-    </article>
+      </div>
+      <article className="travel-card travel-panel" role="tabpanel" aria-label={topic.title}>
+        <h3 className="card-pill">{topic.title}</h3>
+        <div className="travel-text">{topic.body}</div>
+      </article>
+    </div>
   )
 }
 

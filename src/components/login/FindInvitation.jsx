@@ -111,6 +111,8 @@ export default function FindInvitation() {
             />
             <SubmitArrow busy={busy} label="Find my invitation" />
           </div>
+          {/* Phones only (see .invitation-device-note): a gentle nudge toward a bigger screen. */}
+          <p className="invitation-device-note">Psst — this invitation looks its best on a laptop or tablet!</p>
           {error && <FormMessage id="login-error">{error}</FormMessage>}
         </form>
       ) : (

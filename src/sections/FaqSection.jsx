@@ -62,8 +62,12 @@ export default function FaqSection() {
       <h2>
         {/* The word stays centered on the page, between the two of us (sized
             and placed like the Memories title): Akhil on the left being
-            silly, Soneri on the right looking his way through binoculars. */}
+            silly, Soneri on the right looking his way through binoculars at
+            a hummingbird behind his head. */}
         <span className="title-word">
+          {/* A hummingbird hiding behind Akhil's head: what Soneri is trying
+              to see, with Akhil in the way (see .title-hummingbird). */}
+          <Art file="hummingbird.webp" className="title-hummingbird" />
           <Art file="faq-boy.webp" className="title-side title-left title-faq-boy" />
           FAQ
           <Art file="faq-girl.webp" className="title-side title-right title-faq-girl" />
