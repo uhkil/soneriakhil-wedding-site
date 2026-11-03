@@ -1052,6 +1052,7 @@ h2:hover .title-berry.mirrored {
   position: relative;
   cursor: pointer;
   outline: none;
+  -webkit-tap-highlight-color: transparent; /* no gray box flashing on iPhones when tapped */
 }
 
 .illustration-slot.has-nugget:focus-visible .illustration-tint {
@@ -4128,6 +4129,15 @@ img.nugget-photo {
     line-height: 0.7;
     top: 0.02em; /* evenly spaced between SONERI and AKHIL */
   }
+}
+
+/* Phones (under 700px): a smaller "&" between the stacked names, so more of
+   the dancing couple fits on the first screen. */
+@media (max-width: 699px) {
+  .honey-and {
+    font-size: 1.15em;
+    line-height: 0.62;
+  }
   .honey-details {
     font-size: 0.95rem;
   }
@@ -4256,7 +4266,9 @@ img.nugget-photo {
    bubbles sit above their heads: hers on the left, his on the right. */
 @media (max-width: 720px) {
   .honey-stage-wrap {
-    min-height: 420px;
+    /* The couple shrinks to fit what's left of the first screen (so their
+       feet show), but never smaller than this. */
+    min-height: 340px;
   }
   .honey-stage {
     top: 64px;
@@ -4786,4 +4798,13 @@ img.nugget-photo {
 [data-design='honey'] .rsvp-guest .rsvp-event.missing .rsvp-event-name,
 [data-design='honey'] .rsvp-guest .field-note {
   color: #ffb4a9;
+}
+
+/* A small helping line under a box (e.g. "All of the food will be vegetarian."). */
+.field-hint {
+  margin: 8px 0 0;
+  font-family: var(--font-ui);
+  font-size: 0.82rem;
+  font-style: normal;
+  opacity: 0.8;
 }

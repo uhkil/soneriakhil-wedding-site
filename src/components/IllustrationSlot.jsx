@@ -31,9 +31,18 @@ export default function IllustrationSlot({ name, size = 'medium', className = ''
   const image = near && item.src ? import.meta.env.BASE_URL + item.src : undefined
 
   // On phones, tapping the drawing (or Enter / Space) opens the pop-up window.
+  // When it closes, the browser hands focus back to the drawing; after a
+  // tap that would leave a focus outline around it, so it's cleared then
+  // (keyboard users keep it, so they can see where they are).
   const isPhone = () => window.matchMedia(PHONE).matches
-  const openModal = () => {
-    if (nugget && isPhone()) dialog.current?.showModal()
+  const byKeyboard = useRef(false)
+  const openModal = (fromKeyboard = false) => {
+    if (!nugget || !isPhone()) return
+    byKeyboard.current = fromKeyboard
+    dialog.current?.showModal()
+  }
+  const onModalClose = () => {
+    if (!byKeyboard.current) ref.current?.blur()
   }
 
   return (
@@ -43,11 +52,11 @@ export default function IllustrationSlot({ name, size = 'medium', className = ''
       // With a nugget, it can be reached with the keyboard (and tapped on phones).
       tabIndex={nugget ? 0 : undefined}
       aria-label={nugget ? `${item.note}. ${nugget.heading ?? 'A fun fact'}` : undefined}
-      onClick={openModal}
+      onClick={() => openModal(false)}
       onKeyDown={(e) => {
         if (e.target === e.currentTarget && (e.key === 'Enter' || e.key === ' ') && isPhone()) {
           e.preventDefault()
-          openModal()
+          openModal(true)
         }
       }}
       // --art-width: the drawing's own width, so drawings in a group (e.g.
@@ -83,7 +92,7 @@ export default function IllustrationSlot({ name, size = 'medium', className = ''
             click me to learn more
           </span>
           <Nugget nugget={nugget} />
-          <NuggetModal nugget={nugget} dialog={dialog} />
+          <NuggetModal nugget={nugget} dialog={dialog} onClose={onModalClose} />
         </>
       )}
     </div>
@@ -249,7 +258,7 @@ function Nugget({ nugget }) {
 
 // Phones: the same card as a pop-up window in the middle of the screen. It
 // closes with the ×, the Escape key, or a tap on the overlay around it.
-function NuggetModal({ nugget, dialog }) {
+function NuggetModal({ nugget, dialog, onClose }) {
   const close = () => dialog.current?.close()
   const headingId = useId()
   return (
@@ -258,6 +267,7 @@ function NuggetModal({ nugget, dialog }) {
       className="nugget-modal"
       aria-labelledby={nugget.heading ? headingId : undefined}
       aria-label={nugget.heading ? undefined : 'A fun fact'}
+      onClose={onClose}
       // Keep taps inside from reaching the drawing (which would reopen it).
       onClick={(e) => {
         e.stopPropagation()
