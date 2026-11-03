@@ -4863,12 +4863,3 @@ img.nugget-photo {
 [data-design='honey'] .rsvp-guest .field-note {
   color: #ffb4a9;
 }
-
-/* A small helping line under a box (e.g. "All of the food will be vegetarian."). */
-.field-hint {
-  margin: 8px 0 0;
-  font-family: var(--font-ui);
-  font-size: 0.82rem;
-  font-style: normal;
-  opacity: 0.8;
-}

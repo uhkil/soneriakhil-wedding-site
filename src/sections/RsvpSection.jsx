@@ -267,13 +267,9 @@ export default function RsvpSection() {
                     id={`diet-${g.guestId}`}
                     type="text"
                     placeholder="Any allergies? Vegan? (optional)"
-                    aria-describedby={`diet-${g.guestId}-hint`}
                     value={a.dietary}
                     onChange={(e) => updateGuest(g.guestId, (c) => (c.dietary = e.target.value))}
                   />
-                  <p className="field-hint" id={`diet-${g.guestId}-hint`}>
-                    All of the food will be vegetarian.
-                  </p>
                 </div>
 
                 <div className="rsvp-field">
