@@ -161,6 +161,7 @@ function loadGuestList() {
  * Gives every named row in the Guests tab a guest id (G001, G002, …) if it
  * doesn't have one yet, and a new one to any row that copied another row's
  * id. Runs on its own when you edit the Guests tab, and before every request.
+ * Ids are never reused.
  */
 function ensureGuestIds() {
   const sheet = getTab(TAB.guests)
@@ -189,14 +190,20 @@ function ensureGuestIds() {
   lock.waitLock(20000)
   try {
     const { ids, missing } = needsId() // again, now that no one else is writing
-    let next = ids.reduce((max, id) => {
-      const m = id.match(/^G(\d+)$/)
+    // An id is never used twice, even after its guest is deleted (or their
+    // answers would carry over to someone new): new ids continue after the
+    // highest one ever given out, in Guests, in RSVPs, or remembered here.
+    const props = PropertiesService.getScriptProperties()
+    const saved = getTab(TAB.rsvps).getLastRow() > 1 ? readTab(TAB.rsvps).map((r) => r.guest_id) : []
+    let next = ids.concat(saved).reduce((max, id) => {
+      const m = String(id).match(/^G(\d+)/)
       return m ? Math.max(max, Number(m[1])) : max
-    }, 0)
+    }, Number(props.getProperty('LAST_GUEST_ID') || 0))
     missing.forEach((i) => {
       next += 1
       sheet.getRange(i + 2, idCol + 1).setValue('G' + String(next).padStart(3, '0'))
     })
+    props.setProperty('LAST_GUEST_ID', String(next))
   } finally {
     lock.releaseLock()
   }
