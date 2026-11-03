@@ -150,6 +150,7 @@ const art = {
         { label: 'Acadia', thin: 'National Park', href: '' },
         { label: 'Olympic', thin: 'National Park', href: '' },
         { label: 'Redwood', thin: 'National and State Parks', href: '' },
+        { label: 'Manuel Antonio', thin: 'National Park', href: '' },
       ],
     },
   },

@@ -3239,10 +3239,15 @@ img.nugget-photo {
   color: var(--ink);
 }
 
+/* Twice its old size (1.15em); "line-height: 0" keeps it from making the
+   line taller, and it's nudged down to sit centered on the names. */
 [data-design='honey'] .invitation-and {
-  margin: 0 0.04em;
+  display: inline-block;
+  margin: 0 0.02em;
   font-family: var(--font-script);
-  font-size: 1.15em;
+  font-size: 2.3em;
+  line-height: 0;
+  vertical-align: -0.12em;
   font-style: normal;
   font-weight: 400;
   letter-spacing: 0;
@@ -3259,11 +3264,64 @@ img.nugget-photo {
   color: var(--ink);
 }
 
-[data-design='honey'] .invitation-rule {
-  height: 1.5px;
-  margin: 36px auto;
+/* Between the date and the form: the two hands making a heart. */
+.invitation-hands {
+  display: block;
+  height: 40px;
+  aspect-ratio: 1376 / 457;
+  margin: 32px auto;
+}
+
+/* Behind the card: "we can't wait to celebrate with you" repeated across
+   every row, in the site's bold, wide capitals, light blue on the dark blue,
+   softened so it reads as a texture. It stays still. Every other row is
+   shifted along, so the words don't line up in columns. The card is filled with the light blue so it
+   stays just as it was. */
+[data-design='honey'] .login-page {
+  position: relative;
+  overflow: hidden;
   background: var(--ink);
-  opacity: 1;
+}
+
+/* (The page behind it too, so pulling past the top or bottom on a phone
+   shows dark blue as well.) */
+:root[data-design='honey']:has(.login-page),
+:root[data-design='honey']:has(.login-page) body {
+  background: var(--ink);
+}
+
+.login-backdrop {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+  user-select: none;
+}
+
+.login-backdrop p {
+  width: max-content;
+  margin: 0;
+  white-space: nowrap;
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-stretch: 125%;
+  font-size: 1.1rem;
+  line-height: 2.4;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: rgba(202, 233, 255, 0.16); /* the light blue, softened */
+}
+
+.login-backdrop p:nth-child(even) {
+  margin-left: -9em;
+}
+
+[data-design='honey'] .invitation-card {
+  position: relative; /* drawn on top of the repeated line */
+}
+
+[data-design='honey'] .invitation-card {
+  background-color: var(--paper);
 }
 
 [data-design='honey'] .invitation-status {
@@ -3366,7 +3424,7 @@ img.nugget-photo {
 }
 
 [data-design='honey'] .find-invitation .link-button {
-  margin-top: 14px;
+  margin-top: 28px; /* clear room below the passcode box */
   font-family: var(--font-ui);
   font-size: 0.85rem;
   color: var(--ink);
