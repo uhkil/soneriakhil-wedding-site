@@ -10,9 +10,11 @@
 // Answers are saved to the Google Sheet. Guests can come back and change them.
 //
 // Saved emails and phones come back partly hidden (p•••h@gmail.com,
-// •••-•••-1234) and are shown under their boxes so guests can check them;
-// the boxes start empty, and leaving them blank keeps what's saved. Saved
-// notes aren't shown at all.
+// •••-•••-1234) and show in grey inside their (empty) boxes so guests can
+// check them, with "On file. Leave blank to keep it." underneath. Saved notes
+// aren't shown at all.
+//
+// Once it's saved, a pop-up celebrates (see RsvpCelebration.jsx).
 //
 // If something's missing when they press Send, the cards that need something
 // open, each spot is outlined with a short note, the page scrolls to the first
@@ -25,6 +27,7 @@ import IllustrationSlot from '../components/IllustrationSlot.jsx'
 import { useGuest } from '../guest/GuestProvider.jsx'
 import { submitRsvp } from '../api/rsvpApi.js'
 import FormMessage from '../components/FormMessage.jsx'
+import RsvpCelebration from '../components/RsvpCelebration.jsx'
 // The email and phone rules (the same ones the Sheet checks), so a typo is
 // caught before sending.
 import { EMAIL, COM_TYPO, formatPhone, isValidPhone } from '../guest/contact.js'
@@ -59,6 +62,9 @@ export default function RsvpSection() {
   const [checked, setChecked] = useState(false)
   // Which people's cards are open (all closed to start).
   const [openCards, setOpenCards] = useState(() => new Set())
+  // The "it's saved!" pop-up, and whether anyone in the party is coming
+  // (confetti) or everyone declined (a softer thank-you).
+  const [celebrate, setCelebrate] = useState(null) // null | { attending: true/false }
 
   const eventsById = Object.fromEntries(party.events.map((e) => [e.id, e]))
   const displayName = (g) => (g.isPlusOne ? 'Your guest' : `${g.firstName} ${g.lastName}`)
@@ -156,6 +162,8 @@ export default function RsvpSection() {
         Object.fromEntries(Object.entries(all).map(([id, a]) => [id, { ...a, email: '', phone: '', note: '' }]))
       )
       setStatus('saved')
+      const anyoneComing = Object.values(answers).some((a) => Object.values(a.attending).includes('yes'))
+      setCelebrate({ attending: anyoneComing })
     } catch (err) {
       setError(err.message)
       setStatus('editing')
@@ -285,7 +293,7 @@ export default function RsvpSection() {
                     id={`email-${g.guestId}`}
                     type="email"
                     autoComplete={g.isPlusOne ? 'off' : 'email'}
-                    placeholder={saved.email ? 'Type a new email to change it' : 'name@example.com'}
+                    placeholder={onFileText(saved.email) || 'name@example.com'}
                     value={a.email}
                     onChange={(e) => updateGuest(g.guestId, (c) => (c.email = e.target.value))}
                     {...described(problemFor(`email-${g.guestId}`), `email-${g.guestId}-note`, saved.email && `email-${g.guestId}-saved`)}
@@ -301,7 +309,7 @@ export default function RsvpSection() {
                     type="tel"
                     inputMode="numeric" // phones show the number pad
                     autoComplete={g.isPlusOne ? 'off' : 'tel'}
-                    placeholder={saved.phone ? 'Type a new number to change it' : '555-555-5555'}
+                    placeholder={onFileText(saved.phone) || '555-555-5555'}
                     value={a.phone}
                     // Anything but digits (and a "+" at the start) is dropped as
                     // it's typed or pasted; dashes and spaces are added automatically.
@@ -358,15 +366,13 @@ export default function RsvpSection() {
             )}
           </FormMessage>
         )}
-        {status === 'saved' && (
-          <FormMessage kind="success">Thank you! Your RSVP is saved. You can change it anytime before January 15.</FormMessage>
-        )}
 
         <button className="button rsvp-submit" type="submit" disabled={status === 'saving'}>
           {status === 'saving' ? 'Saving…' : party.hasResponded ? 'Update RSVP' : 'Send RSVP'}
         </button>
       </form>
       </div>
+      <RsvpCelebration open={Boolean(celebrate)} attending={celebrate?.attending} onClose={() => setCelebrate(null)} />
     </Section>
   )
 }
@@ -384,20 +390,20 @@ function described(problem, noteId, ...hintIds) {
   return { ...(problem ? { 'aria-invalid': true } : {}), ...(ids ? { 'aria-describedby': ids } : {}) }
 }
 
-// The line under an email or phone box saying what's saved, partly hidden:
-// "On file: p•••h@gmail.com. Leave blank to keep it." (An older back end
-// only says whether something is saved, not what.)
+// What a box shows in grey when something's saved: the saved email or phone,
+// partly hidden (p•••h@gmail.com). An older back end only says whether
+// something is saved, not what, so then it just says "On file".
+function onFileText(value) {
+  if (!value) return ''
+  return typeof value === 'string' ? value : 'On file'
+}
+
+// The line under an email or phone box when something's saved.
 function OnFile({ value, id }) {
   if (!value) return null
   return (
     <p className="field-hint" id={id}>
-      {typeof value === 'string' ? (
-        <>
-          On file: <span className="on-file-value">{value}</span>. Leave blank to keep it.
-        </>
-      ) : (
-        'On file. Leave blank to keep it.'
-      )}
+      On file. Leave blank to keep it.
     </p>
   )
 }

@@ -4864,19 +4864,234 @@ img.nugget-photo {
   color: #ffb4a9;
 }
 
-/* Small helping lines under a box: what's on file ("On file: p•••h@gmail.com")
-   and tips like the one about phone numbers outside the US. */
+/* Small helping lines under a box: "On file. Leave blank to keep it." and
+   tips like the one about phone numbers outside the US. They sit snug under
+   their box (the field already puts 8px between its parts; these pull in
+   to 4px, and 2px between two lines), so they clearly belong to it. */
 .field-hint {
-  margin: 8px 0 0;
+  margin: -4px 0 0;
   font-family: var(--font-ui);
   font-size: 0.82rem;
   font-style: normal;
+  line-height: 1.35;
   opacity: 0.8;
+  text-wrap: pretty; /* no single word left alone on the last line */
 }
 .field-hint + .field-hint {
-  margin-top: 4px;
+  margin-top: -6px;
 }
-.on-file-value {
-  font-weight: 600;
-  letter-spacing: 0.02em;
+
+/* ---------- "You're on the list!" (the pop-up after an RSVP is saved) ----------
+   The dialog covers the whole screen (see-through), so the confetti can fly
+   anywhere; the card sits in the middle, styled like the login pop-up. */
+.celebration {
+  width: 100vw;
+  max-width: none;
+  height: 100dvh;
+  max-height: none;
+  margin: 0;
+  padding: 24px;
+  box-sizing: border-box;
+  border: none;
+  background: transparent;
+  overflow: hidden;
+}
+.celebration[open] {
+  display: grid;
+  place-items: center;
+}
+/* Phones: a little less room around the card, so its text can be bigger. */
+@media (max-width: 699px) {
+  .celebration {
+    padding: 12px;
+  }
+  .celebration .celebration-card {
+    padding-left: 16px;
+    padding-right: 16px;
+  }
+}
+.celebration::backdrop {
+  background: rgba(0, 52, 89, 0.35);
+  backdrop-filter: blur(3px);
+  -webkit-backdrop-filter: blur(3px);
+}
+
+.celebration-card {
+  position: relative;
+  z-index: 1; /* in front of the confetti */
+  box-sizing: border-box;
+  width: min(460px, 100%);
+  max-height: calc(100dvh - 48px);
+  overflow-y: auto;
+  padding: 36px 20px 26px;
+  container-type: inline-size; /* lets the text size follow the card's width */
+  border: 1.5px solid var(--ink);
+  border-radius: 24px;
+  background: var(--paper);
+  color: var(--ink);
+  text-align: center;
+  animation: celebration-in 0.5s cubic-bezier(0.2, 1.4, 0.4, 1); /* a little bounce */
+}
+.celebration-card:focus {
+  outline: none;
+}
+@keyframes celebration-in {
+  from {
+    opacity: 0;
+    transform: translateY(16px) scale(0.9);
+  }
+}
+
+.celebration-title {
+  margin: 14px 0 10px;
+  font-family: var(--font-display);
+  font-weight: 900;
+  font-stretch: 125%;
+  font-size: 1.7rem;
+  line-height: 1.05;
+  letter-spacing: -0.01em;
+}
+.celebration-card p:not(.celebration-title) {
+  margin: 0;
+}
+/* The two lines under the title each stay on one line: their size follows
+   the card's width (cqi = 1% of it), up to a comfortable maximum. */
+.celebration-card p.celebration-line {
+  font-family: var(--font-body);
+  font-size: min(1.15rem, 5.3cqi);
+  line-height: 1.35;
+  white-space: nowrap;
+}
+.celebration-card p.celebration-small {
+  margin-top: 8px;
+  font-family: var(--font-body);
+  font-size: min(0.95rem, 4cqi);
+  white-space: nowrap;
+  opacity: 0.75;
+}
+
+/* The disco ball: hangs from the top and swings; tapping it sends more confetti. */
+.celebration-disco {
+  position: relative;
+  display: block;
+  margin: -12px auto 0;
+  padding: 0;
+  border: none;
+  background: none;
+  cursor: pointer;
+  transform-origin: 50% 0;
+  animation: disco-swing 2.4s ease-in-out infinite alternate;
+}
+.celebration-disco img {
+  display: block;
+  width: 92px;
+  height: auto;
+}
+.celebration-disco:active img {
+  transform: scale(0.94);
+}
+.celebration-disco:focus-visible {
+  outline: 2px solid var(--ink);
+  outline-offset: 4px;
+  border-radius: 12px;
+}
+@keyframes disco-swing {
+  from {
+    transform: rotate(-7deg);
+  }
+  to {
+    transform: rotate(7deg);
+  }
+}
+
+/* Twinkles around the disco ball. */
+.sparkle {
+  position: absolute;
+  width: 16px;
+  height: 16px;
+  fill: var(--ink);
+  animation: twinkle 1.6s ease-in-out infinite;
+}
+.sparkle-1 {
+  top: 38%;
+  left: -18px;
+}
+.sparkle-2 {
+  top: 18%;
+  right: -16px;
+  width: 12px;
+  height: 12px;
+  animation-delay: 0.5s;
+}
+.sparkle-3 {
+  bottom: 2%;
+  right: -22px;
+  width: 10px;
+  height: 10px;
+  animation-delay: 1s;
+}
+@keyframes twinkle {
+  0%,
+  100% {
+    opacity: 0;
+    transform: scale(0.3) rotate(0deg);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1) rotate(45deg);
+  }
+}
+
+.celebration-hearts {
+  display: block;
+  width: 96px;
+  height: auto;
+  margin: 0 auto;
+}
+
+/* The confetti: each piece starts behind the middle of the card, shoots
+   out (fast, then slowing), then falls past the bottom of the screen while
+   spinning. Its direction, size, color, and speed are set in
+   RsvpCelebration.jsx. */
+.confetti {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  overflow: hidden;
+}
+.confetti span {
+  position: absolute;
+  top: 45%;
+  left: 50%;
+  opacity: 0;
+  animation: confetti-fly var(--dur) var(--delay) forwards;
+}
+@keyframes confetti-fly {
+  0% {
+    opacity: 1;
+    transform: translate(0, 0) rotate(0deg) rotateY(0deg);
+    animation-timing-function: cubic-bezier(0.1, 0.8, 0.3, 1);
+  }
+  22% {
+    transform: translate(var(--dx), var(--dy)) rotate(calc(var(--rot) * 0.25)) rotateY(180deg);
+    animation-timing-function: cubic-bezier(0.45, 0, 0.9, 0.7);
+  }
+  85% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+    transform: translate(calc(var(--dx) * 1.35), calc(var(--dy) + 110vh)) rotate(var(--rot)) rotateY(900deg);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .celebration-card,
+  .celebration-disco,
+  .sparkle {
+    animation: none;
+  }
+  .confetti {
+    display: none;
+  }
 }
