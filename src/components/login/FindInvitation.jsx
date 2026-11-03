@@ -162,7 +162,8 @@ export default function FindInvitation() {
             // The first choice gets the keyboard when the popup opens.
             <button key={m.guestId} type="button" className="choose-option" autoFocus={i === 0} onClick={() => choose(m)}>
               <span className="choose-name">{m.name}</span>
-              <span className="choose-party">{m.partyName}</span>
+              {/* The household name; blank for someone invited on their own. */}
+              {m.partyName && <span className="choose-party">{m.partyName}</span>}
             </button>
           ))}
         </div>
