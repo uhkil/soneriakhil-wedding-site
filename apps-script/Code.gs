@@ -335,8 +335,6 @@ function partyDetails(partyId, list) {
         note: Boolean(r.note),
       }
     })
-  const response = readTab(TAB.responses).find((r) => r.party_id === partyId) || {}
-
   return {
     partyId,
     partyName: members[0].partyName,
@@ -344,7 +342,9 @@ function partyDetails(partyId, list) {
     events,
     answers,
     onFile, // by guest id: { email: 'p•••h@gmail.com', phone: '•••-•••-1234', note: true } ('' / false if not saved)
-    hasResponded: Boolean(response.updated_at),
+    // Answered = anyone on it has saved answers (worked out per person, so
+    // renaming a household or moving someone between households keeps it right).
+    hasResponded: Object.keys(answers).length > 0,
   }
 }
 
@@ -730,8 +730,9 @@ function refreshSummary(list, answers) {
   const firstList = rows.length + 1
   lists.forEach(([label, items]) => rows.push(row(`${label} (${items.length})`, items.join(', '))))
 
-  // Invitations that haven't answered yet.
-  const responded = new Set(readTab(TAB.responses).map((r) => r.party_id))
+  // Invitations that haven't answered yet: no one on them has saved answers
+  // (worked out per person, so renaming a household keeps it right).
+  const responded = new Set(people.filter((g) => answers[g.guestId]).map((g) => g.partyId))
   const invitations = {}
   people.forEach((g) => (invitations[g.partyId] = g.partyName))
   const ids = Object.keys(invitations)
