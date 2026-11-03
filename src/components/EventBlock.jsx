@@ -109,7 +109,7 @@ function Attire({ event }) {
   )
 }
 
-// e.g. "bonus points if you wear a cowboys jersey", where "cowboys jersey"
+// An event's "attireNote" (see events.js), where the middle words
 // opens a pop-up window (on every screen size): the photo with its caption
 // underneath, centered over a light overlay. The ×, the Escape key, or a tap
 // on the overlay closes it.

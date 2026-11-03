@@ -2304,7 +2304,7 @@ img.nugget-photo {
   outline-offset: 2px;
 }
 
-/* A small line under the attire, e.g. "bonus points if you wear a cowboys jersey". */
+/* A small line under the attire (an event's "attireNote" in events.js). */
 .attire-note {
   position: relative;
   display: block;
