@@ -951,19 +951,30 @@ function createGuestsTab(ss) {
  */
 function switchToNewGuestList() {
   const ss = SpreadsheetApp.getActive()
-  const ui = SpreadsheetApp.getUi()
+  // From the Sheet's menu, it asks first. Run from the Apps Script editor
+  // (choose switchToNewGuestList next to ▶ Run), there's no Sheet to show a
+  // question in, so it just goes ahead and reports in the log below.
+  let ui = null
+  try {
+    ui = SpreadsheetApp.getUi()
+  } catch (err) {
+    ui = null
+  }
+  const tell = (message) => (ui ? ui.alert(message) : console.log(message))
   const guests = ss.getSheetByName(TAB.guests)
   const header = guests ? guests.getRange(1, 1, 1, Math.max(guests.getLastColumn(), 1)).getDisplayValues()[0] : []
   if (guests && !header.includes('party_id')) {
-    ui.alert('Your Guests tab already uses the new layout.')
+    tell('Your Guests tab already uses the new layout.')
     return
   }
-  const answer = ui.alert(
-    'Switch to the new guest list?',
-    'Your Guests, Parties, RSVPs, and Party Responses tabs will be renamed with "Old" in front (nothing is deleted), and a new Guests tab with sample guests will be created.',
-    ui.ButtonSet.OK_CANCEL
-  )
-  if (answer !== ui.Button.OK) return
+  if (ui) {
+    const answer = ui.alert(
+      'Switch to the new guest list?',
+      'Your Guests, Parties, RSVPs, and Party Responses tabs will be renamed with "Old" in front (nothing is deleted), and a new Guests tab with sample guests will be created.',
+      ui.ButtonSet.OK_CANCEL
+    )
+    if (answer !== ui.Button.OK) return
+  }
   ;['Guests', 'Parties', 'RSVPs', 'Party Responses'].forEach((name) => {
     const sheet = ss.getSheetByName(name)
     if (!sheet) return
@@ -973,7 +984,7 @@ function switchToNewGuestList() {
   })
   setup()
   ss.setActiveSheet(ss.getSheetByName(TAB.guests))
-  ui.alert('Done! Your new Guests tab has sample guests to try. Hover over a column title to see what goes in it.')
+  tell('Done! Your new Guests tab has sample guests to try. Hover over a column title to see what goes in it.')
 }
 
 /** Tries a search and a passcode check; results appear in the log. */
