@@ -50,12 +50,6 @@ const eventDetails = {
     mapUrl: LOEWS_MAP,
     attire: 'Traditional Indian | Please avoid wearing red',
     moodboard: '',
-    attireNote: { before: 'bonus points if you wear a ', link: 'cowboys jersey', after: '' },
-    attirePopup: {
-      image: 'assets/photos/cowboys-jersey.jpg',
-      alt: 'Suraj and friends in Cowboys jerseys at AT&T Stadium',
-      caption: 'meet the biggest Dallas Cowboys fans attending our wedding!',
-    },
     description: 'Join the couple for a traditional Indian wedding ceremony, followed by lunch.',
   },
   reception: {

@@ -1065,7 +1065,6 @@ h2:hover .title-berry.mirrored {
   z-index: 20;
   top: 50%;
   right: 100%;
-  translate: 0 -50%; /* centered on the drawing, top to bottom */
   width: max-content;
   /* See-through space between the drawing and the card (--nugget-gap, set
      per drawing in art.js). Being part of the hover area, it keeps the card
@@ -1073,7 +1072,10 @@ h2:hover .title-berry.mirrored {
   padding: 0 var(--nugget-gap, 16px);
   opacity: 0;
   visibility: hidden;
-  transform: translateY(6px);
+  /* Centered on the drawing, top to bottom (-50%), and starting 6px lower
+     so it slides up into place as it appears. (One "transform" for both:
+     the site's build step drops a separate "translate" in this rule.) */
+  transform: translateY(calc(-50% + 6px));
   transition: opacity 0.25s ease, transform 0.25s ease, visibility 0s 0.25s;
   cursor: auto;
 }
@@ -1099,7 +1101,7 @@ h2:hover .title-berry.mirrored {
 .illustration-slot.has-nugget:has(:focus-visible) .nugget {
   opacity: 1;
   visibility: visible;
-  transform: none;
+  transform: translateY(-50%);
   transition: opacity 0.25s ease, transform 0.25s ease, visibility 0s;
 }
 
@@ -1107,7 +1109,7 @@ h2:hover .title-berry.mirrored {
   .illustration-slot.has-nugget:focus-within .nugget {
     opacity: 1;
     visibility: visible;
-    transform: none;
+    transform: translateY(-50%);
     transition: opacity 0.25s ease, transform 0.25s ease, visibility 0s;
   }
 }
