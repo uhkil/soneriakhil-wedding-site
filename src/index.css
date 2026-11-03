@@ -3,6 +3,15 @@
   section; the "House of Honey" part further down sets the final look (light
   blue and dark blue, bold wide titles), so check there first when restyling.
   (The site always uses that design: index.html sets data-design="honey".)
+
+  Screen sizes: use these three for any new phone/tablet/laptop-only change.
+    Phone   under 700px    @media (max-width: 699px)
+    Tablet  700 - 1199px   @media (min-width: 700px) and (max-width: 1199px)
+    Laptop  1200px and up  @media (min-width: 1200px)
+  (iPhones upright are 375-440px; an 11" iPad is ~820-834px upright and
+  ~1180-1194px sideways, so it is always "tablet"; a 14" laptop is ~1512px.)
+  Older rules below use other widths (380, 480, 640, 720, 768, 860, 1100);
+  leave them as they are unless that part of the site is being reworked.
 */
 
 /* ---------- Colors & fonts (change these to restyle the whole site) ---------- */
@@ -413,6 +422,19 @@ summary:focus-visible {
   scroll-margin-top: var(--nav-height);
 }
 
+/* When a link jumps to a section, its title lands here: just below the
+   pinned nav, with a little room above it (see useTitleJumps.js). */
+.section h2 {
+  scroll-margin-top: calc(var(--nav-height) + 24px);
+}
+
+/* Sections that start with a corner drawing start at the top, even when
+   they're shorter than the screen, so the drawing always sits exactly 240px
+   below what's above it (centering would push it down). */
+.section:has(> .section-inner > .corner-art) {
+  justify-content: flex-start;
+}
+
 /* An occasional light background field (cream stays dominant). */
 .section-field {
   background: var(--paper-tinted);
@@ -788,6 +810,24 @@ summary:focus-visible {
   margin-bottom: 96px; /* the other titles have 56px */
 }
 
+/* Titles with a drawing beside them that rises above the letters (the two
+   of us beside Memories, the disco ball, the heart hands): on iPad and
+   laptop, the title gets exactly that much room above it, so the space
+   between the side drawing above and the top of whatever's highest in the
+   title row is the same 240px as everywhere else. (How far each rises, as a
+   share of the title's letter size, measured in the browser.) */
+@media (min-width: 700px) {
+  #memories h2 {
+    padding-top: 0.602em;
+  }
+  #events h2 {
+    padding-top: 0.492em;
+  }
+  #registry h2 {
+    padding-top: 0.075em;
+  }
+}
+
 /* ---------- Registry: two hands making a heart, beside the title ---------- */
 
 /* The word "Registry" is centered on the page; the drawing hangs off its
@@ -925,11 +965,13 @@ h2:hover .title-berry.mirrored {
 .illustration-slot.corner-art {
   --corner-art-scale: 0.3323;
   max-width: calc(var(--art-width) * var(--corner-art-scale) * 1px);
-  /* It's the first thing in its section, just above the title. The space
-     below it matches the space above it (the two sections' padding, 96px
-     each), so it sits evenly between what's above and its title. */
-  margin-top: 0;
-  margin-bottom: 192px;
+  /* It's the first thing in its section, just above the title, with 240px
+     of space above and below it (iPad and laptop; phones have their own
+     rule below). Above, the two sections' padding (96px each) makes 192px,
+     plus 48px here. To change the spacing, change --corner-art-space. */
+  --corner-art-space: 240px;
+  margin-top: calc(var(--corner-art-space) - 192px);
+  margin-bottom: var(--corner-art-space);
 }
 
 .illustration-slot.corner-art-right {
@@ -946,7 +988,7 @@ h2:hover .title-berry.mirrored {
    text instead of crowding the edge. Measured from the screen's edge (using
    the usual 980px page width), so it lands in the same place even in the
    narrower sections like Registry. */
-@media (min-width: 641px) {
+@media (min-width: 700px) {
   .illustration-slot.corner-art {
     --page-gutter: calc((100vw - min(980px, 100vw - 48px)) / 2);
     --edge-gap: max(calc(var(--page-gutter) / 2), min(var(--page-gutter), 200px));
@@ -962,10 +1004,18 @@ h2:hover .title-berry.mirrored {
 
 /* Phones: about half the width, on its own side (right-hand drawings on
    the right, left-hand ones on the left), leaving room beside it for its
-   pop-up card. */
-@media (max-width: 640px) {
+   pop-up. Phones also get enough empty space above and below each drawing
+   that, scrolled to the middle of the screen, it's the only thing showing:
+   half of whatever height the screen has left over around it (the
+   drawing's height = its width ÷ its shape, --art-ratio), plus 24px. The
+   space above already includes the two sections' padding (96px each). */
+@media (max-width: 699px) {
   .illustration-slot.corner-art {
     width: 55%;
+    --art-height: calc((100vw - 48px) * 0.55 / var(--art-ratio));
+    --clear-space: calc((100lvh - var(--nav-height) - var(--art-height)) / 2 + 24px);
+    margin-top: max(0px, calc(var(--clear-space) - 192px));
+    margin-bottom: max(192px, var(--clear-space));
   }
   .illustration-slot.corner-art-right {
     margin-left: auto;
@@ -1024,12 +1074,38 @@ h2:hover .title-berry.mirrored {
   left: 100%;
 }
 
+/* Showing the card: while the pointer is over the drawing or the card
+   (so it hides as soon as the pointer leaves both, even after a click), or
+   while the keyboard is on the drawing or a link in the card. Touch screens
+   have no pointer to move away, so there a tap opens it and a tap elsewhere
+   closes it. */
 .illustration-slot.has-nugget:hover .nugget,
-.illustration-slot.has-nugget:focus-within .nugget {
+.illustration-slot.has-nugget:focus-visible .nugget,
+.illustration-slot.has-nugget:has(:focus-visible) .nugget {
   opacity: 1;
   visibility: visible;
   transform: none;
   transition: opacity 0.25s ease, transform 0.25s ease, visibility 0s;
+}
+
+@media (hover: none) {
+  .illustration-slot.has-nugget:focus-within .nugget {
+    opacity: 1;
+    visibility: visible;
+    transform: none;
+    transition: opacity 0.25s ease, transform 0.25s ease, visibility 0s;
+  }
+}
+
+/* A list where each line's own name stands out and the rest is lighter
+   (e.g. "Zion National Park"). */
+li.has-thin {
+  font-weight: 500;
+}
+
+.nugget-thin {
+  font-weight: 300;
+  opacity: 0.85;
 }
 
 .nugget-card {
@@ -1058,31 +1134,130 @@ h2:hover .title-berry.mirrored {
 }
 
 .nugget-card li + li {
-  margin-top: 2px;
+  margin-top: 7px; /* a little room between list items */
 }
 
-/* A row of small photos (or placeholder squares, for now). */
-.nugget-gallery {
+/* The photo carousel (e.g. the pottery pieces): one photo at a time, as
+   wide as the card, in a 3:4 window. The photos sit side by side in a strip
+   that scrolls sideways a photo at a time (swipe on phones); its scroll bar
+   is hidden, since the arrows and dots do that job. */
+.nugget-carousel {
+  margin-top: 12px;
+}
+
+.nugget-carousel-window {
+  position: relative;
+}
+
+.nugget-carousel-strip {
   display: grid;
-  grid-template-columns: repeat(3, 72px);
-  gap: 8px;
-  margin-top: 10px;
+  grid-auto-flow: column;
+  grid-auto-columns: 100%;
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  overscroll-behavior-x: contain;
+  scrollbar-width: none;
+  border-radius: 12px;
+}
+
+.nugget-carousel-strip::-webkit-scrollbar {
+  display: none;
 }
 
 .nugget-photo {
   display: flex;
   align-items: center;
   justify-content: center;
-  aspect-ratio: 1;
+  width: 100%;
+  aspect-ratio: 3 / 4;
+  box-sizing: border-box;
   border: 1.5px dashed currentColor;
-  border-radius: 8px;
-  font-size: 0.7rem;
+  border-radius: 12px;
+  font-size: 0.8rem;
   object-fit: cover;
+  scroll-snap-align: start;
 }
 
 img.nugget-photo {
-  width: 100%;
   border: none;
+  border-radius: 0;
+}
+
+/* Round arrows over the photo's left and right edges; faded at either end. */
+.carousel-arrow {
+  position: absolute;
+  top: 50%;
+  translate: 0 -50%;
+  display: grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  padding: 0;
+  border: none;
+  border-radius: 50%;
+  background: rgba(0, 52, 89, 0.72);
+  color: var(--paper);
+  cursor: pointer;
+  transition: opacity 0.2s ease;
+}
+
+.carousel-arrow.prev {
+  left: 8px;
+}
+
+.carousel-arrow.next {
+  right: 8px;
+}
+
+.carousel-arrow:disabled {
+  opacity: 0;
+  pointer-events: none;
+}
+
+.carousel-arrow:focus-visible {
+  outline: 2px solid var(--paper);
+  outline-offset: 2px;
+}
+
+.carousel-arrow svg {
+  width: 16px;
+  height: 16px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2.4;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+/* Dots under the photo: the current one filled (in the card's light color). */
+.carousel-dots {
+  display: flex;
+  justify-content: center;
+  margin-top: 8px;
+}
+
+.carousel-dots button {
+  width: 20px;
+  height: 20px;
+  padding: 0;
+  border: none;
+  background: none;
+  cursor: pointer;
+}
+
+.carousel-dots button::before {
+  content: '';
+  display: block;
+  width: 7px;
+  height: 7px;
+  margin: auto;
+  border: 1.5px solid var(--paper);
+  border-radius: 50%;
+  box-sizing: border-box;
+}
+
+.carousel-dots button.active::before {
+  background: var(--paper);
 }
 
 .nugget-card a {
@@ -1114,15 +1289,184 @@ img.nugget-photo {
     border-radius: 14px;
     font-size: 0.85rem;
   }
-  .nugget-gallery {
-    grid-template-columns: repeat(3, 1fr);
-    gap: 6px;
+}
+
+/* ----- Phones (under 700px): instead of the card beside the drawing, a
+   "click me to learn more" hint above it, and tapping opens the card as a
+   pop-up window in the middle of the screen (see IllustrationSlot.jsx). ----- */
+
+/* The hint: a small dark-blue pill centered above the drawing, with a little
+   point aimed down at it. Hidden on bigger screens, and on phones until the
+   drawing reaches the middle of the screen (.hinted); then it fades in,
+   bobs gently, and fades away again after 2.5 seconds. */
+.nugget-hint {
+  display: none;
+}
+
+@media (max-width: 699px) {
+  .nugget {
+    display: none;
   }
+
+  .nugget-hint {
+    display: block;
+    position: absolute;
+    bottom: calc(100% + 16px);
+    left: 50%;
+    translate: -50% 0;
+    padding: 6px 12px;
+    border-radius: 999px;
+    background: var(--ink);
+    color: var(--paper);
+    font: 500 0.75rem/1.2 var(--font-ui);
+    white-space: nowrap;
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 0.5s ease;
+  }
+
+  .nugget-hint::after {
+    content: '';
+    position: absolute;
+    top: 100%;
+    left: 50%;
+    translate: -50% -1px;
+    border: 6px solid transparent;
+    border-top-color: var(--ink);
+  }
+
+  .illustration-slot.hinted .nugget-hint {
+    opacity: 1;
+    animation: hint-bob 1.1s ease-in-out 0.3s 2;
+  }
+}
+
+@keyframes hint-bob {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-4px);
+  }
+}
+
+/* The pop-up window: the same dark-blue card, centered on the screen over a
+   light, slightly blurred overlay, with an × in its top-right corner. */
+.nugget-modal {
+  width: min(340px, calc(100vw - 48px));
+  max-height: calc(100dvh - 48px);
+  padding: 0;
+  border: none;
+  border-radius: 20px;
+  background: transparent;
+  overflow: visible;
+  cursor: auto;
+}
+
+.nugget-modal::backdrop {
+  background: rgba(202, 233, 255, 0.7); /* the page's light blue */
+  backdrop-filter: blur(3px);
+  -webkit-backdrop-filter: blur(3px);
+}
+
+.nugget-modal[open] {
+  animation: modal-in 0.25s ease;
+}
+
+@keyframes modal-in {
+  from {
+    opacity: 0;
+    transform: translateY(8px) scale(0.97);
+  }
+}
+
+.nugget-modal-card {
+  position: relative;
+  box-sizing: border-box;
+  max-height: calc(100dvh - 48px);
+  overflow-y: auto;
+  padding: 22px;
+  border-radius: 20px;
+  background: var(--ink);
+  color: var(--paper);
+  font: 400 0.95rem/1.45 var(--font-ui);
+  text-align: left;
+  box-shadow: 0 16px 40px rgba(0, 52, 89, 0.25);
+}
+
+.nugget-modal-card:focus {
+  outline: none;
+}
+
+.nugget-modal-card p {
+  margin: 0;
+}
+
+/* The first line clears the × in the corner. */
+.nugget-modal-card > :nth-child(2) {
+  padding-right: 36px;
+}
+
+.nugget-modal-card .nugget-heading {
+  margin-bottom: 6px;
+  font-weight: 600;
+  font-size: 1.05rem;
+}
+
+.nugget-modal-card ul {
+  margin: 10px 0 0;
+  padding-left: 1.1em;
+}
+
+.nugget-modal-card li + li {
+  margin-top: 10px; /* a little room between list items */
+}
+
+.nugget-modal-card a {
+  color: inherit;
+  text-underline-offset: 3px;
+}
+
+.nugget-modal-close {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  display: grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  border: none;
+  border-radius: 50%;
+  background: rgba(202, 233, 255, 0.15);
+  color: var(--paper);
+  cursor: pointer;
+}
+
+.nugget-modal-close:focus-visible {
+  outline: 2px solid var(--paper);
+  outline-offset: 2px;
+}
+
+.nugget-modal-close svg {
+  width: 16px;
+  height: 16px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2.4;
+  stroke-linecap: round;
 }
 
 @media (prefers-reduced-motion: reduce) {
   .nugget {
     transition: none;
+  }
+  .illustration-slot.hinted .nugget-hint {
+    animation: none;
+  }
+  .nugget-modal[open] {
+    animation: none;
   }
 }
 
@@ -1200,9 +1544,8 @@ img.nugget-photo {
 
 /* ---------- Memories: shared sizing ---------- */
 
-/* All three views sit in the same grid cell, so the area is as tall as the
-   tallest one and switching views doesn't move anything else on the page.
-   Each view starts just under the toggle; any spare room is below it. */
+/* All three views sit in the same spot, each starting just under the
+   toggle; the area is as tall as the one showing (see below). */
 .memories-viewer {
   display: grid;
   container-type: inline-size; /* lets sizes below use "cqw" (1% of its width) */
@@ -1213,6 +1556,21 @@ img.nugget-photo {
   align-self: start;
   min-width: 0;
   visibility: hidden;
+}
+
+/* The views not showing take no room, so the box is exactly as tall as the
+   one that is, and the space below it (to the next drawing) stays an even
+   240px. Switching views can change what's below it, but never moves the
+   title or the toggle above. */
+.memories-viewer {
+  position: relative;
+}
+
+.memories-view:not(.shown) {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
 }
 
 .memories-view.shown {
@@ -1255,7 +1613,6 @@ img.nugget-photo {
   margin-left: calc(50% - 50vw);
   overflow-x: auto; /* scroll sideways through the frames */
   overscroll-behavior-x: contain; /* a sideways swipe at the end doesn't go "back" a page */
-  padding-bottom: 10px; /* a little room between the film and its scroll bar */
   outline-offset: -2px;
   cursor: grab;
 }
@@ -1299,8 +1656,11 @@ img.nugget-photo {
 }
 
 /* The photo box, the size of the opening (plus a hair more, hidden under
-   the frame, so no gap shows at the edges). Opening: 23.5, 65, 365 × 243.3. */
-.film-photo {
+   the frame, so no gap shows at the edges). Opening: 23.5, 65, 365 × 243.3.
+   (".photo-button" too, so this wins over the general photo-button width,
+   which made the photo spill under the next frame and show through its thin
+   see-through lines.) */
+.photo-button.film-photo {
   position: absolute;
   left: calc(5.704% - 1px);
   top: calc(17.615% - 1px);
@@ -1321,30 +1681,81 @@ img.nugget-photo {
   -webkit-user-drag: none;
 }
 
-/* The scroll bar: hidden until the pointer is over the strip, then a thin
-   line in the text color. */
+/* The browser's own scroll bar is hidden (on a Mac it often doesn't show at
+   all); the site draws its own just under the film instead (.film-scrollbar). */
 .filmstrip {
-  scrollbar-width: thin;
-  scrollbar-color: transparent transparent;
+  scrollbar-width: none;
 }
 
-.filmstrip:hover,
-.filmstrip:focus-visible {
-  scrollbar-color: var(--ink) transparent;
-}
-
-/* Safari draws scroll bars its own way. */
 .filmstrip::-webkit-scrollbar {
+  display: none;
+}
+
+/* The scroll bar: a thin light track with a dark-blue thumb, as wide as the
+   page's column, just under the film. It fades in while the pointer is over
+   the strip or the bar, and for a moment after each scroll (.show-bar), and
+   gets a little thicker under the pointer so it's easy to grab. Touch
+   screens show it only while scrolling. */
+.filmstrip-wrap {
+  position: relative;
+}
+
+/* It hangs just below the film without taking up room, so the space under
+   the film strip is measured from the film itself. */
+.film-scrollbar {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  height: 14px; /* a comfortable area to grab; the line inside is thinner */
+  width: min(980px, calc(100vw - 48px));
+  margin: 4px auto 0;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  cursor: pointer;
+  touch-action: none;
+}
+
+.film-scrollbar::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 50%;
+  height: 4px;
+  translate: 0 -50%;
+  border-radius: 999px;
+  background: rgba(0, 52, 89, 0.15);
+}
+
+.film-scrollbar-thumb {
+  position: absolute;
+  min-width: 32px; /* stays easy to see and grab, even with lots of photos */
+  top: 50%;
+  height: 4px;
+  translate: 0 -50%;
+  border-radius: 999px;
+  background: var(--ink);
+  transition: height 0.15s ease;
+}
+
+.film-scrollbar:hover .film-scrollbar-thumb {
   height: 6px;
 }
 
-.filmstrip::-webkit-scrollbar-thumb {
-  background: transparent;
-  border-radius: 999px;
+.filmstrip-wrap:hover .film-scrollbar,
+.filmstrip-wrap.show-bar .film-scrollbar,
+.filmstrip:focus-visible + .film-scrollbar {
+  opacity: 1;
 }
 
-.filmstrip:hover::-webkit-scrollbar-thumb {
-  background: var(--ink);
+@media (hover: none) {
+  .filmstrip-wrap:hover .film-scrollbar {
+    opacity: 0;
+  }
+  .filmstrip-wrap.show-bar .film-scrollbar {
+    opacity: 1;
+  }
 }
 
 /* ---------- Memories: any photo that opens full screen ---------- */
@@ -1371,6 +1782,30 @@ img.nugget-photo {
   outline-offset: 3px;
 }
 
+/* A photo shown whole (a portrait photo in a landscape opening, say; see
+   PhotoSlot.jsx): the photo, uncropped and centered, on a blurred, softened
+   copy of itself that fills the rest of the opening. */
+.photo-slot.whole {
+  position: relative;
+  overflow: hidden;
+}
+
+.photo-slot.whole .photo-backdrop {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  filter: blur(14px) saturate(1.1);
+  scale: 1.15; /* hides the blur's soft edges */
+  opacity: 0.7;
+}
+
+.photo-slot.whole img.photo-main {
+  position: relative;
+  object-fit: contain;
+}
+
 /* ---------- Memories: grid view ---------- */
 
 /* Pages of photos side by side; the row scrolls sideways a whole page at a
@@ -1390,18 +1825,31 @@ img.nugget-photo {
   display: none;
 }
 
-/* One page: 3 across and 2 down (2 by 2 on phones). A page with fewer
-   photos keeps the same size, so the dots don't jump. */
+/* One page: 3 columns (2 on phones) and 2 rows. Each column holds one
+   portrait photo filling both rows, or two landscape (4:3) photos, one above
+   the other (see Grid in MemoriesSection.jsx). The rows are always the same
+   height (a 4:3 tile's, worked out from the page width), so every page is the
+   same size and the dots don't jump. */
 .memory-grid {
+  --cols: 3;
+  --gap: 14px;
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  align-content: start;
-  gap: 14px;
+  grid-template-columns: repeat(var(--cols), minmax(0, 1fr));
+  grid-template-rows: repeat(2, calc((100cqw - (var(--cols) - 1) * var(--gap)) / var(--cols) * 0.75));
+  gap: var(--gap);
   scroll-snap-align: start;
 }
 
+.memory-grid .photo-button,
 .memory-grid .photo-slot {
   width: 100%;
+  height: 100%;
+}
+
+.memory-grid .photo-slot img,
+.memory-grid .photo-placeholder {
+  height: 100%;
+  aspect-ratio: auto;
 }
 
 /* The page dots: small outlined circles; the current page's is filled. */
@@ -1442,10 +1890,10 @@ img.nugget-photo {
   border-radius: 50%;
 }
 
-@media (max-width: 640px) {
+@media (max-width: 699px) {
   .memory-grid {
-    grid-template-columns: repeat(2, 1fr);
-    gap: 8px;
+    --cols: 2;
+    --gap: 8px;
   }
 }
 
@@ -1620,6 +2068,22 @@ img.nugget-photo {
 .camera:hover .count-arrow,
 .count-arrow:focus-visible {
   opacity: 1;
+}
+
+/* The grid's page count (when there are too many pages for dots): the
+   arrows always show, and fade out at the first and last page. */
+.memory-count {
+  margin-top: 16px;
+}
+
+.memory-count .count-arrow {
+  opacity: 1;
+}
+
+.memory-count .count-arrow:disabled {
+  opacity: 0.25;
+  cursor: default;
+  background: none;
 }
 
 .count-arrow:hover {
@@ -1821,57 +2285,79 @@ img.nugget-photo {
   cursor: pointer;
 }
 
-/* The card that the link opens: a photo (or its placeholder), framed by the
-   dark card. The photo is 250px wide (3:4, like a phone photo). */
-.attire-popup {
-  position: absolute;
-  z-index: 20;
-  left: 0;
-  top: calc(100% + 8px);
-  display: block;
-  width: min(266px, calc(100vw - 32px));
-  box-sizing: border-box;
-  padding: 8px;
-  border-radius: 16px;
-  box-shadow: 0 12px 30px rgba(0, 52, 89, 0.25);
-  background: var(--ink);
-  color: var(--paper);
-  font-style: normal;
-  animation: pop-in 0.2s ease;
+/* The pop-up window the link opens (on every screen size): the photo in a
+   dark-blue card with its caption underneath, centered over the same light,
+   slightly blurred overlay as the drawings' pop-ups on phones. The photo is
+   3:4 (like a phone photo), up to 360px wide, and shrinks on short screens
+   so the whole card always fits. */
+.photo-modal {
+  width: min(376px, calc(100vw - 48px), calc((100dvh - 150px) * 0.75 + 16px));
+  max-height: calc(100dvh - 32px);
+  padding: 0;
+  border: none;
+  border-radius: 20px;
+  background: transparent;
+  overflow: visible;
 }
 
-.attire-popup img,
-.attire-popup-placeholder {
+.photo-modal::backdrop {
+  background: rgba(202, 233, 255, 0.7); /* the page's light blue */
+  backdrop-filter: blur(3px);
+  -webkit-backdrop-filter: blur(3px);
+}
+
+.photo-modal[open] {
+  animation: modal-in 0.25s ease;
+}
+
+.photo-modal-card {
+  position: relative;
+  margin: 0;
+  padding: 8px 8px 0;
+  border-radius: 20px;
+  background: var(--ink);
+  color: var(--paper);
+  box-shadow: 0 16px 40px rgba(0, 52, 89, 0.25);
+}
+
+.photo-modal-card:focus {
+  outline: none;
+}
+
+.photo-modal-card img,
+.photo-modal-placeholder {
   display: flex;
   align-items: center;
   justify-content: center;
   width: 100%;
   aspect-ratio: 3 / 4;
-  border-radius: 10px;
+  border-radius: 13px;
   object-fit: cover;
 }
 
-.attire-popup-placeholder {
+.photo-modal-placeholder {
   box-sizing: border-box;
-  padding: 16px;
   border: 1.5px dashed currentColor;
-  font-size: 0.85rem;
+  font: 400 0.85rem/1.4 var(--font-ui);
+}
+
+.photo-modal-card figcaption {
+  padding: 12px 10px 14px;
+  font: 500 0.92rem/1.4 var(--font-ui);
+  font-style: normal;
   text-align: center;
 }
 
-/* Phones: line the card up with the right edge of the text instead, so it
-   stays on screen. */
-@media (max-width: 640px) {
-  .attire-popup {
-    left: auto;
-    right: 0;
-  }
+/* The ×, on a dark circle so it shows up over the photo. */
+.photo-modal-card .nugget-modal-close {
+  top: 16px;
+  right: 16px;
+  background: rgba(0, 52, 89, 0.75);
 }
 
-@keyframes pop-in {
-  from {
-    opacity: 0;
-    transform: translateY(4px);
+@media (prefers-reduced-motion: reduce) {
+  .photo-modal[open] {
+    animation: none;
   }
 }
 
@@ -2057,8 +2543,7 @@ img.nugget-photo {
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .toast,
-  .attire-popup {
+  .toast {
     animation: none;
   }
 }
@@ -2115,8 +2600,9 @@ img.nugget-photo {
     height: 320px;
   }
 
+  /* The dot sits halfway down the event's drawing of the two of us. */
   .timeline-dot {
-    margin-top: 8px;
+    align-self: center;
   }
 }
 
@@ -2352,6 +2838,15 @@ img.nugget-photo {
 .rsvp form {
   display: grid;
   gap: 20px;
+}
+
+/* RSVP is the last section, so on its own there isn't always enough page
+   below its title to scroll the title to the top of the screen. This keeps
+   the title-and-form part at least as tall as the screen, less the nav, the
+   room above the title (24px), this section's bottom padding (96px) and the
+   footer (120px); any extra is empty space under the button. */
+.rsvp-body {
+  min-height: calc(100dvh - var(--nav-height) - 24px - 96px - 120px);
 }
 
 /* One card per person (and one for contact info). */
@@ -3131,9 +3626,141 @@ img.nugget-photo {
   margin-left: auto;
 }
 
+/* The menu button: three dark-blue lines that turn into an × when open. */
+.menu-icon {
+  position: relative;
+  display: block;
+  width: 22px;
+  height: 14px;
+}
+
+.menu-icon > span {
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 2px;
+  border-radius: 2px;
+  background: currentColor;
+  transition: top 0.25s ease, rotate 0.25s ease, opacity 0.2s ease;
+}
+
+.menu-icon > span:nth-child(1) { top: 0; }
+.menu-icon > span:nth-child(2) { top: 6px; }
+.menu-icon > span:nth-child(3) { top: 12px; }
+
+.menu-button.open .menu-icon > span:nth-child(1) {
+  top: 6px;
+  rotate: 45deg;
+}
+.menu-button.open .menu-icon > span:nth-child(2) {
+  opacity: 0;
+}
+.menu-button.open .menu-icon > span:nth-child(3) {
+  top: 6px;
+  rotate: -45deg;
+}
+
+/* The open menu (screens up to 768px): fills the screen below the nav, in
+   the page's light blue, with the links centered in the same bold, wide
+   capitals as the section titles. The section you're on is underlined, RSVP
+   is a dark-blue button like the one under the countdown, and "Log out"
+   sits quietly at the bottom. It fades and slides down slightly as it opens. */
 @media (max-width: 768px) {
+  [data-design='honey'] .menu-button {
+    display: grid;
+    place-items: center;
+    width: 40px;
+    height: 40px;
+    margin-right: -9px; /* the lines line up with the page edge */
+    padding: 0;
+    color: var(--ink);
+  }
+
+  [data-design='honey'] .navbar-links {
+    display: flex;
+    position: fixed;
+    top: var(--menu-top, var(--nav-height));
+    left: 0;
+    right: 0;
+    bottom: 0;
+    box-sizing: border-box;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    padding: 36px 24px 28px;
+    overflow-y: auto;
+    background: var(--paper);
+    border: none;
+    box-shadow: none;
+    visibility: hidden;
+    opacity: 0;
+    translate: 0 -8px;
+    transition: opacity 0.25s ease, translate 0.25s ease, visibility 0s 0.25s;
+  }
+
+  [data-design='honey'] .navbar-links.open {
+    visibility: visible;
+    opacity: 1;
+    translate: none;
+    transition: opacity 0.25s ease, translate 0.25s ease, visibility 0s;
+  }
+
+  [data-design='honey'] .navbar-links a {
+    padding: 8px 0;
+    border: none;
+    background: none;
+    font-family: var(--font-display);
+    font-weight: 900;
+    font-stretch: 125%;
+    font-size: 1.55rem;
+    line-height: 1.1;
+    text-transform: uppercase;
+    color: var(--ink);
+  }
+
+  [data-design='honey'] .navbar-links a.active {
+    background: none;
+    text-decoration: underline;
+    text-decoration-thickness: 3px;
+    text-underline-offset: 7px;
+  }
+
   [data-design='honey'] .navbar-links a[href='#rsvp'] {
-    margin-left: 0;
+    margin: 20px 0 0;
+    padding: 14px 40px;
+    border: 1.5px solid var(--ink);
+    border-radius: 20px;
+    background: var(--ink);
+    color: var(--paper);
+    font-family: var(--font-ui);
+    font-weight: 500;
+    font-stretch: 100%;
+    font-size: 0.8rem;
+    letter-spacing: 0.16em;
+    text-decoration: none;
+  }
+
+  [data-design='honey'] .navbar-links a[href='#rsvp']::after {
+    margin-left: 10px;
+    padding: 0;
+    background: none;
+  }
+
+  [data-design='honey'] .navbar-logout {
+    margin-top: auto; /* pushed to the bottom of the menu */
+    padding: 16px 12px 4px;
+    font-size: 0.85rem;
+    text-decoration: underline;
+    text-underline-offset: 3px;
+    text-align: center;
+  }
+}
+
+@media (max-width: 768px) and (prefers-reduced-motion: reduce) {
+  [data-design='honey'] .navbar-links,
+  [data-design='honey'] .navbar-links.open,
+  .menu-icon > span {
+    transition: none;
   }
 }
 
@@ -3375,7 +4002,7 @@ img.nugget-photo {
   }
 }
 
-/* "play again": plain text with a circular arrow, in the bottom-right
+/* Replay: just a circular-arrow icon (no text), in the bottom-right
    corner of the area around the couple (which spans the page's width and
    ends at the bottom of the first screen). Once the animation has finished,
    it fades in while the pointer is over that area, or when it has keyboard
@@ -3385,19 +4012,18 @@ img.nugget-photo {
   z-index: 3;
   right: 16px;
   bottom: 0;
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  padding: 8px 4px;
+  display: grid;
+  place-items: center;
+  width: 40px; /* a comfortable spot to tap */
+  height: 40px;
+  padding: 0;
   border: none;
+  border-radius: 50%;
   background: transparent;
   color: var(--ink);
-  font: 500 0.85rem/1 var(--font-ui);
-  letter-spacing: 0.02em;
-  white-space: nowrap;
   cursor: pointer;
   opacity: 0;
-  transition: opacity 0.3s ease;
+  transition: opacity 0.3s ease, background-color 0.2s ease;
 }
 
 .honey-stage-wrap:hover .honey-replay,
@@ -3405,19 +4031,24 @@ img.nugget-photo {
   opacity: 1;
 }
 
-.honey-replay:hover .honey-replay-label {
-  text-decoration: underline;
-  text-underline-offset: 3px;
+.honey-replay:hover {
+  background: rgba(0, 52, 89, 0.1);
 }
 
 .honey-replay-icon {
-  width: 15px;
-  height: 15px;
+  width: 20px;
+  height: 20px;
   fill: none;
   stroke: currentColor;
   stroke-width: 2.2;
   stroke-linecap: round;
   stroke-linejoin: round;
+  transition: rotate 0.4s ease;
+}
+
+/* A little spin on hover, hinting at what it does. */
+.honey-replay:hover .honey-replay-icon {
+  rotate: 120deg;
 }
 
 @media (hover: none) {
@@ -3486,6 +4117,32 @@ img.nugget-photo {
     right: auto;
     left: 52%;
     top: -62px;
+  }
+}
+
+/* Phones (under 700px): smaller text so each sentence fits on two lines,
+   bubbles that hug the words, centered text, and a clear gap between the
+   two (20px, split evenly either side of the middle). */
+@media (max-width: 699px) {
+  .honey-stage-wrap .honey-bubble {
+    max-width: none;
+    white-space: nowrap; /* the lines break only where we chose */
+    padding: 6px 12px;
+    border-radius: 16px;
+    font-size: 0.78rem;
+    line-height: 1.25;
+    text-align: center;
+  }
+  .honey-bubble .bubble-line {
+    display: block;
+  }
+  .honey-stage-wrap .honey-bubble-her {
+    right: calc(50% + 10px);
+    top: -44px;
+  }
+  .honey-stage-wrap .honey-bubble-him {
+    left: calc(50% + 10px);
+    top: -54px;
   }
 }
 

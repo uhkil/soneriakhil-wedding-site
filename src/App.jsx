@@ -14,10 +14,13 @@ import LoginPage from './components/login/LoginPage.jsx'
 import Toaster from './components/Toast.jsx'
 import { useGuest } from './guest/GuestProvider.jsx'
 import { isPractice } from './api/rsvpApi.js'
+import { useTitleJumps } from './components/useTitleJumps.js'
 
 export default function App() {
   const { status, party, logout } = useGuest()
   const loggedIn = status === 'in'
+  // Links to a section bring its title to the top of the screen.
+  useTitleJumps(loggedIn)
 
   return (
     <>

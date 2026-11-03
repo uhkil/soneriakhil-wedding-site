@@ -5,6 +5,7 @@
 // While it's open, the page behind it can't scroll, and the keyboard stays
 // inside it. Closing it puts the keyboard focus back where it was.
 // Usage: <Lightbox photos={photos} index={2} onIndex={setIndex} onClose={...} />
+import { photoUrl } from './photoUrl.js'
 import { useEffect, useRef } from 'react'
 import { createPortal } from 'react-dom'
 
@@ -58,7 +59,7 @@ export default function Lightbox({ photos, index, onIndex, onClose }) {
     >
       <figure className="lightbox-figure" onClick={(e) => e.target === e.currentTarget && onClose()}>
         {photo.src ? (
-          <img key={photo.src} src={import.meta.env.BASE_URL + photo.src} alt={photo.alt || photo.label} />
+          <img key={photo.src} src={photoUrl(photo.src)} alt={photo.alt || photo.label} />
         ) : (
           <div key={photo.label} className="lightbox-placeholder">
             {photo.label}

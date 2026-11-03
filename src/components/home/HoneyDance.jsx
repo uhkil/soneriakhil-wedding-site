@@ -92,12 +92,17 @@ function Dance({ onReplay }) {
         </div>
 
         {/* Real text, so it's crisp and read by screen readers. Soneri is on
-            the left, Akhil on the right. */}
-        <p className="honey-bubble honey-bubble-her">we’re excited to celebrate with you :-)</p>
-        <p className="honey-bubble honey-bubble-him">welcome to our wedding website!</p>
+            the left, Akhil on the right. On phones, each "bubble-line" starts
+            a second line, so the bubble can hug the words (see index.css). */}
+        <p className="honey-bubble honey-bubble-her">
+          we’re excited to <span className="bubble-line">celebrate with you :-)</span>
+        </p>
+        <p className="honey-bubble honey-bubble-him">
+          welcome to our <span className="bubble-line">wedding website!</span>
+        </p>
       </div>
 
-      {/* Once the animation has finished: shows in the bottom-right corner
+      {/* A replay (circular arrow) icon, once the animation has finished: shows in the bottom-right corner
           while the pointer is over this area (always, on touch screens). */}
       {!stillOnly && step === sequence.length - 1 && (
         <button type="button" className="honey-replay" aria-label="Play the animation again" onClick={onReplay}>
@@ -105,7 +110,6 @@ function Dance({ onReplay }) {
             <path d="M20 12a8 8 0 1 1-2.34-5.66" />
             <path d="M20 4v5h-5" />
           </svg>
-          <span className="honey-replay-label" aria-hidden="true">play again</span>
         </button>
       )}
     </div>

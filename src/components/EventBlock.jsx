@@ -3,7 +3,7 @@
 // "flipped" swaps which side the details and the artwork are on.
 // The details come from the Sheet, filled in by src/data/events.js (which
 // also adds the map pin, the moodboard icon, and any note under the attire).
-import { useEffect, useRef, useState } from 'react'
+import { useRef } from 'react'
 import IllustrationSlot from './IllustrationSlot.jsx'
 import { showToast } from './Toast.jsx'
 
@@ -110,51 +110,44 @@ function Attire({ event }) {
 }
 
 // e.g. "bonus points if you wear a cowboys jersey", where "cowboys jersey"
-// opens a little card (a photo). Clicking outside it or pressing Escape closes it.
+// opens a pop-up window (on every screen size): the photo with its caption
+// underneath, centered over a light overlay. The ×, the Escape key, or a tap
+// on the overlay closes it.
 function AttireNote({ note, popup }) {
-  const [open, setOpen] = useState(false)
-  const ref = useRef(null)
-  const popupRef = useRef(null)
-
-  // If the card opens past the bottom of the screen, scroll down just enough
-  // to show all of it (plus a little room).
-  useEffect(() => {
-    if (!open) return
-    const bottom = popupRef.current?.getBoundingClientRect().bottom ?? 0
-    const overflow = bottom + 24 - window.innerHeight
-    if (overflow > 0) {
-      const smooth = !window.matchMedia('(prefers-reduced-motion: reduce)').matches
-      window.scrollBy({ top: overflow, behavior: smooth ? 'smooth' : 'auto' })
-    }
-  }, [open])
-
-  useEffect(() => {
-    if (!open) return
-    const onClick = (e) => !ref.current?.contains(e.target) && setOpen(false)
-    const onKey = (e) => e.key === 'Escape' && setOpen(false)
-    document.addEventListener('pointerdown', onClick)
-    document.addEventListener('keydown', onKey)
-    return () => {
-      document.removeEventListener('pointerdown', onClick)
-      document.removeEventListener('keydown', onKey)
-    }
-  }, [open])
+  const dialog = useRef(null)
+  const close = () => dialog.current?.close()
 
   return (
-    <span className="attire-note" ref={ref}>
+    <span className="attire-note">
       {note.before}
-      <button type="button" className="link-button" aria-expanded={open} onClick={() => setOpen(!open)}>
+      <button type="button" className="link-button" aria-haspopup="dialog" onClick={() => popup && dialog.current?.showModal()}>
         {note.link}
       </button>
       {note.after}
-      {open && popup && (
-        <span className="attire-popup" role="dialog" aria-label={popup.alt} ref={popupRef}>
-          {popup.image ? (
-            <img src={import.meta.env.BASE_URL + popup.image} alt={popup.alt} />
-          ) : (
-            <span className="attire-popup-placeholder">{popup.caption}</span>
-          )}
-        </span>
+      {popup && (
+        <dialog
+          ref={dialog}
+          className="photo-modal"
+          aria-label={popup.alt}
+          // A tap on the overlay lands on the dialog itself, outside the card.
+          onClick={(e) => e.target === e.currentTarget && close()}
+        >
+          {/* The card takes focus when it opens (rather than the ×, which
+              would show a focus ring on every tap). */}
+          <figure className="photo-modal-card" tabIndex={-1} autoFocus>
+            <button type="button" className="nugget-modal-close" aria-label="Close" onClick={close}>
+              <svg viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M6 6l12 12M18 6 6 18" />
+              </svg>
+            </button>
+            {popup.image ? (
+              <img src={import.meta.env.BASE_URL + popup.image} alt={popup.alt} />
+            ) : (
+              <span className="photo-modal-placeholder">Photo coming soon</span>
+            )}
+            {popup.caption && <figcaption>{popup.caption}</figcaption>}
+          </figure>
+        </dialog>
       )}
     </span>
   )

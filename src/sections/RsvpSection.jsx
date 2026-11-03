@@ -159,6 +159,10 @@ export default function RsvpSection() {
     <Section id="rsvp" className="rsvp">
       {/* Corner art just above the title (see "corner-art" in index.css). */}
       <IllustrationSlot name="rsvpCouple" size="small" className="corner-art corner-art-right" />
+      {/* Everything from the title down. It's always at least a screen tall
+          (see .rsvp-body in index.css), so a link to RSVP can bring the
+          title right up to the top of the screen. */}
+      <div className="rsvp-body">
       <h2>RSVP</h2>
       <p className="rsvp-intro">
         {party.hasResponded
@@ -342,6 +346,7 @@ export default function RsvpSection() {
           {status === 'saving' ? 'Saving…' : party.hasResponded ? 'Update RSVP' : 'Send RSVP'}
         </button>
       </form>
+      </div>
     </Section>
   )
 }

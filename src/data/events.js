@@ -10,9 +10,10 @@
 //   moodboard   — the moodboard icon next to the attire opens this link; ''
 //                 shows a "coming soon" message instead
 //   attireNote  — a small line under the attire; { before, link, after } makes
-//                 the middle words a link that pops up a card (attirePopup)
-//   attirePopup — what that card shows: { image, alt, caption } (no image yet
-//                 → a placeholder box)
+//                 the middle words a link that opens a pop-up window (attirePopup)
+//   attirePopup — what that window shows: { image, alt, caption } — the photo,
+//                 its description for screen readers, and a caption shown
+//                 under it (no image yet → a placeholder box)
 //
 // Use " | " between two parts of a name or place (e.g. a venue and its room).
 
@@ -53,7 +54,7 @@ const eventDetails = {
     attirePopup: {
       image: 'assets/photos/cowboys-jersey.jpg',
       alt: 'Suraj and friends in Cowboys jerseys at AT&T Stadium',
-      caption: '',
+      caption: 'meet the biggest Dallas Cowboys fans attending our wedding!',
     },
     description: 'Join the couple for a traditional Indian wedding ceremony, followed by lunch.',
   },

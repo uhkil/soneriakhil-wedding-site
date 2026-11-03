@@ -3,6 +3,8 @@
 // Any component can call useGuest() to get:
 //   status    'checking' (looking up a saved login), 'guest' (not logged in), or 'in'
 //   party     the logged-in party's details from the Sheet (or null)
+//   guestId   which person on the invitation logged in (null for logins
+//             saved before this was remembered)
 //   token     proof of login, sent along when saving an RSVP
 //   login(guestId, code), logout(), setParty(updatedParty)
 //
@@ -36,6 +38,7 @@ function writeSaved(value) {
 export function GuestProvider({ children }) {
   const [party, setParty] = useState(null)
   const [token, setToken] = useState(null)
+  const [guestId, setGuestId] = useState(null)
   const [status, setStatus] = useState(() => (readSaved() ? 'checking' : 'guest'))
 
   // On page load: if this browser has a saved login, reload that party.
@@ -46,6 +49,7 @@ export function GuestProvider({ children }) {
       .then((p) => {
         setParty(p)
         setToken(saved.token)
+        setGuestId(saved.guestId ?? null)
         setStatus('in')
       })
       .catch((error) => {
@@ -58,9 +62,10 @@ export function GuestProvider({ children }) {
 
   async function login(guestId, code) {
     const result = await verifyCode(guestId, code) // throws if the passcode is wrong
-    writeSaved({ partyId: result.party.partyId, token: result.token })
+    writeSaved({ partyId: result.party.partyId, token: result.token, guestId })
     setParty(result.party)
     setToken(result.token)
+    setGuestId(guestId)
     setStatus('in')
   }
 
@@ -68,12 +73,13 @@ export function GuestProvider({ children }) {
     writeSaved(null)
     setParty(null)
     setToken(null)
+    setGuestId(null)
     setStatus('guest')
     window.scrollTo(0, 0)
   }
 
   return (
-    <GuestContext.Provider value={{ status, party, token, login, logout, setParty }}>
+    <GuestContext.Provider value={{ status, party, token, guestId, login, logout, setParty }}>
       {children}
     </GuestContext.Provider>
   )
