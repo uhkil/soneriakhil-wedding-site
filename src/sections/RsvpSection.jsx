@@ -4,12 +4,15 @@
 //   - Accept or decline each event they're invited to.
 //   - Dietary needs (optional).
 //   - Their email and phone number (both required), and an optional note for
-//     Soneri & Akhil. (An unnamed plus-one also gets a box for their name;
+//     Soneri & Akhil. Phones outside the US start with + and the country code.
+//     Several people can share the same email or phone. (An unnamed plus-one also gets a box for their name;
 //     if they're not coming and have no name, the rest can be left blank.)
 // Answers are saved to the Google Sheet. Guests can come back and change them.
 //
-// Saved emails, phones, and notes are never sent back to the website, so those
-// boxes start empty and say "on file"; leaving them blank keeps what's saved.
+// Saved emails and phones come back partly hidden (p•••h@gmail.com,
+// •••-•••-1234) and are shown under their boxes so guests can check them;
+// the boxes start empty, and leaving them blank keeps what's saved. Saved
+// notes aren't shown at all.
 //
 // If something's missing when they press Send, the cards that need something
 // open, each spot is outlined with a short note, the page scrolls to the first
@@ -22,10 +25,9 @@ import IllustrationSlot from '../components/IllustrationSlot.jsx'
 import { useGuest } from '../guest/GuestProvider.jsx'
 import { submitRsvp } from '../api/rsvpApi.js'
 import FormMessage from '../components/FormMessage.jsx'
-
-// The same checks the Sheet does, so a typo is caught before sending.
-const EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
-const enoughDigits = (phone) => phone.replace(/\D/g, '').length >= 7
+// The email and phone rules (the same ones the Sheet checks), so a typo is
+// caught before sending.
+import { EMAIL, COM_TYPO, formatPhone, isValidPhone } from '../guest/contact.js'
 // The Sheet's reply when the saved login no longer works (e.g. the passcode changed).
 const LOGGED_OUT = 'Please find your invitation again.'
 
@@ -102,12 +104,17 @@ export default function RsvpSection() {
       const email = a.email.trim()
       const phone = a.phone.trim()
       if (!email && !saved.email) list.push({ id: `email-${g.guestId}`, message: 'Please add an email address.' })
-      else if (email && !EMAIL.test(email)) {
+      else if (email && COM_TYPO.test(email)) {
+        list.push({ id: `email-${g.guestId}`, message: 'Please check the ending of the email (did you mean .com?).' })
+      } else if (email && !EMAIL.test(email)) {
         list.push({ id: `email-${g.guestId}`, message: 'Please check the email address (e.g. name@example.com).' })
       }
       if (!phone && !saved.phone) list.push({ id: `phone-${g.guestId}`, message: 'Please add a phone number.' })
-      else if (phone && !enoughDigits(phone)) {
-        list.push({ id: `phone-${g.guestId}`, message: 'Please check the phone number.' })
+      else if (phone && !isValidPhone(phone)) {
+        list.push({
+          id: `phone-${g.guestId}`,
+          message: phone.startsWith('+') ? 'Please check the phone number.' : 'Please enter a 10-digit phone number.',
+        })
       }
     }
     return list
@@ -278,11 +285,12 @@ export default function RsvpSection() {
                     id={`email-${g.guestId}`}
                     type="email"
                     autoComplete={g.isPlusOne ? 'off' : 'email'}
-                    placeholder={saved.email ? 'On file. Leave blank to keep it.' : 'name@example.com'}
+                    placeholder={saved.email ? 'Type a new email to change it' : 'name@example.com'}
                     value={a.email}
                     onChange={(e) => updateGuest(g.guestId, (c) => (c.email = e.target.value))}
-                    {...invalid(problemFor(`email-${g.guestId}`), `email-${g.guestId}-note`)}
+                    {...described(problemFor(`email-${g.guestId}`), `email-${g.guestId}-note`, saved.email && `email-${g.guestId}-saved`)}
                   />
+                  <OnFile value={saved.email} id={`email-${g.guestId}-saved`} />
                   <FieldNote problem={problemFor(`email-${g.guestId}`)} id={`email-${g.guestId}-note`} />
                 </div>
 
@@ -291,12 +299,24 @@ export default function RsvpSection() {
                   <input
                     id={`phone-${g.guestId}`}
                     type="tel"
+                    inputMode="numeric" // phones show the number pad
                     autoComplete={g.isPlusOne ? 'off' : 'tel'}
-                    placeholder={saved.phone ? 'On file. Leave blank to keep it.' : '(555) 555-5555'}
+                    placeholder={saved.phone ? 'Type a new number to change it' : '555-555-5555'}
                     value={a.phone}
-                    onChange={(e) => updateGuest(g.guestId, (c) => (c.phone = e.target.value))}
-                    {...invalid(problemFor(`phone-${g.guestId}`), `phone-${g.guestId}-note`)}
+                    // Anything but digits (and a "+" at the start) is dropped as
+                    // it's typed or pasted; dashes and spaces are added automatically.
+                    onChange={(e) => updateGuest(g.guestId, (c) => (c.phone = formatPhone(e.target.value)))}
+                    {...described(
+                      problemFor(`phone-${g.guestId}`),
+                      `phone-${g.guestId}-note`,
+                      saved.phone && `phone-${g.guestId}-saved`,
+                      `phone-${g.guestId}-hint`
+                    )}
                   />
+                  <OnFile value={saved.phone} id={`phone-${g.guestId}-saved`} />
+                  <p className="field-hint" id={`phone-${g.guestId}-hint`}>
+                    Outside the US? Start with + and your country code (like +91 or +44).
+                  </p>
                   <FieldNote problem={problemFor(`phone-${g.guestId}`)} id={`phone-${g.guestId}-note`} />
                 </div>
 
@@ -355,6 +375,31 @@ export default function RsvpSection() {
 // and which note explains why.
 function invalid(problem, noteId) {
   return problem ? { 'aria-invalid': true, 'aria-describedby': noteId } : {}
+}
+
+// Like invalid(), for a box that also has helping lines under it (their ids
+// in "hintIds"; blank ones are skipped), which screen readers read out too.
+function described(problem, noteId, ...hintIds) {
+  const ids = [...hintIds, problem && noteId].filter(Boolean).join(' ')
+  return { ...(problem ? { 'aria-invalid': true } : {}), ...(ids ? { 'aria-describedby': ids } : {}) }
+}
+
+// The line under an email or phone box saying what's saved, partly hidden:
+// "On file: p•••h@gmail.com. Leave blank to keep it." (An older back end
+// only says whether something is saved, not what.)
+function OnFile({ value, id }) {
+  if (!value) return null
+  return (
+    <p className="field-hint" id={id}>
+      {typeof value === 'string' ? (
+        <>
+          On file: <span className="on-file-value">{value}</span>. Leave blank to keep it.
+        </>
+      ) : (
+        'On file. Leave blank to keep it.'
+      )}
+    </p>
+  )
 }
 
 // The short red note under a box or question that needs fixing.

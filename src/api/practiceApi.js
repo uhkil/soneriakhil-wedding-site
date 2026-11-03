@@ -3,6 +3,7 @@
 //
 // Try: "Jordan Lee", "Priya Shah" (two matches), or "Sam Rivera" (invited
 // only to April 10's events), with the passcode CELEBRATE.
+import { maskEmail, maskPhone } from '../guest/contact.js'
 
 const events = [
   { id: 'ceremony', name: 'Intimate Ceremony', date: 'April 9', timeOfDay: 'Morning', time: '10:00 AM', location: 'Practice Venue', address: '123 Example St, Dallas, TX', attire: 'Formal', description: 'Practice-mode details.' },
@@ -45,9 +46,12 @@ function partyDetails(partyId) {
     .map((g) => ({ guestId: g.guestId, firstName: g.firstName, lastName: g.lastName, isPlusOne: Boolean(g.isPlusOne), invitedEvents: g.events || party.events }))
   const invited = new Set(members.flatMap((g) => g.invitedEvents))
   const answers = saved[partyId] || { answers: {}, contact: {} }
-  // Like the real back end: only whether each person's contact info is on file, never the values.
+  // Like the real back end: emails and phones partly hidden, and only whether a note is saved.
   const onFile = Object.fromEntries(
-    Object.entries(answers.contact).map(([id, c]) => [id, { email: Boolean(c.email), phone: Boolean(c.phone), note: Boolean(c.note) }])
+    Object.entries(answers.contact).map(([id, c]) => [
+      id,
+      { email: c.email ? maskEmail(c.email) : '', phone: c.phone ? maskPhone(c.phone) : '', note: Boolean(c.note) },
+    ])
   )
   return {
     partyId,
@@ -98,6 +102,8 @@ export async function handlePractice(req) {
       // A blank box keeps what was saved before.
       const was = before[g.guestId] || {}
       contact[g.guestId] = { email: g.email || was.email, phone: g.phone || was.phone, note: g.note || was.note }
+      // Like the Sheet: US numbers are saved without the +1.
+      if (contact[g.guestId].phone) contact[g.guestId].phone = contact[g.guestId].phone.replace(/^\+1 /, '')
     })
     saved[req.partyId] = { answers, contact }
     return { ok: true, party: partyDetails(req.partyId) }

@@ -4863,3 +4863,20 @@ img.nugget-photo {
 [data-design='honey'] .rsvp-guest .field-note {
   color: #ffb4a9;
 }
+
+/* Small helping lines under a box: what's on file ("On file: p•••h@gmail.com")
+   and tips like the one about phone numbers outside the US. */
+.field-hint {
+  margin: 8px 0 0;
+  font-family: var(--font-ui);
+  font-size: 0.82rem;
+  font-style: normal;
+  opacity: 0.8;
+}
+.field-hint + .field-hint {
+  margin-top: 4px;
+}
+.on-file-value {
+  font-weight: 600;
+  letter-spacing: 0.02em;
+}

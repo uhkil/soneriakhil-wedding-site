@@ -8,8 +8,9 @@
  * The website sends it requests; it reads the guest list from the Sheet and
  * writes RSVPs back. Guests log in with their name plus the wedding passcode
  * (one passcode for everyone, set in the Settings tab). Each person gives
- * their own email and phone (both required) and can leave a note; saved
- * emails, phones, and notes never leave the Sheet.
+ * their own email and phone (both required) and can leave a note. Saved
+ * emails and phones are only ever sent back partly hidden (p•••h@gmail.com,
+ * •••-•••-1234), and saved notes not at all.
  *
  * Tabs it uses (setup() creates them):
  *   You fill in:      Settings (the passcode), Parties, Guests, Events
@@ -191,8 +192,8 @@ function partyDetails(partyId) {
       description: ev.description,
     }))
 
-  // Previous answers, so guests can review and change them. Contact info
-  // stays private: the website only learns whether each person's is on file.
+  // Previous answers, so guests can review and change them. Saved emails and
+  // phones are sent partly hidden; notes only as whether one is saved.
   const answers = {}
   const onFile = {}
   readTab(TAB.rsvps)
@@ -203,7 +204,12 @@ function partyDetails(partyId) {
         if (r[ev.id]) attending[ev.id] = r[ev.id]
       })
       answers[r.guest_id] = { name: r.guest_name, dietary: r.dietary, attending }
-      onFile[r.guest_id] = { email: Boolean(r.email), phone: Boolean(r.phone), note: Boolean(r.note) }
+      // Emails and phones go back partly hidden, so guests can check them.
+      onFile[r.guest_id] = {
+        email: r.email ? maskEmail(r.email) : '',
+        phone: r.phone ? maskPhone(r.phone) : '',
+        note: Boolean(r.note),
+      }
     })
   const response = readTab(TAB.responses).find((r) => r.party_id === partyId) || {}
 
@@ -213,7 +219,7 @@ function partyDetails(partyId) {
     guests,
     events,
     answers,
-    onFile, // by guest id: { email, phone, note } — true if saved, never the values
+    onFile, // by guest id: { email: 'p•••h@gmail.com', phone: '•••-•••-1234', note: true } ('' / false if not saved)
     hasResponded: Boolean(response.updated_at),
   }
 }
@@ -251,15 +257,17 @@ function saveRsvp(req) {
     // Everyone gives an email and a phone number (an unnamed plus-one who
     // isn't coming is skipped). A blank box keeps what's already saved.
     const saved = savedRows[guest.guestId] || {}
-    const email = limit(g.email, 200) || saved.email || ''
-    const phone = limit(g.phone, 40) || saved.phone || ''
+    const email = (limit(g.email, 200) || saved.email || '').toLowerCase()
+    // Phones are saved as 214-555-1234 in the US, or with + and the country
+    // code otherwise (+91 98765 43210). Older saved ones are tidied too.
+    const phone = sheetPhone(limit(g.phone, 40) || saved.phone || '')
     const note = limit(g.note, 1000) || saved.note || ''
     const who = name || 'your guest'
     if (name) {
       if (!email) throw new UserError(`Please add an email for ${who}.`)
-      if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) throw new UserError(`Please check the email for ${who}.`)
+      if (!EMAIL.test(email) || COM_TYPO.test(email)) throw new UserError(`Please check the email for ${who}.`)
       if (!phone) throw new UserError(`Please add a phone number for ${who}.`)
-      if (phone.replace(/\D/g, '').length < 7) throw new UserError(`Please check the phone number for ${who}.`)
+      if (!isValidPhone(phone)) throw new UserError(`Please check the phone number for ${who}.`)
     }
     guestRows.push({
       updated_at: now,
@@ -423,6 +431,85 @@ function appendObject(sheet, header, data) {
 // ---------------------------------------------------------------------------
 // Small helpers
 // ---------------------------------------------------------------------------
+
+// The same email checks the website does: something@something.ending (2+
+// letters), and not a common slip on ".com" like ".con".
+const EMAIL = /^[^\s@]+@[^\s@.]+(\.[^\s@.]+)*\.[a-z]{2,}$/i
+const COM_TYPO = /\.(con|cmo|ocm|vom|xom|cpm|comm|coom|om)$/i
+
+// Phone numbers, the same way the website does them (src/guest/contact.js).
+//   US: 214-555-1234   India: +91 98765 43210   UK: +44 7911 123456
+//   anywhere else: +33612345678
+function formatPhone(text) {
+  const raw = String(text).trim()
+  let d = raw.replace(/\D/g, '')
+  if (!raw.startsWith('+')) {
+    if (d.length === 11 && d[0] === '1') d = d.slice(1)
+    return usStyle(d.slice(0, 10))
+  }
+  d = d.slice(0, 15)
+  if (d.startsWith('1')) return joinParts('+1', [usStyle(d.slice(1, 11))])
+  if (d.startsWith('91')) return joinParts('+91', groups(d.slice(2, 12), [5, 5]))
+  if (d.startsWith('44')) {
+    const rest = d.slice(2).replace(/^0/, '')
+    return joinParts('+44', groups(rest.slice(0, 10), [4, 6]))
+  }
+  return '+' + d
+}
+
+/** What the Sheet saves: like formatPhone, but US numbers without the "+1". */
+function sheetPhone(text) {
+  return formatPhone(text).replace(/^\+1 /, '')
+}
+
+function isValidPhone(phone) {
+  return (
+    /^\d{3}-\d{3}-\d{4}$/.test(phone) ||
+    /^\+1 \d{3}-\d{3}-\d{4}$/.test(phone) ||
+    /^\+91 \d{5} \d{5}$/.test(phone) ||
+    /^\+44 \d{4} \d{5,6}$/.test(phone) ||
+    (/^\+\d{8,15}$/.test(phone) && !/^\+(1|91|44)/.test(phone))
+  )
+}
+
+function usStyle(d) {
+  return [d.slice(0, 3), d.slice(3, 6), d.slice(6)].filter(Boolean).join('-')
+}
+function groups(d, sizes) {
+  const parts = []
+  let i = 0
+  sizes.forEach((n) => {
+    if (i < d.length) parts.push(d.slice(i, i + n))
+    i += n
+  })
+  return parts
+}
+function joinParts(code, parts) {
+  return [code].concat(parts.filter(Boolean)).join(' ')
+}
+
+/** priya.shah@gmail.com → p•••h@gmail.com */
+function maskEmail(email) {
+  const at = email.lastIndexOf('@')
+  if (at < 1) return '•••'
+  const local = email.slice(0, at)
+  const shown = local.length <= 2 ? local[0] + '•••' : local[0] + '•••' + local.slice(-1)
+  return shown + email.slice(at)
+}
+
+/** 214-555-1234 → •••-•••-1234; +91 98765 43210 → +91 ••••• •3210 */
+function maskPhone(phone) {
+  const m = String(phone).match(/^(\+\d+ )?(.*)$/)
+  const code = m[1] || ''
+  let keep = 4
+  const hidden = m[2]
+    .split('')
+    .reverse()
+    .map((ch) => (/\d/.test(ch) ? (keep-- > 0 ? ch : '•') : ch))
+    .reverse()
+    .join('')
+  return code + hidden
+}
 
 class UserError extends Error {}
 
