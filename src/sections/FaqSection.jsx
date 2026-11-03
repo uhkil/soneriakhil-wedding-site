@@ -14,8 +14,8 @@ const faqs = [
     answer: [
       'Each event has its own dress code.',
       <>
-        You’ll find the attire for every event (and a moodboard for inspiration) in the{' '}
-        <a href="#events">Events section</a>.
+        You’ll find the attire for every event (and a moodboard for inspiration) in the <a href="#events">Events</a>{' '}
+        section.
       </>,
     ],
   },
@@ -25,11 +25,11 @@ const faqs = [
   },
   {
     question: 'Are kids welcome?',
-    answer: ['If your children are listed on your RSVP form, they’re invited.', 'We can’t wait to see them!'],
+    answer: ['If your children are listed on your RSVP form, they’re invited.'],
   },
   {
     question: 'Where should I park?',
-    answer: ['More details to come.', 'We’ll share parking information here closer to the wedding.'],
+    answer: ['We’ll share parking information here closer to the wedding.'],
   },
   {
     question: 'What will the weather be like in Arlington, TX in April?',
@@ -38,8 +38,9 @@ const faqs = [
       'Spring showers and the occasional thunderstorm are common.',
       'We’d suggest bringing a light layer and an umbrella, just in case.',
       <>
+        Check April weather in Arlington on{' '}
         <a href="https://www.accuweather.com/en/us/arlington/76006/april-weather/331134?year=2027" target="_blank" rel="noreferrer">
-          Check April weather in Arlington on AccuWeather
+          AccuWeather
         </a>
         .
       </>,

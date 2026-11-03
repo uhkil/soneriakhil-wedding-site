@@ -47,7 +47,14 @@ export default function App() {
             <RsvpSection />
           </main>
           <footer className="site-footer">
-            <p>&lt;3&nbsp;this website was designed with luv by soneri and akhil&nbsp;&lt;3</p>
+            {/* The same script "&" as the big names at the top, sized to the text. */}
+            <p>
+              &lt;3&nbsp;this website was designed with luv by soneri{' '}
+              <span className="footer-and" aria-label="and">
+                &amp;
+              </span>{' '}
+              akhil&nbsp;&lt;3
+            </p>
           </footer>
         </>
       )}

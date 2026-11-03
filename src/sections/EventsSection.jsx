@@ -6,7 +6,7 @@
 // not stored in the website's code.
 import Section from '../components/Section.jsx'
 import IllustrationSlot from '../components/IllustrationSlot.jsx'
-import EventBlock from '../components/EventBlock.jsx'
+import EventBlock, { CalendarIcon, PinIcon, MoodboardIcon } from '../components/EventBlock.jsx'
 import Art from '../components/Art.jsx'
 
 export default function EventsSection({ events }) {
@@ -37,6 +37,28 @@ export default function EventsSection({ events }) {
           )
         })}
       </div>
+
+      {/* What the small icons beside the details do. */}
+      <dl className="events-legend" aria-label="What the icons do">
+        <div>
+          <dt className="fact-icon legend-icon">
+            <CalendarIcon />
+          </dt>
+          <dd>Add the event to your calendar</dd>
+        </div>
+        <div>
+          <dt className="fact-icon legend-icon">
+            <PinIcon />
+          </dt>
+          <dd>Get directions in Google Maps</dd>
+        </div>
+        <div>
+          <dt className="fact-icon legend-icon">
+            <MoodboardIcon />
+          </dt>
+          <dd>See outfit ideas for the dress code</dd>
+        </div>
+      </dl>
     </Section>
   )
 }

@@ -174,7 +174,7 @@ function AttireNote({ note, popup }) {
 }
 
 // A small calendar page: two rings on top and a line under the header.
-function CalendarIcon() {
+export function CalendarIcon() {
   return (
     <svg viewBox="0 0 24 24" aria-hidden="true">
       <rect x="3.5" y="5" width="17" height="15.5" rx="2" />
@@ -183,7 +183,7 @@ function CalendarIcon() {
   )
 }
 
-function PinIcon() {
+export function PinIcon() {
   return (
     <svg viewBox="0 0 24 24" aria-hidden="true">
       <path d="M12 21s-6.5-5.6-6.5-11a6.5 6.5 0 0 1 13 0c0 5.4-6.5 11-6.5 11z" />
@@ -193,7 +193,7 @@ function PinIcon() {
 }
 
 // A little collage: a tall picture beside two small ones.
-function MoodboardIcon() {
+export function MoodboardIcon() {
   return (
     <svg viewBox="0 0 24 24" aria-hidden="true">
       <rect x="3.5" y="3.5" width="8" height="17" rx="1.5" />

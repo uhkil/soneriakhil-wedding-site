@@ -2305,6 +2305,55 @@ img.nugget-photo {
   outline-offset: 2px;
 }
 
+/* Under the timeline: a quiet key to the icons beside the details. A row
+   of small icon-and-meaning pairs, centered, with no border (stacked on
+   phones). The icons here are just pictures, not buttons. */
+.events-legend {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 10px 28px;
+  margin: 72px auto 0;
+  font-family: var(--font-ui);
+  font-size: 0.74rem;
+  font-style: normal;
+  color: var(--ink);
+  opacity: 0.85;
+}
+
+.events-legend > div {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.events-legend dd {
+  margin: 0;
+}
+
+.fact-icon.legend-icon {
+  top: 0;
+  margin: 0;
+  flex: none;
+  width: 18px;
+  height: 18px;
+  cursor: default;
+}
+
+.fact-icon.legend-icon svg {
+  width: 11px;
+  height: 11px;
+}
+
+@media (max-width: 699px) {
+  .events-legend {
+    flex-direction: column;
+    align-items: flex-start; /* the icons line up in a column */
+    width: fit-content; /* and the whole key stays centered */
+    gap: 10px;
+  }
+}
+
 /* A small line under the attire (an event's "attireNote" in events.js). */
 .attire-note {
   position: relative;
@@ -3165,6 +3214,21 @@ img.nugget-photo {
 .site-footer p {
   margin: 0;
   text-wrap: balance; /* on phones, two even lines instead of one long and one short */
+}
+
+/* The script "&" from the big names at the top, shrunk to sit with the
+   footer's text: a touch bigger than the letters, since script letters
+   draw small. line-height 0 keeps the footer from growing taller. */
+.footer-and {
+  font-family: var(--font-script);
+  font-size: 1.45em;
+  letter-spacing: 0;
+  line-height: 0;
+  position: relative;
+  top: 0.06em;
+  /* the script "&" has extra built-in space on its left; trim it so the
+     gaps on both sides look even */
+  margin: 0 -0.02em 0 -0.12em;
 }
 
 /* =====================================================================
