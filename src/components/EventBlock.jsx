@@ -9,7 +9,7 @@ import { showToast } from './Toast.jsx'
 
 export default function EventBlock({ event, flipped }) {
   const facts = [
-    ['Time', event.time],
+    ['Time', event.time && <Time event={event} />],
     ['Location', event.location],
     ['Address', event.address && <Address event={event} />],
     ['Attire', event.attire && <Attire event={event} />],
@@ -43,6 +43,26 @@ export default function EventBlock({ event, flipped }) {
       {/* Each event's art is listed in src/data/art.js as "event-<id>". */}
       <IllustrationSlot name={`event-${event.id}`} size="small" className="timeline-art" />
     </div>
+  )
+}
+
+// The time, with a calendar icon that adds the event to your calendar.
+function Time({ event }) {
+  return (
+    <TextWithIcon text={event.time}>
+      {event.calendarUrl && (
+        <a
+          className="fact-icon"
+          href={event.calendarUrl}
+          target="_blank"
+          rel="noreferrer"
+          aria-label={`Add ${event.name} to your calendar`}
+          title="Add to calendar"
+        >
+          <CalendarIcon />
+        </a>
+      )}
+    </TextWithIcon>
   )
 }
 
@@ -150,6 +170,16 @@ function AttireNote({ note, popup }) {
         </dialog>
       )}
     </span>
+  )
+}
+
+// A small calendar page: two rings on top and a line under the header.
+function CalendarIcon() {
+  return (
+    <svg viewBox="0 0 24 24" aria-hidden="true">
+      <rect x="3.5" y="5" width="17" height="15.5" rx="2" />
+      <path d="M3.5 10h17M8 3v4M16 3v4" />
+    </svg>
   )
 }
 

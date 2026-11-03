@@ -6,6 +6,8 @@
 // to that column in the Sheet, so an event missing from this list still shows.
 //
 // Optional extras:
+//   calendarUrl — the calendar icon next to the time opens this ("add to
+//                 calendar" link to the event in our Google Calendar)
 //   mapUrl      — the pin next to the address opens this (Google Maps link)
 //   moodboard   — the moodboard icon next to the attire opens this link; ''
 //                 shows a "coming soon" message instead
@@ -17,6 +19,10 @@
 //
 // Use " | " between two parts of a name or place (e.g. a venue and its room).
 
+// "Add to calendar" links: each event in our Google Calendar (soneriakhil@gmail.com).
+const calendar = (eventId) =>
+  `https://calendar.google.com/calendar/event?action=TEMPLATE&tmeid=${eventId}&tmsrc=soneriakhil%40gmail.com`
+
 const LOEWS_ADDRESS = '1600 E Randol Mill Rd, Arlington, TX 76011'
 const LOEWS_MAP = 'https://maps.app.goo.gl/mwfHokVjNmsswHYw9'
 
@@ -24,6 +30,7 @@ const eventDetails = {
   ceremony: {
     name: 'Intimate Ceremony',
     time: '9:00 AM',
+    calendarUrl: calendar('M2ZoOWZkYmMyNDBvMmhjaXRzaWIzZmY0ZnIgc29uZXJpYWtoaWxAbQ'),
     location: 'Weston Gardens',
     address: '8101 Anglin Dr, Fort Worth, TX 76140',
     mapUrl: 'https://maps.app.goo.gl/9ukmWUF7erqTjdSNA',
@@ -34,6 +41,7 @@ const eventDetails = {
   sangeet: {
     name: 'Welcome Night | Sangeet',
     time: '7:00 PM',
+    calendarUrl: calendar('MnNyc2FoczRjNWQwNmphY3FsYmJmc3NncWUgc29uZXJpYWtoaWxAbQ'),
     location: 'Live! by Loews | Arlington Ballroom',
     address: LOEWS_ADDRESS,
     mapUrl: LOEWS_MAP,
@@ -45,6 +53,7 @@ const eventDetails = {
   'indian-wedding': {
     name: 'Wedding',
     time: '10:00 AM',
+    calendarUrl: calendar('NzJiY2YxdDdrOHM5Z3Nna3FibGhtcjA4c2ogc29uZXJpYWtoaWxAbQ'),
     location: 'Live! by Loews | Clover Club Lawn',
     address: LOEWS_ADDRESS,
     mapUrl: LOEWS_MAP,
@@ -55,6 +64,7 @@ const eventDetails = {
   reception: {
     name: 'Cocktail Hour | Reception',
     time: '6:00 PM',
+    calendarUrl: calendar('NmF1bWcwdWNicmM4amkxNTI0ODBwNWtiN2ogc29uZXJpYWtoaWxAbQ'),
     location: 'Live! by Loews | Arlington Ballroom',
     address: LOEWS_ADDRESS,
     mapUrl: LOEWS_MAP,
