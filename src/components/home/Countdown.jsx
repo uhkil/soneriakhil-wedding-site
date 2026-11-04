@@ -4,7 +4,6 @@
 // every second.
 // Once it arrives, it shows zeros.
 import { useEffect, useState } from 'react'
-import art from '../../data/art.js'
 
 // If there's no event to go by: the start of the weekend, Arlington time.
 const WEEKEND = new Date('2027-04-09T00:00:00-05:00')
@@ -41,9 +40,6 @@ export default function Countdown({ to = WEEKEND }) {
     <div className="countdown">
       {/* Screen readers get one short sentence instead of numbers changing every second. */}
       <p className="visually-hidden">{left.days} days until the wedding</p>
-      {/* A single flower at each end (the right one mirrored). */}
-      <div className="countdown-row">
-        <CountdownFlower />
       <div className="countdown-units" aria-hidden="true">
         {units.map(([value, label]) => (
           <div key={label} className="countdown-unit">
@@ -52,19 +48,7 @@ export default function Countdown({ to = WEEKEND }) {
           </div>
         ))}
       </div>
-        <CountdownFlower mirrored />
-      </div>
     </div>
   )
 }
 
-// A single flower beside the countdown: the drawing if it's in art.js
-// ("countdownFlower"), otherwise a small placeholder in its shape.
-function CountdownFlower({ mirrored = false }) {
-  const flower = art.countdownFlower
-  return (
-    <div className={`countdown-flower${mirrored ? ' mirrored' : ''}`} style={{ aspectRatio: flower.ratio }} aria-hidden="true">
-      {flower.src ? <img src={import.meta.env.BASE_URL + flower.src} alt="" draggable="false" /> : <span>flower</span>}
-    </div>
-  )
-}

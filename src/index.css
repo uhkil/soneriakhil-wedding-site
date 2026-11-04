@@ -1236,7 +1236,9 @@ h2:hover .title-berry.mirrored {
    far along you are below it ("2 / 6"). */
 .side-drawing-text.has-gallery {
   text-align: center;
-  justify-self: center;
+  /* up against its edge's spacing, the same distance from the right edge
+     as the drawing's shape is from the left */
+  justify-self: end;
 }
 .side-drawing-text .nugget-carousel {
   margin-top: 16px;
@@ -1264,6 +1266,7 @@ h2:hover .title-berry.mirrored {
   pointer-events: none;
 }
 .side-drawing-text .carousel-count {
+  white-space: nowrap; /* "1 / 6" never splits across lines */
   margin: 12px 0 0;
   font: 500 0.85rem/1 var(--font-ui);
   letter-spacing: 0.08em;
@@ -3148,11 +3151,37 @@ img.nugget-photo {
   padding: 36px 40px 38px;
 }
 
-/* "What to do": a placeholder until the list is ready. */
+/* "What to do": a placeholder until the list is ready, in a card as tall as
+   "Getting there" (an invisible copy of it sets the height), with the words
+   in the middle, up and down and side to side. */
+.travel-sized {
+  display: grid;
+}
+.travel-sizer,
+.travel-sized-body {
+  grid-area: 1 / 1;
+}
+.travel-sizer {
+  visibility: hidden; /* takes up the room, but can't be seen, read, or clicked */
+}
+.travel-sized-body {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
 .travel-coming-soon {
-  margin: 8px 0 4px;
+  margin: 0;
   text-align: center;
   font-style: italic;
+  /* down a little, so it's in the middle of the dark space between the
+     title and the card's bottom edge (the card's bottom padding is deeper
+     than the room under the title) */
+  transform: translateY(14px);
+}
+@media (max-width: 699px) {
+  .travel-coming-soon {
+    transform: translateY(9px);
+  }
 }
 
 /* Phones: the toggle spans the width, its buttons sharing it evenly. */
@@ -4928,11 +4957,7 @@ img.nugget-photo {
    animation's area, and there's 16px of room below that area.) */
 .countdown {
   position: relative;
-  /* about a third of the page for the numbers, plus room for a flower and
-     its gap at each end */
-  --flower-w: calc(clamp(64px, 6.5vw, 96px) / 2);
-  --flower-gap: clamp(16px, 2vw, 32px);
-  width: calc(32% + 2 * (var(--flower-w) + var(--flower-gap)));
+  width: 32%;
   min-width: min(300px, calc(100% - 32px));
   margin: calc(var(--home-gap) - 28px) auto 0;
   color: var(--ink);
@@ -4986,64 +5011,7 @@ img.nugget-photo {
   margin-right: -0.32em; /* keeps the spaced-out word centered */
 }
 
-/* A single flower at each end of the countdown (CountdownFlower in
-   Countdown.jsx): a small placeholder until the drawing is ready. */
-.countdown-row {
-  display: grid;
-  grid-template-columns: auto minmax(0, 1fr) auto;
-  align-items: center;
-  gap: var(--flower-gap);
-}
-.countdown-flower {
-  height: clamp(64px, 6.5vw, 96px);
-  display: grid;
-  place-items: center;
-  box-sizing: border-box;
-  border: 1.5px dashed rgba(0, 52, 89, 0.45);
-  border-radius: 999px;
-  color: rgba(0, 52, 89, 0.6);
-  font: 500 0.6rem/1 var(--font-ui);
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-}
-.countdown-flower:has(img) {
-  border: none;
-}
-.countdown-flower img {
-  width: 100%;
-  height: 100%;
-  object-fit: contain;
-}
-.countdown-flower.mirrored img {
-  transform: scaleX(-1);
-}
-.countdown-flower span {
-  writing-mode: vertical-rl;
-}
-/* iPads: a little wider, so the numbers keep their room beside the flowers. */
-@media (min-width: 700px) and (max-width: 1199px) {
-  .countdown {
-    min-width: min(480px, calc(100% - 32px));
-  }
-}
-/* Phones: smaller flowers, closer in. */
-@media (max-width: 699px) {
-  .countdown {
-    --flower-gap: 8px;
-  }
-  .countdown-flower {
-    height: 52px;
-    font-size: 0.45rem;
-  }
-}
-@media (max-width: 359px) {
-  .countdown {
-    --flower-gap: 6px;
-  }
-  .countdown-flower {
-    height: 44px;
-  }
-}
+
 
 
 /* Phones: the countdown spans most of the width. */

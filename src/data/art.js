@@ -26,13 +26,6 @@
 // placeholder instead).
 
 const art = {
-  countdownFlower: {
-    // A single flower on each side of the countdown (the right one mirrored).
-    // To add the drawing: src: 'assets/art/flower.webp' (and set ratio to its shape).
-    src: '',
-    ratio: '1 / 2',
-    note: 'A single flower beside the countdown',
-  },
   coffeeDate: {
     src: 'assets/art/coffee-date.webp',
     ratio: '963 / 754',
@@ -80,7 +73,7 @@ const art = {
   },
   potteryDate: {
     src: 'assets/art/pottery-date.webp',
-    peopleSize: 0.78, // so the two of us come out the same size as in the coffee date
+    peopleSize: 0.94, // 20% bigger than matching the coffee date exactly (0.78), at our request
     ratio: '885 / 1017',
     tint: true,
     note: 'The two of us at a pottery class',

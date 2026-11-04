@@ -71,7 +71,9 @@ const topics = [
   {
     id: 'what-to-do',
     title: 'What to do',
-    // A placeholder until the list is ready.
+    // A placeholder until the list is ready: as tall as "Getting there",
+    // with the words in the middle.
+    sizeLike: 'getting-there',
     body: <p className="travel-coming-soon">Things to do in Dallas coming soon!</p>,
   },
 ]
@@ -111,7 +113,18 @@ function TravelTabs() {
       </div>
       <div className="travel-card travel-panel" role="tabpanel" aria-label={topic.title}>
         <h3 className="card-pill">{topic.title}</h3>
-        <div className="travel-text">{topic.body}</div>
+        {topic.sizeLike ? (
+          // An invisible copy of another topic sets the height; this topic's
+          // words sit in the middle of it.
+          <div className="travel-text travel-sized">
+            <div className="travel-sizer" aria-hidden="true">
+              {topics.find((t) => t.id === topic.sizeLike).body}
+            </div>
+            <div className="travel-sized-body">{topic.body}</div>
+          </div>
+        ) : (
+          <div className="travel-text">{topic.body}</div>
+        )}
       </div>
     </div>
   )
