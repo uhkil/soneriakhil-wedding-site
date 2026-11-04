@@ -4641,10 +4641,10 @@ img.nugget-photo {
   display: flex;
   width: max-content;
   height: 100%;
-  animation: ticker-right 145s linear infinite; /* about 65px a second on laptops */
+  animation: ticker-right 132s linear infinite; /* 10% faster than the first 145s */
 }
 
-.countdown-ticker-track span {
+.countdown-ticker-track .ticker-half {
   display: flex;
   align-items: center;
   white-space: pre;
@@ -4656,8 +4656,24 @@ img.nugget-photo {
   font-size: clamp(1.36rem, 2.72vw, 2.56rem);
   line-height: 1;
   letter-spacing: 0.08em;
+  word-spacing: -0.12em; /* the words a little closer together */
   text-transform: uppercase;
   color: rgba(0, 52, 89, 0.42);
+}
+
+.countdown-ticker-track .ticker-phrase {
+  display: flex;
+  align-items: center;
+}
+
+/* The dot between sentences: a true circle (the font's dot is nearly square). */
+.countdown-ticker-track .ticker-dot {
+  flex: none;
+  width: 0.3em;
+  height: 0.3em;
+  margin: 0 0.42em 0 0.34em; /* about the same room as the old dot had */
+  border-radius: 50%;
+  background: currentColor;
 }
 
 /* It stops while the pointer is over the moving words or the countdown. */

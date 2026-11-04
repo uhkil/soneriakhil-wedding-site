@@ -48,8 +48,17 @@ export default function Countdown({ to = WEEKEND }) {
           right, showing in the gaps between the numbers (see .countdown-ticker). */}
       <div className="countdown-ticker" aria-hidden="true">
         <div className="countdown-ticker-track">
+          {/* Two identical halves, so the loop is seamless. Between each
+              sentence: a small round dot (drawn, so it's a true circle). */}
           {Array.from({ length: 2 }, (_, half) => (
-            <span key={half}>{'get ready to dance in · '.repeat(TICKER_REPEATS)}</span>
+            <span key={half} className="ticker-half">
+              {Array.from({ length: TICKER_REPEATS }, (_, i) => (
+                <span key={i} className="ticker-phrase">
+                  get ready to dance in
+                  <span className="ticker-dot" />
+                </span>
+              ))}
+            </span>
           ))}
         </div>
       </div>
