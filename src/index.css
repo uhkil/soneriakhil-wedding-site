@@ -5197,6 +5197,145 @@ img.nugget-photo {
 
 /* ----- The RSVP form by event (RsvpByEvent.jsx) ----- */
 
+/* Each card's title, in the same light label as the other cards (but not a
+   button: these cards are always open). */
+.rsvp-card-title {
+  justify-self: start;
+  width: fit-content;
+  margin: 0;
+}
+
+/* An event's name, with its date and time of day in small capitals under it. */
+[data-design='honey'] .rsvp-event-head {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin: 0;
+  font-family: var(--font-ui);
+  font-weight: 600;
+  font-size: 0.95rem;
+  line-height: 1.25;
+  color: var(--paper);
+}
+[data-design='honey'] .rsvp-event-head span {
+  font-size: 0.62rem;
+  font-weight: 500;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  opacity: 0.85;
+}
+
+/* A compact Yes / No switch. */
+[data-design='honey'] .rsvp-yes-no .rsvp-choices {
+  flex-wrap: nowrap; /* Yes and No always side by side */
+}
+[data-design='honey'] .rsvp-yes-no .rsvp-choice label {
+  min-width: 0;
+  padding: 7px 10px;
+  letter-spacing: 0.1em;
+}
+/* Four events across a narrow iPad: a little tighter still. */
+@media (max-width: 899px) {
+  [data-design='honey'] .rsvp-yes-no .rsvp-choice label {
+    padding: 7px 8px;
+    letter-spacing: 0.06em;
+  }
+}
+.rsvp-yes-no {
+  display: inline-block;
+  border-radius: 12px;
+}
+.rsvp-yes-no:focus {
+  outline: none;
+}
+[data-design='honey'] .rsvp-guest .rsvp-yes-no.missing .rsvp-choices {
+  border-color: #ffb4a9;
+}
+
+/* iPads and laptops: people down the side, events across the top, a thin
+   line between people. */
+.rsvp-grid {
+  display: grid;
+  grid-template-columns: minmax(7em, 1.2fr) repeat(var(--events), minmax(0, 1fr));
+}
+.rsvp-grid-row {
+  display: contents;
+}
+.rsvp-grid-row > * {
+  display: flex;
+  align-items: center;
+  padding: 14px 8px;
+  border-top: 1px solid rgba(202, 233, 255, 0.18);
+}
+.rsvp-grid-row > :first-child {
+  padding-left: 0;
+}
+.rsvp-grid-head > * {
+  padding-top: 0;
+  border-top: none;
+}
+/* Each event's name and date: lined up with its switches below, sitting on
+   the line above the first person. */
+.rsvp-grid-head .rsvp-event-head {
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: flex-end;
+}
+.rsvp-grid-cell {
+  justify-content: flex-start;
+}
+[data-design='honey'] .rsvp-list-name {
+  font-family: var(--font-ui);
+  font-weight: 600;
+  font-size: 1rem;
+  color: var(--paper);
+}
+.rsvp-not-invited {
+  padding-left: 1.4em;
+  color: rgba(202, 233, 255, 0.45);
+}
+
+/* Phones: a short list per event (name on the left, Yes / No on the right). */
+.rsvp-list-event + .rsvp-list-event {
+  padding-top: 18px;
+  border-top: 1px solid rgba(202, 233, 255, 0.25);
+}
+.rsvp-list-event .rsvp-event-head {
+  margin-bottom: 6px;
+}
+.rsvp-list-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 8px 0;
+}
+
+/* Your details: the address and the note, each under a small heading after
+   a thin line. */
+.rsvp-details-part {
+  padding-top: 22px;
+  border-top: 1px solid rgba(202, 233, 255, 0.25);
+}
+[data-design='honey'] .rsvp-subhead,
+[data-design='honey'] .rsvp-field label.rsvp-subhead {
+  display: block;
+  margin: 0 0 14px;
+  font-family: var(--font-ui);
+  font-weight: 600;
+  font-size: 1.05rem;
+  letter-spacing: 0;
+  text-transform: none;
+  color: var(--paper);
+}
+.rsvp-address-bare {
+  display: grid;
+  gap: 22px;
+}
+.rsvp-address-bare .rsvp-subhead {
+  margin-bottom: -8px;
+}
+
 /* A card's header: its title, and (for events) the date and time of day in
    small capitals under it. */
 .rsvp-card-titles {

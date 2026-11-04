@@ -13,7 +13,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { US_STATES, ZIP, livesAbroad, lookUpZip, stateName } from '../guest/address.js'
 
-export default function RsvpAddress({ address, onChange, onFile, saved, open, onToggle, problemFor, flagged }) {
+export default function RsvpAddress({ address, onChange, onFile, saved, open, onToggle, problemFor, flagged, bare = false }) {
   const us = address.country === 'US'
   const set = (field, value) => onChange((a) => ({ ...a, [field]: value }))
   // Which of city / state were filled in from the ZIP code (so a new ZIP
@@ -94,22 +94,8 @@ export default function RsvpAddress({ address, onChange, onFile, saved, open, on
   }
 
   const stateProblem = problemFor('state')
-  return (
-    <div
-      role="group"
-      aria-labelledby="rsvp-address-title"
-      className={`rsvp-guest rsvp-address${open ? ' open' : ''}${flagged ? ' needs-attention' : ''}`}
-    >
-      <div className="rsvp-card-head">
-        <button type="button" className="rsvp-card-toggle" aria-expanded={open} aria-controls="rsvp-address-body" onClick={onToggle}>
-          <span className="rsvp-name" id="rsvp-address-title">
-            Mailing address
-          </span>
-          <span className="rsvp-plus" aria-hidden="true" />
-        </button>
-      </div>
-
-      <div className="rsvp-card-body" id="rsvp-address-body" hidden={!open}>
+  const fields = (
+    <>
         <p className="field-hint address-intro">
           {livesAbroad(onFile)
             ? 'On file: you live outside the US, so there’s no address to add.'
@@ -178,6 +164,38 @@ export default function RsvpAddress({ address, onChange, onFile, saved, open, on
           />
           <span id="addr-abroad-label">I don’t live in the United States</span>
         </div>
+    </>
+  )
+
+  // Inside another card (the RSVP's "Your details"): just a small heading and the boxes.
+  if (bare) {
+    return (
+      <div role="group" aria-labelledby="rsvp-address-title" className="rsvp-address rsvp-address-bare">
+        <p className="rsvp-subhead" id="rsvp-address-title">
+          Mailing address
+        </p>
+        {fields}
+      </div>
+    )
+  }
+
+  return (
+    <div
+      role="group"
+      aria-labelledby="rsvp-address-title"
+      className={`rsvp-guest rsvp-address${open ? ' open' : ''}${flagged ? ' needs-attention' : ''}`}
+    >
+      <div className="rsvp-card-head">
+        <button type="button" className="rsvp-card-toggle" aria-expanded={open} aria-controls="rsvp-address-body" onClick={onToggle}>
+          <span className="rsvp-name" id="rsvp-address-title">
+            Mailing address
+          </span>
+          <span className="rsvp-plus" aria-hidden="true" />
+        </button>
+      </div>
+
+      <div className="rsvp-card-body" id="rsvp-address-body" hidden={!open}>
+        {fields}
       </div>
     </div>
   )

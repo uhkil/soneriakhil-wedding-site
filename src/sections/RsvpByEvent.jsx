@@ -1,23 +1,22 @@
 // The RSVP form, organized by event (the new design; for now only in
-// practice mode — see RsvpSection.jsx). Cards, in order:
-//   - One per event the invitation is invited to (in date order): each
-//     person invited to it, with Accept / Decline.
+// practice mode — see RsvpSection.jsx). Two cards, always open:
+//   - Who's coming?: a grid, with each person down the side and each event
+//     across the top, and a Yes / No switch where they meet ("—" if that
+//     person isn't invited to that event). Phones, too narrow for that, get
+//     the same thing as a short list per event.
 //   - Your details: for each person, their email, phone, and dietary needs
-//     (and a plus-one's name). The invitation needs at least one email and
-//     one phone number; the rest are optional.
-//   - Mailing address (one for the whole invitation; see RsvpAddress.jsx).
-//   - A note for Soneri & Akhil (one for the whole invitation).
-// All cards start closed, and only one is open at a time.
+//     (and a plus-one's name); then the mailing address and one note for the
+//     whole invitation. The invitation needs at least one email and one
+//     phone number; the rest are optional.
 //
 // The answers are the same as before (each person's yes/no for each event,
 // their contact details and dietary needs), so they save to the Sheet the
 // same way.
 //
-// If something's missing when they press Send, the first card that needs
-// something opens, its spots are outlined with a short note, the page
-// scrolls there, cards with something missing are marked, and a message by
-// the button says what to do.
-import { useState } from 'react'
+// If something's missing when they press Send, the spots are outlined with
+// a short note, the page scrolls to the first one, and a message by the
+// button says what to do.
+import { useEffect, useState } from 'react'
 import { useGuest } from '../guest/GuestProvider.jsx'
 import { submitRsvp } from '../api/rsvpApi.js'
 import FormMessage from '../components/FormMessage.jsx'
@@ -54,7 +53,6 @@ export default function RsvpByEvent() {
   const [status, setStatus] = useState('editing') // 'editing' | 'saving' | 'saved'
   const [error, setError] = useState('')
   const [checked, setChecked] = useState(false) // after the first Send: flag what's missing
-  const [openCard, setOpenCard] = useState(null) // the one open card (or none)
   const [celebrate, setCelebrate] = useState(null)
 
   const displayName = (g) => (g.isPlusOne ? 'Your guest' : `${g.firstName} ${g.lastName}`)
@@ -63,14 +61,7 @@ export default function RsvpByEvent() {
   const invitedTo = (ev) => people.filter((g) => g.invitedEvents.includes(ev.id))
   const noteOnFile = people.some((g) => onFile(g).note)
 
-  // Opening a card closes the one that was open; it scrolls into view if
-  // closing the other moved it.
-  function toggle(id) {
-    setOpenCard((current) => (current === id ? null : id))
-    requestAnimationFrame(() =>
-      (document.getElementById(`card-${id}`) ?? document.querySelector(`.rsvp-${id}`))?.scrollIntoView({ block: 'nearest', behavior: 'smooth' })
-    )
-  }
+  const phone = usePhone()
 
   function updateGuest(guestId, change) {
     setAnswers((all) => {
@@ -105,12 +96,12 @@ export default function RsvpByEvent() {
       } else if (email && !EMAIL.test(email)) {
         list.push({ id: `email-${g.guestId}`, card: 'details', message: 'Please check the email address (e.g. name@example.com).' })
       }
-      const phone = a.phone.trim()
-      if (phone && !isValidPhone(phone)) {
+      const phoneText = a.phone.trim()
+      if (phoneText && !isValidPhone(phoneText)) {
         list.push({
           id: `phone-${g.guestId}`,
           card: 'details',
-          message: phone.startsWith('+') ? 'Please check the phone number.' : 'Please enter a 10-digit phone number.',
+          message: phoneText.startsWith('+') ? 'Please check the phone number.' : 'Please enter a 10-digit phone number.',
         })
       }
     })
@@ -131,12 +122,51 @@ export default function RsvpByEvent() {
   const problemFor = (id) => problems.find((p) => p.id === id)
   const cardFlagged = (card) => problems.some((p) => p.card === card)
 
+  // One person's Yes / No for one event.
+  function yesNo(g, ev) {
+    const group = `${g.guestId}-${ev.id}`
+    const problem = problemFor(group)
+    return (
+      <span
+        id={group}
+        tabIndex={-1}
+        className={`rsvp-yes-no${problem ? ' missing' : ''}`}
+        role="radiogroup"
+        aria-label={`${displayName(g)}, ${ev.name}`}
+        {...invalid(problem, `${group}-note`)}
+      >
+        <span className="rsvp-choices">
+          {[
+            ['yes', 'Yes'],
+            ['no', 'No'],
+          ].map(([value, label]) => (
+            <span key={value} className="rsvp-choice">
+              <input
+                type="radio"
+                id={`${group}-${value}`}
+                name={group}
+                value={value}
+                checked={answers[g.guestId].attending[ev.id] === value}
+                onChange={() => updateGuest(g.guestId, (c) => (c.attending[ev.id] = value))}
+              />
+              <label htmlFor={`${group}-${value}`}>{label}</label>
+            </span>
+          ))}
+        </span>
+        {problem && (
+          <span id={`${group}-note`} className="visually-hidden">
+            {problem.message}
+          </span>
+        )}
+      </span>
+    )
+  }
+
   async function save() {
     setChecked(true)
     const found = findProblems()
     if (found.length) {
       setError('')
-      setOpenCard(found[0].card)
       requestAnimationFrame(() => {
         const spot = document.getElementById(found[0].id)
         const smooth = !window.matchMedia('(prefers-reduced-motion: reduce)').matches
@@ -162,7 +192,6 @@ export default function RsvpByEvent() {
       setNote('')
       setAddress(startingAddress(updated.addressOnFile))
       setStatus('saved')
-      setOpenCard(null)
       setCelebrate({ attending: Object.values(answers).some((a) => Object.values(a.attending).includes('yes')) })
     } catch (err) {
       setError(err.message)
@@ -179,56 +208,62 @@ export default function RsvpByEvent() {
       </p>
 
       <div className="rsvp-form" role="form" aria-label="RSVP">
-        {party.events.map((ev) => (
-          <Card
-            key={ev.id}
-            id={`event-${ev.id}`}
-            title={ev.name}
-            sub={`${ev.date} · ${ev.timeOfDay}`}
-            open={openCard === `event-${ev.id}`}
-            flagged={cardFlagged(`event-${ev.id}`)}
-            onToggle={toggle}
-          >
-            {invitedTo(ev).map((g) => {
-              const group = `${g.guestId}-${ev.id}`
-              const problem = problemFor(group)
-              return (
-                <div
-                  key={g.guestId}
-                  id={group}
-                  tabIndex={-1}
-                  className={`rsvp-person${problem ? ' missing' : ''}`}
-                  role="radiogroup"
-                  aria-label={`${displayName(g)}, ${ev.name}`}
-                  {...invalid(problem, `${group}-note`)}
-                >
-                  <p className="rsvp-person-name">{displayName(g)}</p>
-                  <div className="rsvp-choices">
-                    {[
-                      ['yes', 'Accept'],
-                      ['no', 'Decline'],
-                    ].map(([value, label]) => (
-                      <span key={value} className="rsvp-choice">
-                        <input
-                          type="radio"
-                          id={`${group}-${value}`}
-                          name={group}
-                          value={value}
-                          checked={answers[g.guestId].attending[ev.id] === value}
-                          onChange={() => updateGuest(g.guestId, (c) => (c.attending[ev.id] = value))}
-                        />
-                        <label htmlFor={`${group}-${value}`}>{label}</label>
-                      </span>
-                    ))}
+        <Card id="coming" title="Who’s coming?">
+          {phone ? (
+            // Phones: one short list per event.
+            party.events.map((ev) => (
+              <div key={ev.id} className="rsvp-list-event">
+                <p className="rsvp-event-head">
+                  {ev.name}
+                  <span>
+                    {ev.date} · {ev.timeOfDay}
+                  </span>
+                </p>
+                {invitedTo(ev).map((g) => (
+                  <div key={g.guestId} className="rsvp-list-row">
+                    <span className="rsvp-list-name">{displayName(g)}</span>
+                    {yesNo(g, ev)}
                   </div>
-                  <FieldNote problem={problem} id={`${group}-note`} />
+                ))}
+              </div>
+            ))
+          ) : (
+            // iPads and laptops: people down the side, events across the top.
+            <div className="rsvp-grid" style={{ '--events': party.events.length }} role="table" aria-label="Who’s coming to each event">
+              <div className="rsvp-grid-row rsvp-grid-head" role="row">
+                <span role="columnheader" className="rsvp-grid-corner" />
+                {party.events.map((ev) => (
+                  <span key={ev.id} role="columnheader" className="rsvp-event-head">
+                    {ev.name}
+                    <span>
+                      {ev.date} · {ev.timeOfDay}
+                    </span>
+                  </span>
+                ))}
+              </div>
+              {people.map((g) => (
+                <div key={g.guestId} className="rsvp-grid-row" role="row">
+                  <span role="rowheader" className="rsvp-list-name">
+                    {displayName(g)}
+                  </span>
+                  {party.events.map((ev) => (
+                    <span key={ev.id} role="cell" className="rsvp-grid-cell">
+                      {g.invitedEvents.includes(ev.id) ? (
+                        yesNo(g, ev)
+                      ) : (
+                        <span className="rsvp-not-invited" aria-label="Not invited">
+                          —
+                        </span>
+                      )}
+                    </span>
+                  ))}
                 </div>
-              )
-            })}
-          </Card>
-        ))}
+              ))}
+            </div>
+          )}
+        </Card>
 
-        <Card id="details" title="Your details" open={openCard === 'details'} flagged={cardFlagged('details')} onToggle={toggle}>
+        <Card id="details" title="Your details">
           <p className="field-hint rsvp-details-intro">
             We need at least one email and one phone number for your invitation. Add them for everyone if you’d like.
           </p>
@@ -298,30 +333,28 @@ export default function RsvpByEvent() {
             )
           })}
           <p className="field-hint">Outside the US? Start phone numbers with + and the country code (like +91 or +44).</p>
-        </Card>
 
-        <RsvpAddress
-          address={address}
-          onChange={(change) => {
-            setAddress(change)
-            setStatus('editing')
-          }}
-          onFile={party.addressOnFile}
-          saved={party.addressMasked}
-          open={openCard === 'address'}
-          onToggle={() => toggle('address')}
-          problemFor={(field) => problemFor(`addr-${field}`)}
-          flagged={cardFlagged('address')}
-        />
+          <div className="rsvp-details-part">
+            <RsvpAddress
+              bare
+              address={address}
+              onChange={(change) => {
+                setAddress(change)
+                setStatus('editing')
+              }}
+              onFile={party.addressOnFile}
+              saved={party.addressMasked}
+              problemFor={(field) => problemFor(`addr-${field}`)}
+            />
+          </div>
 
-        <Card id="note" title="A note for Soneri & Akhil" open={openCard === 'note'} onToggle={toggle}>
-          <div className="rsvp-field">
-            <label htmlFor="rsvp-note" className="visually-hidden">
+          <div className="rsvp-details-part rsvp-field">
+            <label htmlFor="rsvp-note" className="rsvp-subhead">
               A note for Soneri &amp; Akhil
             </label>
             <textarea
               id="rsvp-note"
-              rows="4"
+              rows="3"
               placeholder={noteOnFile ? 'We have your note. Write a new one to replace it, or leave blank to keep it.' : 'Optional'}
               value={note}
               onChange={(e) => {
@@ -363,32 +396,29 @@ export default function RsvpByEvent() {
   )
 }
 
-// One card: a header that opens and closes it (title, and an optional line
-// under it, like the date), and what's inside.
-function Card({ id, title, sub, open, flagged, onToggle, children }) {
+// One card: its title in a light label, and what's inside (always open).
+function Card({ id, title, children }) {
   return (
-    <div
-      id={`card-${id}`}
-      role="group"
-      aria-labelledby={`card-${id}-title`}
-      className={`rsvp-guest rsvp-card-${id.startsWith('event-') ? 'event' : id}${open ? ' open' : ''}${flagged ? ' needs-attention' : ''}`}
-    >
-      <div className="rsvp-card-head">
-        <button type="button" className="rsvp-card-toggle" aria-expanded={open} aria-controls={`card-${id}-body`} onClick={() => onToggle(id)}>
-          <span className="rsvp-card-titles">
-            <span className="rsvp-name" id={`card-${id}-title`}>
-              {title}
-            </span>
-            {sub && <span className="rsvp-card-sub">{sub}</span>}
-          </span>
-          <span className="rsvp-plus" aria-hidden="true" />
-        </button>
-      </div>
-      <div className="rsvp-card-body" id={`card-${id}-body`} hidden={!open}>
-        {children}
-      </div>
+    <div id={`card-${id}`} role="group" aria-labelledby={`card-${id}-title`} className={`rsvp-guest open rsvp-card-${id}`}>
+      <p className="rsvp-name rsvp-card-title" id={`card-${id}-title`}>
+        {title}
+      </p>
+      <div className="rsvp-card-body">{children}</div>
     </div>
   )
+}
+
+// Phones (under 700px): the list instead of the grid.
+function usePhone() {
+  const query = '(max-width: 699px)'
+  const [phone, setPhone] = useState(() => window.matchMedia(query).matches)
+  useEffect(() => {
+    const list = window.matchMedia(query)
+    const update = () => setPhone(list.matches)
+    list.addEventListener('change', update)
+    return () => list.removeEventListener('change', update)
+  }, [])
+  return phone
 }
 
 function invalid(problem, noteId) {
