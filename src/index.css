@@ -3073,7 +3073,7 @@ img.nugget-photo {
   margin: 0 0 32px;
 }
 
-.rsvp form {
+.rsvp .rsvp-form {
   display: grid;
   gap: 20px;
 }

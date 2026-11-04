@@ -123,10 +123,11 @@ const art = {
   },
 
   'event-indian-wedding': {
-    src: 'assets/art/indian-outfit.webp',
-    ratio: '657 / 1136',
+    // (a new file name, so browsers don't keep showing the old drawing)
+    src: 'assets/art/indian-outfit-v2.webp',
+    ratio: '626 / 1104',
     tint: true,
-    note: 'The two of us dressed for the Indian wedding',
+    note: 'The two of us dressed for the Indian wedding, in flower garlands',
   },
   'event-reception': {
     src: 'assets/art/reception-outfit.webp',

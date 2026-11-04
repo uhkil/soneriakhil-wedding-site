@@ -130,8 +130,7 @@ export default function RsvpSection() {
   const problems = checked ? findProblems() : []
   const problemFor = (id) => problems.find((p) => p.id === id)
 
-  async function save(event) {
-    event.preventDefault()
+  async function save() {
     setChecked(true)
     const found = findProblems()
     if (found.length) {
@@ -185,7 +184,11 @@ export default function RsvpSection() {
           : 'Let us know who’s coming. Open each person’s card to fill in their answers.'}
       </p>
 
-      <form onSubmit={save} noValidate>
+      {/* Not a <form>: browsers (Safari especially) offer to "save contact
+          info" when a form with email and phone boxes is submitted. The
+          button saves the answers itself instead, so there's nothing for the
+          browser to catch. (It can still offer to fill the boxes in.) */}
+      <div className="rsvp-form" role="form" aria-label="RSVP">
         {party.guests.map((g) => {
           const a = answers[g.guestId]
           const open = openCards.has(g.guestId)
@@ -367,10 +370,10 @@ export default function RsvpSection() {
           </FormMessage>
         )}
 
-        <button className="button rsvp-submit" type="submit" disabled={status === 'saving'}>
+        <button className="button rsvp-submit" type="button" onClick={save} disabled={status === 'saving'}>
           {status === 'saving' ? 'Saving…' : party.hasResponded ? 'Update RSVP' : 'Send RSVP'}
         </button>
-      </form>
+      </div>
       </div>
       <RsvpCelebration open={Boolean(celebrate)} attending={celebrate?.attending} onClose={() => setCelebrate(null)} />
     </Section>
