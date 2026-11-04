@@ -59,7 +59,14 @@ export default function Lightbox({ photos, index, onIndex, onClose }) {
     >
       <figure className="lightbox-figure" onClick={(e) => e.target === e.currentTarget && onClose()}>
         {photo.src ? (
-          <img key={photo.src} src={photoUrl(photo.src)} alt={photo.alt || photo.label} />
+          // The full-size copy if there is one (e.g. Memories photos), shown
+          // over the smaller one the guest already has, so it's never blank.
+          <img
+            key={photo.src}
+            src={photoUrl(photo.full ?? photo.src)}
+            alt={photo.alt || photo.label}
+            style={photo.full ? { backgroundImage: `url(${photoUrl(photo.src)})`, backgroundSize: 'contain', backgroundRepeat: 'no-repeat', backgroundPosition: 'center' } : undefined}
+          />
         ) : (
           <div key={photo.label} className="lightbox-placeholder">
             {photo.label}

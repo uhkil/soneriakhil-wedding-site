@@ -20,19 +20,31 @@ import sizes from '../assets/memories/sizes.json'
 // the page is opened or refreshed, the same order in all three views.
 // The pictures there are web-sized copies of the originals, and sizes.json
 // has each one's width and height (both made by scripts/sync-memories.sh).
+// Each photo also has a smaller copy in memories/small/ (1000px on its long
+// side: still sharp on every screen, including iPhones, at the size the
+// film strip and grid show them, and about half the download). The
+// full-size copy is only loaded when a photo is opened full screen.
 const files = import.meta.glob('../assets/memories/*.{jpg,jpeg,png,webp,avif}', {
   eager: true,
   query: '?url',
   import: 'default',
 })
+const smallFiles = import.meta.glob('../assets/memories/small/*.{jpg,jpeg,png,webp,avif}', {
+  eager: true,
+  query: '?url',
+  import: 'default',
+})
+const smallByName = Object.fromEntries(Object.entries(smallFiles).map(([path, src]) => [path.split('/').pop(), src]))
 
 // Portrait photos get a tall tile in the grid (two rows high).
 const isTall = ({ width, height }) => height > width * 1.1
 
 const shuffled = shuffle(
   Object.entries(files).map(([path, src]) => {
-    const [width, height] = sizes[path.split('/').pop()] ?? [4, 3]
-    return { src, width, height, alt: 'A photo of Soneri and Akhil' }
+    const name = path.split('/').pop()
+    const [width, height] = sizes[name] ?? [4, 3]
+    // src: what the film strip and grid show; full: the full-screen view.
+    return { src: smallByName[name] ?? src, full: src, width, height, alt: 'A photo of Soneri and Akhil' }
   })
 )
 

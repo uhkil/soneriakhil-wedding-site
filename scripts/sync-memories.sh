@@ -7,6 +7,9 @@
 #   - New photos (JPEG, PNG, HEIC from iPhones, WebP...) are converted to
 #     JPEG and shrunk to at most 1600px on their longest side, so they look
 #     sharp full screen but download quickly (about 200-400 KB each).
+#   - Each also gets a smaller copy (1000px) in src/assets/memories/small/,
+#     which the film strip and grid show (sharp on every screen, about half
+#     the download); the 1600px copy is for the full-screen view.
 #   - The copies keep only the picture: location (GPS), camera details and
 #     other hidden information are left out (see scripts/web-photo.swift).
 #     The originals in your folder aren't changed.
@@ -23,7 +26,8 @@ set -euo pipefail
 
 source_dir="${1:?Give the folder of original photos, e.g. scripts/sync-memories.sh ~/Desktop/Memories}"
 site_dir="$(cd "$(dirname "$0")/.." && pwd)/src/assets/memories"
-mkdir -p "$site_dir"
+small_dir="$site_dir/small"
+mkdir -p "$site_dir" "$small_dir"
 
 # Each photo's width and height, as JSON: { "name.jpg": [width, height], ... }
 write_sizes() {
@@ -58,6 +62,7 @@ web_name() {
 
 typeset -A wanted
 jobs=()
+small_jobs=()
 added=0 updated=0 removed=0
 for original in "$source_dir"/*(N.); do
   case "${original:e:l}" in
@@ -75,23 +80,38 @@ for original in "$source_dir"/*(N.); do
     continue
   fi
   jobs+=("$original" "$copy")
+  small_jobs+=("$original" "$small_dir/$name")
   echo "  + $name"
 done
 
-# Convert all the new and changed photos in one go.
+# Convert all the new and changed photos in one go (full size, then small).
 if (( ${#jobs} )); then
   echo "Converting $(( ${#jobs} / 2 )) photo(s)..."
   swift "${0:A:h}/web-photo.swift" "${jobs[@]}"
+fi
+# Any photo still missing its small copy gets one (made from its web copy).
+for copy in "$site_dir"/*.(jpg|jpeg|png|webp|avif)(N.); do
+  [[ -e "$small_dir/${copy:t}" || -n "${wanted[${copy:t}]:-}" && " ${small_jobs[*]} " == *" $small_dir/${copy:t} "* ]] && continue
+  small_jobs+=("$copy" "$small_dir/${copy:t}")
+done
+if (( ${#small_jobs} )); then
+  echo "Making $(( ${#small_jobs} / 2 )) small copy(ies)..."
+  WEB_PHOTO_MAX=1000 swift "${0:A:h}/web-photo.swift" "${small_jobs[@]}"
 fi
 
 for copy in "$site_dir"/*.(jpg|jpeg|png|webp|avif)(N.); do
   if [[ -z "${wanted[${copy:t}]:-}" ]]; then
     rm "$copy"
+    rm -f "$small_dir/${copy:t}"
     removed=$((removed + 1))
     echo "  - ${copy:t}"
   fi
 done
+# Small copies whose photo is gone.
+for small in "$small_dir"/*(N.); do
+  [[ -e "$site_dir/${small:t}" ]] || rm "$small"
+done
 
 write_sizes
-total=$(ls "$site_dir" | grep -vc '^sizes.json$')
+total=$(print -l "$site_dir"/*.(jpg|jpeg|png|webp|avif)(N.) | grep -c .)
 echo "Done: $added added, $updated updated, $removed removed. $total photos on the site ($(du -sh "$site_dir" | cut -f1))."
