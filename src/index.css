@@ -936,8 +936,9 @@ h2:hover .title-berry.mirrored {
   border-radius: 20px;
 }
 
-/* Every other moment flips: text on the left, photo on the right. */
-.story-moment:nth-child(even) .story-photo {
+/* The first row has the text on the left and the photo on the right; every
+   row after that swaps sides. */
+.story-moment:nth-child(odd) .story-photo {
   order: 2;
 }
 
@@ -961,6 +962,34 @@ h2:hover .title-berry.mirrored {
 
 .story-text p {
   margin: 0;
+  font-size: 1.12rem;
+  line-height: 1.6;
+  text-wrap: pretty;
+}
+.story-text p + p {
+  margin-top: 1em;
+}
+
+/* Words that open a photo (PhotoLink.jsx): underlined, like a link. */
+.photo-link {
+  display: inline;
+  padding: 0;
+  border: none;
+  background: none;
+  font: inherit;
+  color: inherit;
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 3px;
+  cursor: pointer;
+}
+.photo-link:hover {
+  text-decoration-thickness: 2px;
+}
+.photo-link:focus-visible {
+  outline: 2px solid var(--ink);
+  outline-offset: 2px;
+  border-radius: 2px;
 }
 
 /* ----- Corner art: the small drawings of the two of us (coffee date,
@@ -1718,7 +1747,7 @@ img.nugget-photo {
     gap: 20px;
     margin-bottom: 48px;
   }
-  .story-moment:nth-child(even) .story-photo {
+  .story-moment:nth-child(odd) .story-photo {
     order: 0;
   }
 }
