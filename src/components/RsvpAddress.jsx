@@ -4,13 +4,13 @@
 // Separate boxes (street, apartment, city, state, ZIP), so browsers and
 // iPhones can fill in a saved address in one tap. Typing a US ZIP code fills
 // in the city and state if they're still empty (the guest can change them).
-// "I don't live in the United States" swaps the State menu for a plain box,
-// adds a Country box, and makes nothing required.
+// "I don't live in the United States" locks the boxes (clicking them says
+// there's no need) and saves "Lives outside the US" instead of an address.
 //
 // A saved address isn't sent back to the website: the card only says the
 // city it's in ("On file: Dallas, TX"), and leaving the boxes blank keeps it.
-import { useEffect, useRef } from 'react'
-import { US_STATES, ZIP, lookUpZip } from '../guest/address.js'
+import { useEffect, useRef, useState } from 'react'
+import { US_STATES, ZIP, livesAbroad, lookUpZip } from '../guest/address.js'
 
 export default function RsvpAddress({ address, onChange, onFile, open, onToggle, problemFor, flagged }) {
   const us = address.country === 'US'
@@ -43,7 +43,27 @@ export default function RsvpAddress({ address, onChange, onFile, open, onToggle,
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [zip5, us])
 
-  // One labeled box. "name" is the browser's autofill hint.
+  // "I don't live in the United States": the boxes are locked, and clicking
+  // them shows a little bubble explaining why (for a few seconds).
+  const abroad = !us
+  const [tip, setTip] = useState(null) // where the bubble is: { x, y } inside the boxes
+  const tipTimer = useRef(null)
+  const showTip = (e) => {
+    const box = e.currentTarget.getBoundingClientRect()
+    // Above where they clicked, but never past the card's edges (the bubble
+    // is at most 260px wide, or 80% of the boxes' width).
+    const half = Math.min(130, box.width * 0.4)
+    const x = Math.min(Math.max(e.clientX - box.left, half), box.width - half)
+    setTip({ x, y: e.clientY - box.top })
+    clearTimeout(tipTimer.current)
+    tipTimer.current = setTimeout(() => setTip(null), 2800)
+  }
+  useEffect(() => () => clearTimeout(tipTimer.current), [])
+  useEffect(() => {
+    if (!abroad) setTip(null)
+  }, [abroad])
+
+  // One labeled box. "autoComplete" is the browser's autofill hint.
   const box = (field, label, props = {}) => {
     const problem = problemFor(field)
     const id = `addr-${field}`
@@ -54,6 +74,7 @@ export default function RsvpAddress({ address, onChange, onFile, open, onToggle,
           id={id}
           type="text"
           value={address[field]}
+          disabled={abroad}
           onChange={(e) => {
             if (field === 'city') autoFilled.current.city = false
             set(field, e.target.value)
@@ -88,15 +109,16 @@ export default function RsvpAddress({ address, onChange, onFile, open, onToggle,
 
       <div className="rsvp-card-body" id="rsvp-address-body" hidden={!open}>
         <p className="field-hint address-intro">
-          {onFile
-            ? `On file: an address in ${onFile}. Leave these blank to keep it, or fill them in to change it.`
-            : 'One address for everyone on your invitation, for anything we mail you.'}
+          {livesAbroad(onFile)
+            ? 'On file: you live outside the US, so there’s no address to add.'
+            : onFile
+              ? `On file: an address in ${onFile}. Leave these blank to keep it, or fill them in to change it.`
+              : 'One address for everyone on your invitation, for anything we mail you.'}
         </p>
 
-        {box('street', 'Street address', { autoComplete: 'address-line1' })}
-        {box('apt', 'Apartment, suite, etc. (optional)', { autoComplete: 'address-line2' })}
-
-        {us ? (
+        <div className={`address-fields${abroad ? ' locked' : ''}`}>
+          {box('street', 'Street address', { autoComplete: 'address-line1' })}
+          {box('apt', 'Apartment, suite, etc. (optional)', { autoComplete: 'address-line2' })}
           <div className="address-row address-row-us">
             {box('city', 'City', { autoComplete: 'address-level2' })}
             <div className="rsvp-field address-state">
@@ -105,6 +127,7 @@ export default function RsvpAddress({ address, onChange, onFile, open, onToggle,
                 id="addr-state"
                 autoComplete="address-level1"
                 value={address.state}
+                disabled={abroad}
                 onChange={(e) => {
                   autoFilled.current.state = false
                   set('state', e.target.value)
@@ -126,28 +149,29 @@ export default function RsvpAddress({ address, onChange, onFile, open, onToggle,
             </div>
             {box('zip', 'ZIP code', { autoComplete: 'postal-code', inputMode: 'numeric', maxLength: 10 })}
           </div>
-        ) : (
-          <>
-            {box('city', 'City / town (optional)', { autoComplete: 'address-level2' })}
-            <div className="address-row">
-              {box('state', 'State / province (optional)', { autoComplete: 'address-level1' })}
-              {box('zip', 'Postal code (optional)', { autoComplete: 'postal-code' })}
-            </div>
-            {box('otherCountry', 'Country (optional)', { autoComplete: 'country-name' })}
-          </>
-        )}
-        {us && <p className="field-hint address-zip-hint">Typing your ZIP code fills in the city and state.</p>}
+          <p className="field-hint address-zip-hint">Typing your ZIP code fills in the city and state.</p>
 
-        {/* Outside the US: no State menu or ZIP check, and nothing required. */}
-        <label className="address-abroad">
+          {/* Locked: a see-through cover over the boxes catches clicks and
+              shows the bubble (locked boxes can't be clicked themselves). */}
+          {abroad && <div className="address-cover" onClick={showTip} aria-hidden="true" />}
+          {abroad && tip && (
+            <p className="address-tip" role="status" style={{ left: tip.x, top: tip.y }}>
+              No need to add your address — it’s only for guests who live in the US.
+            </p>
+          )}
+        </div>
+
+        {/* Only the box itself is clickable (not the words or the space beside them). */}
+        <div className="address-abroad">
           <input
+            id="addr-abroad"
             type="checkbox"
-            checked={!us}
-            // (A US state means nothing abroad, and the other way round.)
-            onChange={(e) => onChange((a) => ({ ...a, country: e.target.checked ? 'INTL' : 'US', state: '' }))}
+            checked={abroad}
+            aria-labelledby="addr-abroad-label"
+            onChange={(e) => onChange((a) => ({ ...a, country: e.target.checked ? 'INTL' : 'US' }))}
           />
-          <span>I don’t live in the United States</span>
-        </label>
+          <span id="addr-abroad-label">I don’t live in the United States</span>
+        </div>
       </div>
     </div>
   )

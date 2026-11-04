@@ -4910,6 +4910,16 @@ img.nugget-photo {
   gap: 12px;
   align-items: start;
 }
+/* Boxes fill their column exactly (so City never runs into State, and ZIP
+   never runs off the card). */
+.rsvp-address .rsvp-field {
+  grid-template-columns: minmax(0, 1fr);
+}
+.rsvp-address .rsvp-field input {
+  width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
+}
 /* In the US: City, State, ZIP on one row (on phones, City on its own row
    and State + ZIP under it). */
 .rsvp-address .address-row-us {
@@ -4926,7 +4936,47 @@ img.nugget-photo {
 .rsvp-address .address-zip-hint {
   margin: -6px 0 0;
 }
-/* "I don't live in the United States" */
+/* "I don't live in the United States": the boxes are greyed out and locked;
+   a see-through cover catches clicks and shows a bubble explaining why. */
+.rsvp-address .address-fields {
+  position: relative;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr); /* never wider than the card */
+  gap: inherit;
+}
+.rsvp-address .address-fields.locked .rsvp-field,
+.rsvp-address .address-fields.locked .address-zip-hint {
+  opacity: 0.4;
+}
+.rsvp-address .address-cover {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  cursor: not-allowed;
+}
+.rsvp-address .address-tip {
+  position: absolute;
+  z-index: 2;
+  width: max-content;
+  max-width: min(260px, 80%);
+  margin: 0;
+  padding: 8px 12px;
+  border-radius: 10px;
+  background: var(--paper);
+  color: var(--ink);
+  font: 500 0.8rem/1.35 var(--font-ui);
+  text-align: center;
+  pointer-events: none;
+  /* centered just above where they clicked (one transform, no translate) */
+  transform: translate(-50%, calc(-100% - 10px));
+  animation: tip-in 0.2s ease;
+}
+@keyframes tip-in {
+  from {
+    opacity: 0;
+  }
+}
+/* The checkbox: only the box itself is clickable. */
 .rsvp-address .address-abroad {
   display: flex;
   align-items: center;
@@ -4934,23 +4984,38 @@ img.nugget-photo {
   margin-top: 4px;
   font-family: var(--font-ui);
   font-size: 0.9rem;
-  cursor: pointer;
 }
 .rsvp-address .address-abroad input {
-  width: 18px;
-  height: 18px;
+  appearance: none;
+  -webkit-appearance: none;
+  display: grid;
+  place-items: center;
+  width: 20px;
+  height: 20px;
   margin: 0;
   flex: none;
-  accent-color: var(--paper);
+  border: 1.5px solid rgba(202, 233, 255, 0.7); /* the light blue, like the other boxes */
+  border-radius: 5px;
+  background: transparent;
   cursor: pointer;
 }
-/* Boxes fill their column exactly (so City never runs into State). */
-.rsvp-address .rsvp-field input {
-  width: 100%;
-  min-width: 0;
-  box-sizing: border-box;
+.rsvp-address .address-abroad input:checked {
+  background: var(--paper);
+  border-color: var(--paper);
 }
-/* The menus (country, state) look like the other boxes, with a small arrow. */
+.rsvp-address .address-abroad input:checked::after {
+  content: '';
+  width: 5px;
+  height: 10px;
+  margin-top: -2px;
+  border: solid var(--ink);
+  border-width: 0 2px 2px 0;
+  transform: rotate(45deg);
+}
+.rsvp-address .address-abroad input:focus-visible {
+  outline: 2px solid var(--paper);
+  outline-offset: 2px;
+}
 [data-design='honey'] .rsvp-field select {
   appearance: none;
   -webkit-appearance: none;

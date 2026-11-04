@@ -28,8 +28,20 @@ export const isStarted = (a) => ['otherCountry', 'street', 'apt', 'city', 'state
 
 export const ZIP = /^\d{5}(-\d{4})?$/
 
+// What the Sheet says (party.addressOnFile) for an invitation that checked
+// "I don't live in the United States". ('your country' is from an older
+// version of the Sheet's script.)
+export const livesAbroad = (onFile) => onFile === 'outside the US' || onFile === 'your country'
+
+// What's sent for "I don't live in the United States" (no address).
+export const ABROAD = { country: 'INTL', otherCountry: 'Outside the US', street: '', apt: '', city: '', state: '', zip: '' }
+
+// The boxes as a guest first sees them: the checkbox already checked if
+// they said before that they live outside the US.
+export const startingAddress = (onFile) => ({ ...blankAddress(), country: livesAbroad(onFile) ? 'INTL' : 'US' })
+
 // What's missing or wrong, in the order the boxes appear: [{ field, message }].
-// Outside the US nothing is required (addresses differ too much to check).
+// Outside the US there's nothing to add.
 export function addressProblems(a) {
   if (a.country !== 'US') return []
   const list = []

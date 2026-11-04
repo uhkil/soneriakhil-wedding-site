@@ -409,8 +409,10 @@ function partyDetails(partyId, list) {
     .filter((r) => memberIds.has(r.guest_id))
     .forEach((r) => {
       if (r.address && !addressOnFile) {
-        const where = r.address_country === 'United States' ? r.address_state : r.address_country === 'Outside the US' ? '' : r.address_country
-        addressOnFile = [r.address_city, where].filter(Boolean).join(', ') || 'your country'
+        addressOnFile =
+          r.address_country === 'Outside the US'
+            ? 'outside the US' // (the website then shows the box as checked)
+            : [r.address_city, r.address_state].filter(Boolean).join(', ')
       }
       const attending = {}
       events.forEach((ev) => {
@@ -724,30 +726,27 @@ const US_STATE_CODES = ('AL AK AZ AR CA CO CT DE DC FL GA HI ID IL IN IA KS KY L
  */
 function cleanAddress(raw) {
   if (!raw || typeof raw !== 'object') return null
-  const a = {}
-  ;['country', 'otherCountry', 'street', 'apt', 'city', 'state', 'zip'].forEach((k) => (a[k] = limit(raw[k], 150)))
-  if (!['otherCountry', 'street', 'apt', 'city', 'state', 'zip'].some((k) => a[k])) return null
-  // "I don't live in the United States": nothing is required or checked.
-  const us = !a.country || a.country === 'US'
-  const country = us ? 'United States' : a.otherCountry
-  if (us) {
-    if (!a.street) throw new UserError('Please add the street for your mailing address.')
-    if (!a.city) throw new UserError('Please add the city for your mailing address.')
-    a.state = a.state.toUpperCase()
-    if (!US_STATE_CODES.includes(a.state)) throw new UserError('Please choose the state for your mailing address.')
-    if (!/^\d{5}(-\d{4})?$/.test(a.zip)) throw new UserError('Please check the ZIP code (5 digits).')
+  // "I don't live in the United States": no address, just that.
+  if (raw.country && raw.country !== 'US') {
+    const none = Object.fromEntries(ADDRESS_COLUMNS.map((c) => [c, '']))
+    return { ...none, address: 'Lives outside the US', address_country: 'Outside the US' }
   }
-  const oneLine = us
-    ? `${a.street}${a.apt ? ', ' + a.apt : ''}, ${a.city}, ${a.state} ${a.zip}`
-    : [a.street, a.apt, a.city, [a.state, a.zip].filter(Boolean).join(' '), country].filter(Boolean).join(', ')
+  const a = {}
+  ;['street', 'apt', 'city', 'state', 'zip'].forEach((k) => (a[k] = limit(raw[k], 150)))
+  if (!Object.values(a).some(Boolean)) return null // blank: keep the saved one
+  if (!a.street) throw new UserError('Please add the street for your mailing address.')
+  if (!a.city) throw new UserError('Please add the city for your mailing address.')
+  a.state = a.state.toUpperCase()
+  if (!US_STATE_CODES.includes(a.state)) throw new UserError('Please choose the state for your mailing address.')
+  if (!/^\d{5}(-\d{4})?$/.test(a.zip)) throw new UserError('Please check the ZIP code (5 digits).')
   return {
-    address: oneLine,
+    address: `${a.street}${a.apt ? ', ' + a.apt : ''}, ${a.city}, ${a.state} ${a.zip}`,
     address_street: a.street,
     address_apt: a.apt,
     address_city: a.city,
     address_state: a.state,
     address_zip: a.zip,
-    address_country: country || 'Outside the US',
+    address_country: 'United States',
   }
 }
 

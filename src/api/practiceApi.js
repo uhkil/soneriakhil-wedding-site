@@ -5,9 +5,9 @@
 // only to April 10's events), with the passcode CELEBRATE.
 import { maskEmail, maskPhone } from '../guest/contact.js'
 
-// "Dallas, TX", or "London, United Kingdom" outside the US
+// "Dallas, TX", or "outside the US" for "I don't live in the United States"
 const addressPlace = (a) =>
-  (a.country === 'US' ? [a.city, a.state] : [a.city, a.otherCountry]).filter(Boolean).join(', ') || 'your country'
+  a.country === 'US' ? [a.city, a.state].filter(Boolean).join(', ') : 'outside the US'
 
 const events = [
   { id: 'ceremony', name: 'Intimate Ceremony', date: 'April 9', timeOfDay: 'Morning', time: '10:00 AM', location: 'Practice Venue', address: '123 Example St, Dallas, TX', attire: 'Formal', description: 'Practice-mode details.' },

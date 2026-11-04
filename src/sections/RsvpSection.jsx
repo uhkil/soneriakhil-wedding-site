@@ -29,7 +29,7 @@ import { submitRsvp } from '../api/rsvpApi.js'
 import FormMessage from '../components/FormMessage.jsx'
 import RsvpCelebration from '../components/RsvpCelebration.jsx'
 import RsvpAddress from '../components/RsvpAddress.jsx'
-import { addressProblems, blankAddress, isStarted } from '../guest/address.js'
+import { ABROAD, addressProblems, isStarted, livesAbroad, startingAddress } from '../guest/address.js'
 // The email and phone rules (the same ones the Sheet checks), so a typo is
 // caught before sending.
 import { EMAIL, COM_TYPO, formatPhone, isValidPhone } from '../guest/contact.js'
@@ -69,7 +69,7 @@ export default function RsvpSection() {
   const [celebrate, setCelebrate] = useState(null) // null | { attending: true/false }
   // The mailing address (one for the whole invitation). Its boxes start
   // empty; a saved one only shows as the city it's in (party.addressOnFile).
-  const [address, setAddress] = useState(blankAddress)
+  const [address, setAddress] = useState(() => startingAddress(party.addressOnFile))
   const updateAddress = (change) => {
     setAddress(change)
     setStatus('editing')
@@ -136,9 +136,9 @@ export default function RsvpSection() {
   }
 
   // The address is needed unless one is already saved (then only checked if
-  // the guest starts changing it).
+  // the guest starts changing it, or unchecks "I don't live in the US").
   const problemsForAddress = () =>
-    !party.addressOnFile || isStarted(address)
+    !party.addressOnFile || isStarted(address) || (livesAbroad(party.addressOnFile) && address.country === 'US')
       ? addressProblems(address).map((p) => ({ id: `addr-${p.field}`, field: p.field, message: p.message }))
       : []
   const findProblems = () => [...party.guests.flatMap(problemsFor), ...problemsForAddress()]
@@ -176,15 +176,16 @@ export default function RsvpSection() {
         partyId: party.partyId,
         token,
         guests: party.guests.map((g) => ({ guestId: g.guestId, ...answers[g.guestId] })),
-        // Blank boxes keep the saved address.
-        address: isStarted(address) ? address : null,
+        // "I don't live in the United States" is saved as such (no address);
+        // otherwise blank boxes keep the saved address.
+        address: address.country !== 'US' ? (livesAbroad(party.addressOnFile) ? null : ABROAD) : isStarted(address) ? address : null,
       })
       setParty(updated) // the site now shows the saved version
       // Saved contact info stays private, so clear those boxes (they'll say "on file").
       setAnswers((all) =>
         Object.fromEntries(Object.entries(all).map(([id, a]) => [id, { ...a, email: '', phone: '', note: '' }]))
       )
-      setAddress(blankAddress())
+      setAddress(startingAddress(updated.addressOnFile))
       setStatus('saved')
       const anyoneComing = Object.values(answers).some((a) => Object.values(a.attending).includes('yes'))
       setCelebrate({ attending: anyoneComing })
