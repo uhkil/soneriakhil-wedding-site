@@ -140,7 +140,7 @@ const art = {
     note: 'The two of us dressed for the reception, raising a toast',
   },
   poolDate: {
-    src: 'assets/art/pool-date.webp',
+    src: 'assets/art/pool-date-v2.webp', // (dash eyes for both of us)
     peopleSize: 1.06, // so the two of us come out the same size as in the coffee date
     ratio: '1171 / 800',
     tint: true,
