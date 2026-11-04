@@ -4,6 +4,7 @@
 // opening one closes the others.
 import Section from '../components/Section.jsx'
 import Art from '../components/Art.jsx'
+import SideDrawing from '../components/SideDrawing.jsx'
 
 // Edit this list to add, remove, or change questions. Each answer is a short
 // list of points (shown as bullets). A point can include links:
@@ -60,6 +61,8 @@ const faqs = [
 export default function FaqSection() {
   return (
     <Section id="faq">
+      {/* A side drawing just above the title, in its dark strip (see SideDrawing.jsx). */}
+      <SideDrawing name="basketballDate" side="right" />
       <h2>
         {/* The word stays centered on the page, between the two of us (sized
             and placed like the Memories title): Akhil on the left being

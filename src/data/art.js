@@ -139,6 +139,17 @@ const art = {
     tint: true,
     note: 'The two of us dressed for the reception, raising a toast',
   },
+  poolDate: {
+    src: 'assets/art/pool-date.webp',
+    peopleSize: 1.06, // so the two of us come out the same size as in the coffee date
+    ratio: '1171 / 800',
+    tint: true,
+    note: 'The two of us playing pool',
+    nugget: {
+      heading: 'date night',
+      text: 'one of our most frequented date night activities is playing a game of pool!',
+    },
+  },
   hikingDate: {
     src: 'assets/art/hiking-date.webp',
     peopleSize: 1.09, // so the two of us come out the same size as in the coffee date

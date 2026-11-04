@@ -970,6 +970,22 @@ h2:hover .title-berry.mirrored {
   margin-top: 1em;
 }
 
+/* "NY → SF → NY → SF → ??": the site's thin arrow between the cities. */
+.city-trail {
+  white-space: nowrap;
+}
+.city-arrow {
+  width: 0.85em;
+  height: 0.85em;
+  margin: 0 0.18em;
+  vertical-align: -0.08em;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
 /* Words that open a photo (PhotoLink.jsx): underlined, like a link. */
 .photo-link {
   display: inline;
@@ -1073,8 +1089,8 @@ h2:hover .title-berry.mirrored {
 /* ----- Side drawings (SideDrawing.jsx): hiking, pottery, museum, coffee
    date, basketball. Each sits in a strip across the whole screen, just
    above its section's title, alternating right and left. The strip turns
-   dark blue (on laptops while the pointer is over it; on phones and iPads
-   bit by bit as the drawing is scrolled up to the middle of the screen),
+   dark blue bit by bit as the drawing is scrolled up to the middle of the
+   screen,
    with the drawing's little extra about us in light blue on the other side.
    The drawing keeps its colors, on a soft wavy shape in the page's light
    blue.
@@ -1254,28 +1270,55 @@ h2:hover .title-berry.mirrored {
   font-variant-numeric: tabular-nums;
 }
 
-/* Phones: the column beside the drawing is narrow, so the arrows sit over
-   the photo's left and right edges instead (on dark circles). */
+/* Each photo is a button that opens it full screen. */
+.nugget-photo-button {
+  display: block;
+  width: 100%;
+  padding: 0;
+  border: none;
+  background: none;
+  cursor: zoom-in;
+  scroll-snap-align: start;
+}
+.nugget-photo-button:focus-visible {
+  outline: 2px solid var(--paper);
+  outline-offset: -4px;
+}
+
+/* Phones: the column beside the drawing is narrow, so the photo takes its
+   whole width and the arrows sit either side of the count below it
+   ("‹ 3 / 6 ›"). */
 @media (max-width: 699px) {
-  .side-drawing-text .nugget-carousel-row {
-    position: relative;
-    display: block;
+  .side-drawing-text .nugget-carousel {
+    display: grid;
+    grid-template-columns: auto auto auto;
+    grid-template-areas:
+      'photo photo photo'
+      'prev count next';
+    justify-content: center;
+    align-items: center;
+    column-gap: 12px;
   }
-  .side-drawing-text .carousel-arrow {
-    position: absolute;
-    top: 50%;
-    z-index: 1;
-    width: 30px;
-    height: 30px;
-    margin-top: -15px;
-    border: none;
-    background: rgba(0, 52, 89, 0.72);
+  .side-drawing-text .nugget-carousel-row {
+    display: contents;
+  }
+  .side-drawing-text .nugget-carousel-window {
+    grid-area: photo;
+    margin-bottom: 10px;
   }
   .side-drawing-text .carousel-arrow.prev {
-    left: 6px;
+    grid-area: prev;
   }
   .side-drawing-text .carousel-arrow.next {
-    right: 6px;
+    grid-area: next;
+  }
+  .side-drawing-text .carousel-count {
+    grid-area: count;
+    margin: 0;
+  }
+  .side-drawing-text .carousel-arrow {
+    width: 30px;
+    height: 30px;
   }
 }
 
@@ -1284,22 +1327,6 @@ h2:hover .title-berry.mirrored {
 @media (min-width: 700px) {
   .side-drawing-text {
     max-width: 34rem;
-  }
-}
-
-/* Laptops: the strip eases open while the pointer is over it (anywhere
-   across the screen), or the keyboard is on one of its links. */
-@media (min-width: 1200px) {
-  .side-drawing {
-    transition: --reveal 0.6s ease;
-  }
-  .side-drawing:hover,
-  .side-drawing:focus-within {
-    --reveal: 1;
-  }
-  .side-drawing:hover .side-drawing-text,
-  .side-drawing:focus-within .side-drawing-text {
-    pointer-events: auto;
   }
 }
 
@@ -1351,6 +1378,9 @@ h2:hover .title-berry.mirrored {
   #travel .side-drawing { --below-fix: -6px; }
   #registry .side-drawing { --below-fix: -10px; }
   #rsvp .side-drawing { --below-fix: -8px; }
+  /* FAQ: the two of us beside its title reach well above the letters, and
+     Registry above it ends with a little extra space. */
+  #faq .side-drawing { --above-fix: -26px; --below-fix: 67px; }
 }
 @media (min-width: 700px) and (max-width: 1199px) {
   #memories .side-drawing { --below-fix: -1px; }
@@ -1358,12 +1388,16 @@ h2:hover .title-berry.mirrored {
   #travel .side-drawing { --below-fix: -4px; }
   #registry .side-drawing { --below-fix: -5px; }
   #rsvp .side-drawing { --below-fix: -5px; }
+  /* (the drawings beside the FAQ title grow with the screen, so this does too) */
+  #faq .side-drawing { --above-fix: -26px; --below-fix: calc(5.39vw + 4.8px); }
 }
 @media (max-width: 699px) {
   #memories .side-drawing { --below-fix: 19px; }
   #events .side-drawing { --below-fix: 14px; }
   #travel .side-drawing { --below-fix: -1px; }
   #rsvp .side-drawing { --below-fix: -2px; }
+  #faq .side-drawing { --above-fix: -25px; --below-fix: 23px; }
+  #memories .side-drawing { --above-fix: -5px; }
 }
 
 /* ----- Nuggets: a little card about us that pops up beside a drawing
@@ -3864,14 +3898,14 @@ img.nugget-photo {
   margin-left: -9em;
 }
 
-/* Phones: small, so a whole sentence takes up only about 60% of the
-   screen's width (every row shows at least one in full, shifted rows too;
-   the sentence is about 28.4 times as wide as the letters are tall), and
-   the rows close together (16px apart). */
+/* Phones: small, so a whole sentence takes up only about 44% of the
+   screen's width (more than two to a row, shifted rows too; the sentence is
+   about 28.4 times as wide as the letters are tall), and the rows close
+   together (12px apart). */
 @media (max-width: 699px) {
   .login-backdrop p {
-    font-size: calc(100vw * 0.6 / 28.4);
-    line-height: 16px;
+    font-size: calc(100vw * 0.44 / 28.4);
+    line-height: 12px;
   }
   /* The in-between rows shift by half a sentence (a sentence plus its dot is
      about 29.9 letters' widths), so they show a whole one too. */

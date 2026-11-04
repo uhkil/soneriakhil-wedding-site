@@ -199,7 +199,7 @@ export default function RsvpSection() {
   return (
     <Section id="rsvp" className="rsvp">
       {/* A side drawing just above the title, in its dark strip (see SideDrawing.jsx). */}
-      <SideDrawing name="basketballDate" side="right" />
+      <SideDrawing name="poolDate" side="left" />
       {/* Everything from the title down. It's always at least a screen tall
           (see .rsvp-body in index.css), so a link to RSVP can bring the
           title right up to the top of the screen. */}

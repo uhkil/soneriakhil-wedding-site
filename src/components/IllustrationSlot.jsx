@@ -13,6 +13,8 @@
 import { useRef, useState } from 'react'
 import art from '../data/art.js'
 import { useNearScreen } from './useNearScreen.js'
+import { createPortal } from 'react-dom'
+import Lightbox from './Lightbox.jsx'
 
 export default function IllustrationSlot({ name, size = 'medium', className = '' }) {
   const item = art[name]
@@ -97,6 +99,9 @@ export function NuggetContent({ nugget, headingId }) {
 function Carousel({ photos }) {
   const ref = useRef(null)
   const [current, setCurrent] = useState(0)
+  // A photo opened full screen (its number), or null.
+  const [open, setOpen] = useState(null)
+  const fullScreen = photos.filter((piece) => typeof piece !== 'string').map((piece) => ({ src: piece.src, alt: piece.alt, label: piece.alt }))
   // Keep the count in step with swiping.
   const onScroll = () => {
     const strip = ref.current
@@ -135,15 +140,18 @@ function Carousel({ photos }) {
                   {piece}
                 </span>
               ) : (
-                <img
+                // Clicking (or tapping) a photo opens it full screen.
+                <button
                   key={piece.src}
-                  className="nugget-photo"
-                  src={import.meta.env.BASE_URL + piece.src}
-                  alt={piece.alt}
-                  loading="lazy"
-                  draggable="false"
+                  type="button"
+                  className="nugget-photo-button"
+                  aria-label={`See full screen: ${piece.alt}`}
                   aria-hidden={i !== current}
-                />
+                  tabIndex={i === current ? 0 : -1}
+                  onClick={() => setOpen(i)}
+                >
+                  <img className="nugget-photo" src={import.meta.env.BASE_URL + piece.src} alt={piece.alt} loading="lazy" draggable="false" />
+                </button>
               )
             )}
           </div>
@@ -153,6 +161,10 @@ function Carousel({ photos }) {
       <p className="carousel-count" aria-live="polite">
         {current + 1} / {photos.length}
       </p>
+      {/* Full screen: attached to the page itself, so it covers the whole
+          screen (not just the strip it was opened from). */}
+      {open !== null &&
+        createPortal(<Lightbox photos={fullScreen} index={open} onIndex={setOpen} onClose={() => setOpen(null)} />, document.body)}
     </div>
   )
 }

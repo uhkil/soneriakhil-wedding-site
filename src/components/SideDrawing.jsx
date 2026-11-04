@@ -8,19 +8,15 @@
 // in light blue on the other side. The drawing keeps its own colors, on a
 // soft, wavy light-blue shape (the page's color, so it's only noticeable
 // once the strip is dark around it).
-//   - Laptops (1200px and up): the strip appears while the pointer is over
-//     it (or the keyboard is on one of its links).
-//   - Phones and iPads: it opens as the drawing is scrolled up to the middle
-//     of the screen, a little more with every bit of scrolling (and closes
-//     again scrolling back down the page).
+// On every screen size, it opens as the drawing is scrolled up to the middle
+// of the screen, a little more with every bit of scrolling (and closes again
+// scrolling back down the page).
 //
 // Usage: <SideDrawing name="hikingDate" side="right" />
 import { useEffect, useMemo, useRef } from 'react'
 import art from '../data/art.js'
 import { useNearScreen } from './useNearScreen.js'
 import { NuggetContent } from './IllustrationSlot.jsx'
-
-const LAPTOP = '(min-width: 1200px)'
 
 export default function SideDrawing({ name, side = 'right' }) {
   const item = art[name]
@@ -69,25 +65,18 @@ function ratioValue(ratio) {
   return w / h
 }
 
-// Phones and iPads: how far open the strip is (--reveal, 0 to 1), from where
-// the drawing is on the screen: closed while its middle is in the bottom 15%
-// of the screen, opening as it's scrolled up, fully open once it reaches the
-// middle. "open" lets its links be tapped once it's mostly open. (Laptops
-// use hovering instead, in index.css.)
+// How far open the strip is (--reveal, 0 to 1), from where the drawing is on
+// the screen: closed while its middle is in the bottom 15% of the screen,
+// opening as it's scrolled up, fully open once it reaches the middle. "open"
+// lets its links be clicked or tapped once it's mostly open.
 function useScrollReveal(ref) {
   useEffect(() => {
     const element = ref.current
     if (!element) return
-    const laptop = window.matchMedia(LAPTOP)
     const art = element.querySelector('.side-drawing-art')
     let frame = 0
     const update = () => {
       frame = 0
-      if (laptop.matches) {
-        element.style.removeProperty('--reveal')
-        element.classList.remove('open')
-        return
-      }
       const r = art.getBoundingClientRect()
       const middle = (r.top + r.bottom) / 2 / window.innerHeight // 0 = top of screen, 1 = bottom
       const reveal = Math.min(1, Math.max(0, (0.85 - middle) / (0.85 - 0.5)))
@@ -100,12 +89,10 @@ function useScrollReveal(ref) {
     update()
     window.addEventListener('scroll', soon, { passive: true })
     window.addEventListener('resize', soon)
-    laptop.addEventListener('change', soon)
     return () => {
       cancelAnimationFrame(frame)
       window.removeEventListener('scroll', soon)
       window.removeEventListener('resize', soon)
-      laptop.removeEventListener('change', soon)
     }
   }, [ref])
 }

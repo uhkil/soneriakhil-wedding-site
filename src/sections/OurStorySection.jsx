@@ -39,7 +39,7 @@ const rows = [
         <PhotoLink alt="Akhil’s 5 options">5 options</PhotoLink>, surely she’d be enticed by at least one.
       </>,
       <>
-        It was a crush for the ages, one that would make <PhotoLink alt="David Archuletta">David Archuletta</PhotoLink>{' '}
+        It was a crush for the ages, one that would make <PhotoLink alt="David Archuleta">David Archuleta</PhotoLink>{' '}
         proud. Akhil read Soneri’s favorite books and watched her favorite TV shows, Soneri asked her brother to give
         her a crash course on the NBA. They spent many cozy pandemic days embroidering sweatshirts, biking, painting
         leaves, and having picnics. Soneri fell in love with Akhil’s giving nature, shared creativity, and ability to
@@ -53,7 +53,8 @@ const rows = [
     alt: 'Soneri and Akhil in Central Park',
     paragraphs: [
       <>
-        Since then, their two paths have fused together, through the cities they’ve called home (NY&gt;SF&gt;NY&gt;SF&gt;??),
+        Since then, their two paths have fused together, through the cities they’ve called home (
+        <CityTrail stops={['NY', 'SF', 'NY', 'SF', '??']} />),
         huge life transitions, moped joyrides, bad haircuts, <PhotoLink alt="One of their hikes">hikes</PhotoLink> that
         terrify their mothers, begrudgingly shared <PhotoLink alt="A shared affogato">affogatos</PhotoLink>, and many,
         many thai massages.
@@ -99,5 +100,27 @@ export default function OurStorySection() {
         ))}
       </div>
     </Section>
+  )
+}
+
+// "NY → SF → NY → SF → ??", with the site's own thin arrow (the one on the
+// login page's button) between the cities. Screen readers hear "to".
+function CityTrail({ stops }) {
+  return (
+    <span className="city-trail">
+      {stops.map((stop, i) => (
+        <span key={i}>
+          {i > 0 && (
+            <>
+              <svg className="city-arrow" viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M5 12h13M13 6l6 6-6 6" />
+              </svg>
+              <span className="visually-hidden"> to </span>
+            </>
+          )}
+          {stop}
+        </span>
+      ))}
+    </span>
   )
 }
