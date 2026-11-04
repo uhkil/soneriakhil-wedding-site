@@ -404,15 +404,25 @@ function partyDetails(partyId, list) {
   const memberIds = new Set(guests.map((g) => g.guestId))
   const answers = {}
   const onFile = {}
-  let addressOnFile = '' // only the place ("Dallas, TX"), never the street
+  let addressOnFile = '' // the place ("Dallas, TX"), or "outside the US"
+  let addressMasked = null // each part partly hidden, shown in grey in its box
   readTab(TAB.rsvps)
     .filter((r) => memberIds.has(r.guest_id))
     .forEach((r) => {
       if (r.address && !addressOnFile) {
-        addressOnFile =
-          r.address_country === 'Outside the US'
-            ? 'outside the US' // (the website then shows the box as checked)
-            : [r.address_city, r.address_state].filter(Boolean).join(', ')
+        const abroad = r.address_country === 'Outside the US'
+        addressOnFile = abroad
+          ? 'outside the US' // (the website then shows the box as checked)
+          : [r.address_city, r.address_state].filter(Boolean).join(', ')
+        if (!abroad) {
+          addressMasked = {
+            street: maskMiddle(r.address_street, 2),
+            apt: maskMiddle(r.address_apt, 2),
+            city: maskMiddle(r.address_city, 2),
+            state: r.address_state, // just the state: not private on its own
+            zip: String(r.address_zip || '').slice(0, 3) + '••',
+          }
+        }
       }
       const attending = {}
       events.forEach((ev) => {
@@ -436,6 +446,7 @@ function partyDetails(partyId, list) {
     // renaming a household or moving someone between households keeps it right).
     hasResponded: Object.keys(answers).length > 0,
     addressOnFile,
+    addressMasked,
   }
 }
 
@@ -454,8 +465,8 @@ function saveRsvp(req, list) {
 
   // The mailing address (one for the whole invitation). Blank boxes keep the
   // saved one; otherwise it's checked and tidied, and saved on every row.
-  const newAddress = cleanAddress(req.address)
   const savedAddressRow = Object.values(savedRows).find((r) => r.address) || {}
+  const newAddress = cleanAddress(req.address, savedAddressRow)
   const address = newAddress || Object.fromEntries(ADDRESS_COLUMNS.map((c) => [c, savedAddressRow[c] || '']))
 
   // Check everything first, so a mistake never leaves a half-saved RSVP.
@@ -724,16 +735,21 @@ const US_STATE_CODES = ('AL AK AZ AR CA CO CT DE DC FL GA HI ID IL IN IA KS KY L
  * cell: "123 Main St, Apt 4, Dallas, TX 75201"), or null if they left it
  * blank (keep the saved one). A mistake is a friendly UserError.
  */
-function cleanAddress(raw) {
+function cleanAddress(raw, saved) {
   if (!raw || typeof raw !== 'object') return null
   // "I don't live in the United States": no address, just that.
   if (raw.country && raw.country !== 'US') {
     const none = Object.fromEntries(ADDRESS_COLUMNS.map((c) => [c, '']))
     return { ...none, address: 'Lives outside the US', address_country: 'Outside the US' }
   }
+  const typed = {}
+  ;['street', 'apt', 'city', 'state', 'zip'].forEach((k) => (typed[k] = limit(raw[k], 150)))
+  if (!Object.values(typed).some(Boolean)) return null // all blank: keep the saved one
+  // A box left blank keeps its saved part (so changing just the apartment,
+  // say, doesn't mean typing the whole address again).
+  const before = saved && saved.address_country === 'United States' ? saved : {}
   const a = {}
-  ;['street', 'apt', 'city', 'state', 'zip'].forEach((k) => (a[k] = limit(raw[k], 150)))
-  if (!Object.values(a).some(Boolean)) return null // blank: keep the saved one
+  ;['street', 'apt', 'city', 'state', 'zip'].forEach((k) => (a[k] = typed[k] || before['address_' + k] || ''))
   if (!a.street) throw new UserError('Please add the street for your mailing address.')
   if (!a.city) throw new UserError('Please add the city for your mailing address.')
   a.state = a.state.toUpperCase()
@@ -748,6 +764,18 @@ function cleanAddress(raw) {
     address_zip: a.zip,
     address_country: 'United States',
   }
+}
+
+/** "1600 E Randol Mill Rd" → "16•• • •••••• •••• Rd": the first and last few
+ *  letters show, the rest (but not the spaces) are hidden. */
+function maskMiddle(text, keep) {
+  const t = String(text || '')
+  if (!t) return ''
+  const k = t.replace(/\s/g, '').length <= keep * 2 + 1 ? 1 : keep
+  return t
+    .split('')
+    .map((ch, i) => (/\s/.test(ch) || i < k || i >= t.length - k ? ch : '•'))
+    .join('')
 }
 
 /** priya.shah@gmail.com → p•••h@gmail.com */

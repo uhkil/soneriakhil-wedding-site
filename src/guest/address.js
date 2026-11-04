@@ -41,17 +41,25 @@ export const ABROAD = { country: 'INTL', otherCountry: 'Outside the US', street:
 export const startingAddress = (onFile) => ({ ...blankAddress(), country: livesAbroad(onFile) ? 'INTL' : 'US' })
 
 // What's missing or wrong, in the order the boxes appear: [{ field, message }].
+// "saved" is the address on file (partly hidden): a box left blank keeps its
+// saved part, so it only needs filling in if nothing is saved there.
 // Outside the US there's nothing to add.
-export function addressProblems(a) {
+export function addressProblems(a, saved = null) {
   if (a.country !== 'US') return []
   const list = []
-  if (!a.street.trim()) list.push({ field: 'street', message: 'Please add the street address.' })
-  if (!a.city.trim()) list.push({ field: 'city', message: 'Please add the city.' })
-  if (!US_STATES.some(([code]) => code === a.state)) list.push({ field: 'state', message: 'Please choose the state.' })
-  if (!a.zip.trim()) list.push({ field: 'zip', message: 'Please add the ZIP code.' })
-  else if (!ZIP.test(a.zip.trim())) list.push({ field: 'zip', message: 'Please check the ZIP code (5 digits).' })
+  const missing = (k) => !a[k].trim() && !saved?.[k]
+  if (missing('street')) list.push({ field: 'street', message: 'Please add the street address.' })
+  if (missing('city')) list.push({ field: 'city', message: 'Please add the city.' })
+  if (a.state ? !US_STATES.some(([code]) => code === a.state) : !saved?.state) {
+    list.push({ field: 'state', message: 'Please choose the state.' })
+  }
+  if (a.zip.trim() && !ZIP.test(a.zip.trim())) list.push({ field: 'zip', message: 'Please check the ZIP code (5 digits).' })
+  else if (missing('zip')) list.push({ field: 'zip', message: 'Please add the ZIP code.' })
   return list
 }
+
+// The full name of a state code ("TX" → "Texas").
+export const stateName = (code) => US_STATES.find(([c]) => c === code)?.[1] ?? code
 
 // Looks up the city and state for a US ZIP code (a free service, zippopotam.us;
 // it only ever sees the ZIP code). Returns { city, state } or null.

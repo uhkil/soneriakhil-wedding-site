@@ -139,7 +139,7 @@ export default function RsvpSection() {
   // the guest starts changing it, or unchecks "I don't live in the US").
   const problemsForAddress = () =>
     !party.addressOnFile || isStarted(address) || (livesAbroad(party.addressOnFile) && address.country === 'US')
-      ? addressProblems(address).map((p) => ({ id: `addr-${p.field}`, field: p.field, message: p.message }))
+      ? addressProblems(address, party.addressMasked).map((p) => ({ id: `addr-${p.field}`, field: p.field, message: p.message }))
       : []
   const findProblems = () => [...party.guests.flatMap(problemsFor), ...problemsForAddress()]
   const problems = checked ? findProblems() : []
@@ -378,6 +378,7 @@ export default function RsvpSection() {
           address={address}
           onChange={updateAddress}
           onFile={party.addressOnFile}
+          saved={party.addressMasked}
           open={openCards.has('address')}
           onToggle={() => toggleCard('address')}
           problemFor={(field) => problemFor(`addr-${field}`)}

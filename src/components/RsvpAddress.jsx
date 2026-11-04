@@ -7,12 +7,13 @@
 // "I don't live in the United States" locks the boxes (clicking them says
 // there's no need) and saves "Lives outside the US" instead of an address.
 //
-// A saved address isn't sent back to the website: the card only says the
-// city it's in ("On file: Dallas, TX"), and leaving the boxes blank keeps it.
+// A saved address comes back partly hidden ("16** * ****** **** Rd") and
+// shows in grey in each box; a box left blank keeps its saved part, so a
+// guest can change just one part (like the apartment).
 import { useEffect, useRef, useState } from 'react'
-import { US_STATES, ZIP, livesAbroad, lookUpZip } from '../guest/address.js'
+import { US_STATES, ZIP, livesAbroad, lookUpZip, stateName } from '../guest/address.js'
 
-export default function RsvpAddress({ address, onChange, onFile, open, onToggle, problemFor, flagged }) {
+export default function RsvpAddress({ address, onChange, onFile, saved, open, onToggle, problemFor, flagged }) {
   const us = address.country === 'US'
   const set = (field, value) => onChange((a) => ({ ...a, [field]: value }))
   // Which of city / state were filled in from the ZIP code (so a new ZIP
@@ -75,6 +76,7 @@ export default function RsvpAddress({ address, onChange, onFile, open, onToggle,
           type="text"
           value={address[field]}
           disabled={abroad}
+          placeholder={saved?.[field] || undefined}
           onChange={(e) => {
             if (field === 'city') autoFilled.current.city = false
             set(field, e.target.value)
@@ -111,9 +113,11 @@ export default function RsvpAddress({ address, onChange, onFile, open, onToggle,
         <p className="field-hint address-intro">
           {livesAbroad(onFile)
             ? 'On file: you live outside the US, so there’s no address to add.'
-            : onFile
-              ? `On file: an address in ${onFile}. Leave these blank to keep it, or fill them in to change it.`
-              : 'One address for everyone on your invitation, for anything we mail you.'}
+            : saved
+              ? 'Here’s the address we have on file (partly hidden). Leave a box blank to keep what’s in it, or type in it to change it.'
+              : onFile
+                ? `On file: an address in ${onFile}. Leave these blank to keep it, or fill them in to change it.`
+                : 'One address for everyone on your invitation, for anything we mail you.'}
         </p>
 
         <div className={`address-fields${abroad ? ' locked' : ''}`}>
@@ -128,13 +132,15 @@ export default function RsvpAddress({ address, onChange, onFile, open, onToggle,
                 autoComplete="address-level1"
                 value={address.state}
                 disabled={abroad}
+                // Grey, like the other boxes' saved text, until a state is chosen.
+                className={!address.state && saved?.state ? 'shows-saved' : undefined}
                 onChange={(e) => {
                   autoFilled.current.state = false
                   set('state', e.target.value)
                 }}
                 {...(stateProblem ? { 'aria-invalid': true, 'aria-describedby': 'addr-state-note' } : {})}
               >
-                <option value="">Choose…</option>
+                <option value="">{saved?.state ? stateName(saved.state) : 'Choose…'}</option>
                 {US_STATES.map(([code, name]) => (
                   <option key={code} value={code}>
                     {name}

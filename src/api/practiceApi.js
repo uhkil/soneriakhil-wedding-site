@@ -5,6 +5,12 @@
 // only to April 10's events), with the passcode CELEBRATE.
 import { maskEmail, maskPhone } from '../guest/contact.js'
 
+// "1600 E Randol Mill Rd" → "16•• • •••••• •••• Rd"
+const maskMiddle = (text = '') => {
+  const k = text.replace(/\s/g, '').length <= 5 ? 1 : 2
+  return [...text].map((ch, i) => (/\s/.test(ch) || i < k || i >= text.length - k ? ch : '•')).join('')
+}
+
 // "Dallas, TX", or "outside the US" for "I don't live in the United States"
 const addressPlace = (a) =>
   a.country === 'US' ? [a.city, a.state].filter(Boolean).join(', ') : 'outside the US'
@@ -67,6 +73,17 @@ function partyDetails(partyId) {
     hasResponded: Boolean(saved[partyId]),
     // Like the real back end: only the city a saved address is in.
     addressOnFile: answers.address ? addressPlace(answers.address) : '',
+    // Each part partly hidden, like the real back end.
+    addressMasked:
+      answers.address?.country === 'US'
+        ? {
+            street: maskMiddle(answers.address.street),
+            apt: maskMiddle(answers.address.apt),
+            city: maskMiddle(answers.address.city),
+            state: answers.address.state,
+            zip: answers.address.zip.slice(0, 3) + '••',
+          }
+        : null,
   }
 }
 
@@ -112,7 +129,13 @@ export async function handlePractice(req) {
       if (contact[g.guestId].phone) contact[g.guestId].phone = contact[g.guestId].phone.replace(/^\+1 /, '')
     })
     // A blank address keeps the saved one.
-    saved[req.partyId] = { answers, contact, address: req.address || saved[req.partyId]?.address || null }
+    // A blank box keeps its saved part; a blank address keeps the saved one.
+    const savedAddress = saved[req.partyId]?.address
+    let address = req.address || savedAddress || null
+    if (req.address?.country === 'US' && savedAddress?.country === 'US') {
+      address = Object.fromEntries(Object.entries(req.address).map(([k, v]) => [k, (typeof v === 'string' && v.trim()) || savedAddress[k]]))
+    }
+    saved[req.partyId] = { answers, contact, address }
     return { ok: true, party: partyDetails(req.partyId) }
   }
 

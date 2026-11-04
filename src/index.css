@@ -5038,6 +5038,10 @@ img.nugget-photo {
   outline: 2px solid var(--paper);
   outline-offset: 2px;
 }
+/* A saved state, shown in grey like the other boxes' saved text. */
+[data-design='honey'] .rsvp-field select.shows-saved {
+  color: rgba(202, 233, 255, 0.5);
+}
 /* The open list uses the system's own colors; keep its text readable. */
 [data-design='honey'] .rsvp-field select option {
   color: #003459;
