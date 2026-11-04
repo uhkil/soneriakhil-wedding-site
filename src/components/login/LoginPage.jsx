@@ -14,7 +14,8 @@ export default function LoginPage() {
     <main className="login-page">
       {/* Behind the card: one line repeated across every row of the screen. */}
       <div className="login-backdrop" aria-hidden="true">
-        {Array.from({ length: 40 }, (_, row) => (
+        {/* Enough rows to fill even a tall screen at the tighter phone spacing. */}
+        {Array.from({ length: 100 }, (_, row) => (
           <p key={row}>{`${PHRASE} · `.repeat(8)}</p>
         ))}
       </div>

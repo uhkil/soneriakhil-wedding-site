@@ -13,6 +13,7 @@ import IllustrationSlot from '../components/IllustrationSlot.jsx'
 import Lightbox from '../components/Lightbox.jsx'
 import Art from '../components/Art.jsx'
 import sizes from '../assets/memories/sizes.json'
+import SideDrawing from '../components/SideDrawing.jsx'
 
 // The photos: every picture in src/assets/memories/, found automatically, so
 // adding or deleting a file there is all it takes (no list to edit). File
@@ -107,8 +108,8 @@ export default function MemoriesSection() {
 
   return (
     <Section id="memories">
-      {/* Corner art just above the title (see "corner-art" in index.css). */}
-      <IllustrationSlot name="storyVignette" size="small" className="corner-art corner-art-right" />
+      {/* A side drawing just above the title, in its dark strip (see SideDrawing.jsx). */}
+      <SideDrawing name="hikingDate" side="right" />
       <h2>
         {/* The word stays centered on the page, between the two of us: Akhil on
             the left taking a photo of Soneri on the right. */}

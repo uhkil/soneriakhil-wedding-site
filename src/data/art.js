@@ -12,14 +12,13 @@
 // roughly match it. "note" describes what the art is meant to show.
 // "tint: true" marks a one-color drawing that's already in the page's dark
 // blue (#003459) with see-through gaps, shown sized to fit its spot.
-// "nugget" is a little extra about us that pops up when a guest hovers over
-// (or taps) the drawing: an optional heading, some text, and an optional
-// list of links. A link with an empty href shows as plain text until it has one;
+// "nugget" is a little extra about us, shown beside a side drawing when it's
+// scrolled to the middle of the screen (see SideDrawing.jsx): an optional
+// heading, some text, and an optional list of links. A link with an empty href shows as plain text until it has one;
 // a link's optional "before" and "note" are plain text shown before and
 // after it (so only part of the line is the link), and "thin" is text shown
 // after it in lighter letters (e.g. Zion + "National Park").
-// Also optional: "gap" (space between the drawing and the card, in px),
-// "width" (the card's width, e.g. '20em'), "oneLine" (keep it on one line),
+// "lightSrc" (side drawings): the same drawing in light blue, for the dark strip.
 // "peopleSize" (side drawings only): makes the drawing bigger or smaller so
 // the two of us come out the same size in every drawing (the coffee date is
 // the 1). Measured by eye from Akhil's head; nudge it if one looks off.
@@ -28,14 +27,13 @@
 // placeholder instead).
 
 const art = {
-  storyVignette: {
+  coffeeDate: {
     src: 'assets/art/coffee-date.webp',
+    lightSrc: 'assets/art/coffee-date-light.webp', // the light-blue copy, for its dark-blue strip
     ratio: '963 / 754',
     tint: true,
     note: 'The two of us on a coffee date, playing cards',
     nugget: {
-      gap: 40,
-      width: '20em',
       heading: 'games we luv',
       links: [
         { before: 'NYT Daily ', label: 'Crossword', href: 'https://www.nytimes.com/crosswords' },
@@ -54,14 +52,14 @@ const art = {
       ],
     },
   },
-  eventsVignette: {
+  museumDate: {
     src: 'assets/art/museum-date.webp',
+    lightSrc: 'assets/art/museum-date-light.webp', // the light-blue copy, for its dark-blue strip
     peopleSize: 1.34, // so the two of us come out the same size as in the coffee date
     ratio: '597 / 784',
     tint: true,
     note: 'The two of us at a museum, looking at a painting',
     nugget: {
-      gap: 40,
       heading: 'museums we’ve enjoyed',
       text: 'go check them out for yourself :-)',
       links: [
@@ -76,15 +74,14 @@ const art = {
       ],
     },
   },
-  registryVignette: {
+  potteryDate: {
     src: 'assets/art/pottery-date.webp',
+    lightSrc: 'assets/art/pottery-date-light.webp', // the light-blue copy, for its dark-blue strip
     peopleSize: 0.78, // so the two of us come out the same size as in the coffee date
     ratio: '885 / 1017',
     tint: true,
     note: 'The two of us at a pottery class',
     nugget: {
-      gap: 40,
-      width: '300px',
       heading: 'some pieces we’ve made',
       // Shown one at a time, in this order (web-sized copies, in public/assets/pottery/).
       gallery: [
@@ -97,14 +94,14 @@ const art = {
       ],
     },
   },
-  travelVignette: {
+  basketballDate: {
     src: 'assets/art/basketball-date.webp',
+    lightSrc: 'assets/art/basketball-date-light.webp', // the light-blue copy, for its dark-blue strip
     peopleSize: 1.15, // so the two of us come out the same size as in the coffee date
     ratio: '1015 / 775',
     tint: true,
     note: 'The two of us playing basketball',
     nugget: {
-      oneLine: true,
       // (non-breaking hyphens keep “p-i-g” on one line)
       text: 'fun fact: soneri has beaten akhil in p\u2011i\u2011g 3 times!',
     },
@@ -139,16 +136,14 @@ const art = {
     tint: true,
     note: 'The two of us dressed for the reception, raising a toast',
   },
-  rsvpCouple: {
-    // Top right of the RSVP section, above the title (one of the corner drawings).
+  hikingDate: {
     src: 'assets/art/hiking-date.webp',
+    lightSrc: 'assets/art/hiking-date-light.webp', // the light-blue copy, for its dark-blue strip
     peopleSize: 1.09, // so the two of us come out the same size as in the coffee date
     ratio: '799 / 1104',
     tint: true,
     note: 'The two of us out on a hike',
     nugget: {
-      gap: 40,
-      width: '21em', // wide enough for each park on one line
       heading: 'national parks we’ve explored',
       // Each park's own name stands out; "thin" is the rest, in lighter
       // letters. No links yet: an empty href shows the name as plain text.

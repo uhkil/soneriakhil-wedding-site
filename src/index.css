@@ -1042,6 +1042,173 @@ h2:hover .title-berry.mirrored {
   }
 }
 
+/* ----- Side drawings (SideDrawing.jsx): hiking, pottery, museum, coffee
+   date, basketball. Each sits in a strip across the whole screen, just
+   above its section's title, alternating right and left. Scrolled to the
+   middle of the screen (.lit), the strip turns dark blue, the drawing turns
+   light blue, and its little extra about us fades in on the other side.
+
+   Same size, edge spacing and space above and below as the corner drawings
+   had: the drawing is as far from its edge of the screen as before
+   (--edge-gap), and the text is that same distance from the other edge.
+   The strip adds --strip-pad of dark blue above and below the drawing,
+   taken out of the space around it (so the drawing is still 240px from
+   what's above and below on iPads and laptops). ----- */
+.side-drawing {
+  --corner-art-scale: 0.3323;
+  --strip-pad: 48px;
+  --page-gutter: calc((100vw - min(980px, 100vw - 48px)) / 2);
+  --edge-gap: max(calc(var(--page-gutter) / 2), min(var(--page-gutter), 200px));
+  position: relative;
+  width: 100vw;
+  margin: calc(240px - 192px - var(--strip-pad)) 0 calc(240px - var(--strip-pad)) calc(50% - 50vw);
+  padding: var(--strip-pad) var(--edge-gap);
+  box-sizing: border-box;
+  background: rgba(0, 52, 89, 0); /* see-through until lit */
+  transition: background-color 0.6s ease;
+}
+.side-drawing.lit {
+  background: var(--ink);
+}
+
+.side-drawing-inner {
+  display: grid;
+  align-items: center;
+  gap: 48px;
+}
+.side-right .side-drawing-inner {
+  grid-template-columns: minmax(0, 1fr) auto;
+  grid-template-areas: 'text art';
+}
+.side-left .side-drawing-inner {
+  grid-template-columns: auto minmax(0, 1fr);
+  grid-template-areas: 'art text';
+}
+
+.side-drawing-art {
+  grid-area: art;
+  position: relative;
+  width: calc(var(--art-width) * var(--corner-art-scale) * var(--art-adjust, 1) * 1px);
+  max-width: 45vw;
+}
+.side-drawing-art img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  transition: opacity 0.6s ease;
+}
+.side-drawing-art .side-art-light {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+}
+.side-drawing.lit .side-art-light {
+  opacity: 1;
+}
+.side-drawing.lit .side-art-dark {
+  opacity: 0;
+}
+
+/* The words: light blue, on the strip's other side. Hidden (but still there
+   for screen readers and the keyboard) until the strip is lit. */
+.side-drawing-text {
+  grid-area: text;
+  max-width: 26rem;
+  color: var(--paper);
+  font: 400 1rem/1.5 var(--font-ui);
+  text-align: left;
+  opacity: 0;
+  transform: translateY(10px);
+  transition: opacity 0.6s ease 0.15s, transform 0.6s ease 0.15s;
+  pointer-events: none;
+}
+.side-left .side-drawing-text {
+  justify-self: end; /* up against its own edge's spacing, like the drawing */
+}
+.side-drawing.lit .side-drawing-text {
+  opacity: 1;
+  transform: none;
+  pointer-events: auto;
+}
+.side-drawing-text p {
+  margin: 0;
+}
+.side-drawing-text .nugget-heading {
+  margin-bottom: 8px;
+  font-family: var(--font-display);
+  font-weight: 900;
+  font-stretch: 125%;
+  font-size: 1.35rem;
+  line-height: 1.1;
+  text-transform: uppercase;
+}
+.side-drawing-text ul {
+  margin: 12px 0 0;
+  padding-left: 1.1em;
+}
+.side-drawing-text li + li {
+  margin-top: 6px;
+}
+.side-drawing-text a {
+  color: inherit;
+  text-underline-offset: 3px;
+}
+.side-drawing-text a:focus-visible {
+  outline: 2px solid var(--paper);
+  outline-offset: 2px;
+  border-radius: 2px;
+}
+.side-drawing-text .nugget-carousel {
+  max-width: 280px;
+}
+
+/* Phones: the drawing at about half the width as before, the words in the
+   space beside it, a little smaller. Enough empty space above and below
+   that, in the middle of the screen, it's the only thing showing. */
+@media (max-width: 699px) {
+  .side-drawing {
+    --strip-pad: 32px;
+    --edge-gap: 24px;
+    /* the drawing's width and height on this phone */
+    --phone-art-w: calc((100vw - 48px) * 0.55 * var(--art-width) * var(--art-adjust, 1) / 963);
+    --art-height: calc(var(--phone-art-w) / var(--art-ratio));
+    /* half the screen left over around the drawing, plus 24px (the space
+       above already includes the two sections' padding, 96px each) */
+    --clear-space: calc((100lvh - var(--nav-height) - var(--art-height)) / 2 + 24px);
+    margin-top: max(0px, calc(var(--clear-space) - 192px - var(--strip-pad)));
+    margin-bottom: max(160px, calc(var(--clear-space) - var(--strip-pad)));
+  }
+  .side-drawing-inner {
+    gap: 16px;
+  }
+  .side-drawing-art {
+    width: var(--phone-art-w);
+    max-width: 62vw;
+  }
+  .side-drawing-text {
+    font-size: 0.85rem;
+    line-height: 1.4;
+  }
+  .side-drawing-text .nugget-heading {
+    font-size: 1rem;
+  }
+  .side-drawing-text ul {
+    margin-top: 8px;
+  }
+  .side-drawing-text li + li {
+    margin-top: 4px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .side-drawing,
+  .side-drawing-art img,
+  .side-drawing-text {
+    transition: none;
+  }
+}
+
 /* ----- Nuggets: a little card about us that pops up beside a drawing
    when a guest hovers over it, taps it, or tabs to it (see "nugget" in
    src/data/art.js). It opens toward the middle of the page, centered on the
@@ -3575,13 +3742,19 @@ img.nugget-photo {
   margin-left: -9em;
 }
 
-/* Phones: small enough that one whole sentence fits across the screen (the
-   sentence is about 28.4 times as wide as the letters are tall), and the
-   rows 25% closer together (31px apart instead of 42px). */
+/* Phones: small, so a whole sentence takes up only about 60% of the
+   screen's width (every row shows at least one in full, shifted rows too;
+   the sentence is about 28.4 times as wide as the letters are tall), and
+   the rows close together (16px apart). */
 @media (max-width: 699px) {
   .login-backdrop p {
-    font-size: min(1.1rem, calc((100vw - 28px) / 28.4));
-    line-height: 31px;
+    font-size: calc(100vw * 0.6 / 28.4);
+    line-height: 16px;
+  }
+  /* The in-between rows shift by half a sentence (a sentence plus its dot is
+     about 29.9 letters' widths), so they show a whole one too. */
+  .login-backdrop p:nth-child(even) {
+    margin-left: -14.95em;
   }
 }
 
@@ -3713,12 +3886,27 @@ img.nugget-photo {
   }
 }
 
-[data-design='honey'] .find-invitation .link-button {
-  margin-top: 28px; /* clear room below the passcode box */
+/* "Not Jordan? Search again": only "Search again" is the (underlined) link. */
+[data-design='honey'] .find-invitation .search-again {
+  margin: 28px 0 0; /* clear room below the passcode box */
   font-family: var(--font-ui);
   font-size: 0.85rem;
   color: var(--ink);
+}
+[data-design='honey'] .find-invitation .search-again .link-button {
+  margin: 0;
+  padding: 0;
+  font: inherit;
+  color: inherit;
   text-underline-offset: 3px;
+}
+
+/* "Hi, Jordan!" on its own line, centered, above "Enter the passcode…". */
+.find-invitation .passcode-prompt span {
+  display: block;
+}
+.find-invitation .passcode-prompt .passcode-hello {
+  margin-bottom: 2px;
 }
 
 @media (max-width: 480px) {
@@ -4331,7 +4519,7 @@ img.nugget-photo {
 }
 
 .honey-stage.talking .honey-bubble-her {
-  transition-delay: 0.25s;
+  transition-delay: 0.75s; /* his (on the right) first, hers 0.75 seconds later */
 }
 
 /* Phones: no room beside them, so the stage moves down a little and both
@@ -4531,6 +4719,35 @@ img.nugget-photo {
   min-height: calc(100dvh - var(--nav-height));
   display: flex;
   flex-direction: column;
+}
+
+/* Phones: the first screen is sized to the screen with Safari's bars
+   showing (svh), so the couple doesn't grow as the bars slide away while
+   scrolling. Less space around the words at the top, so the couple can be
+   bigger (feet still showing), and less space down to the countdown. */
+@media (max-width: 699px) {
+  .honey-screen {
+    min-height: 0;
+    height: calc(100svh - var(--nav-height));
+  }
+  .honey-banner {
+    padding: 8px 16px 10px;
+  }
+  .honey-details {
+    margin-top: 14px;
+  }
+  .honey-details p span + span {
+    margin-top: 4px;
+  }
+  .honey-stage-wrap {
+    min-height: 270px; /* (small enough that the feet show even on an iPhone SE) */
+  }
+  .honey-stage-wrap .honey-stage {
+    top: 58px; /* room for the speech bubbles above their heads */
+  }
+  .honey .countdown {
+    margin-top: 48px;
+  }
 }
 
 /* Text only screen readers hear (e.g. "182 days until the wedding"). */

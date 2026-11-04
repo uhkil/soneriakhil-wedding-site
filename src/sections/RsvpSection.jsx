@@ -30,6 +30,7 @@ import FormMessage from '../components/FormMessage.jsx'
 import RsvpCelebration from '../components/RsvpCelebration.jsx'
 import RsvpAddress from '../components/RsvpAddress.jsx'
 import { ABROAD, addressProblems, isStarted, livesAbroad, startingAddress } from '../guest/address.js'
+import SideDrawing from '../components/SideDrawing.jsx'
 // The email and phone rules (the same ones the Sheet checks), so a typo is
 // caught before sending.
 import { EMAIL, COM_TYPO, formatPhone, isValidPhone } from '../guest/contact.js'
@@ -197,8 +198,8 @@ export default function RsvpSection() {
 
   return (
     <Section id="rsvp" className="rsvp">
-      {/* Corner art just above the title (see "corner-art" in index.css). */}
-      <IllustrationSlot name="rsvpCouple" size="small" className="corner-art corner-art-right" />
+      {/* A side drawing just above the title, in its dark strip (see SideDrawing.jsx). */}
+      <SideDrawing name="basketballDate" side="right" />
       {/* Everything from the title down. It's always at least a screen tall
           (see .rsvp-body in index.css), so a link to RSVP can bring the
           title right up to the top of the screen. */}

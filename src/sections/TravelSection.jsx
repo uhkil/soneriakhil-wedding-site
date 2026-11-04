@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import Section from '../components/Section.jsx'
 import IllustrationSlot from '../components/IllustrationSlot.jsx'
+import SideDrawing from '../components/SideDrawing.jsx'
 
 // ----- The details. -----
 const ROOM_BLOCK = 'https://www.loewshotels.com/arlington-hotel/wedding-soneri-akhil-patel-wedding-room-block'
@@ -71,8 +72,8 @@ const topics = [
 export default function TravelSection() {
   return (
     <Section id="travel">
-      {/* Corner art just above the title (see "corner-art" in index.css). */}
-      <IllustrationSlot name="travelVignette" size="small" className="corner-art corner-art-right" />
+      {/* A side drawing just above the title, in its dark strip (see SideDrawing.jsx). */}
+      <SideDrawing name="museumDate" side="right" />
       <h2>Travel &amp; Accommodations</h2>
       <TravelTabs />
     </Section>

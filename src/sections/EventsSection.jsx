@@ -8,12 +8,13 @@ import Section from '../components/Section.jsx'
 import IllustrationSlot from '../components/IllustrationSlot.jsx'
 import EventBlock, { CalendarIcon, PinIcon, MoodboardIcon } from '../components/EventBlock.jsx'
 import Art from '../components/Art.jsx'
+import SideDrawing from '../components/SideDrawing.jsx'
 
 export default function EventsSection({ events }) {
   return (
     <Section id="events" className="section-field">
-      {/* Corner art just above the title (see "corner-art" in index.css). */}
-      <IllustrationSlot name="eventsVignette" size="small" className="corner-art corner-art-left" />
+      {/* A side drawing just above the title, in its dark strip (see SideDrawing.jsx). */}
+      <SideDrawing name="potteryDate" side="left" />
       <h2>
         {/* The word stays centered on the page; the disco ball hangs off its
             right side (see .title-disco in index.css). */}

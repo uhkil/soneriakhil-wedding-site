@@ -3,69 +3,29 @@
 //     dark-blue drawing, sized to fit).
 //   - If not, it shows a labeled placeholder in the right shape, so we can
 //     judge size and placement before the real art exists.
-//   - If the art has a "nugget", that little extra about us shows:
-//       tablets and laptops: as a card that pops up beside the drawing when
-//         hovering over it (or tapping it, or tabbing to it)
-//       phones (under 700px): as a pop-up window (modal) in the middle of the
-//         screen, over a light overlay, with an × to close it.
-//     On every screen size, a "click me to learn more" hint appears above the
-//     drawing once it has been scrolled to the middle of the screen, and stays
-//     until the guest hovers over, clicks, or taps the drawing.
-// Usage: <IllustrationSlot name="heroCouple" size="large" />
+// The side drawings with a little extra about us (a "nugget") use
+// SideDrawing.jsx instead, which shows it in a dark strip beside them;
+// NuggetContent below is what that strip says.
+// Usage: <IllustrationSlot name="event-ceremony" size="large" />
 // size: "small", "medium", or "large" (sets the maximum width).
 // Drawings only download once the guest scrolls near them, so the top of the
 // page loads first.
-import { useEffect, useId, useRef, useState } from 'react'
+import { useRef, useState } from 'react'
 import art from '../data/art.js'
 import { useNearScreen } from './useNearScreen.js'
 
-// Phone width (see "Screen sizes" at the top of index.css).
-const PHONE = '(max-width: 699px)'
-
 export default function IllustrationSlot({ name, size = 'medium', className = '' }) {
   const item = art[name]
-  const nugget = item.nugget
   const ref = useRef(null)
-  const dialog = useRef(null)
   const near = useNearScreen(ref)
-  const hinted = useInMiddle(ref, Boolean(nugget))
   const image = near && item.src ? import.meta.env.BASE_URL + item.src : undefined
-
-  // On phones, tapping the drawing (or Enter / Space) opens the pop-up window.
-  // When it closes, the browser hands focus back to the drawing; after a
-  // tap that would leave a focus outline around it, so it's cleared then
-  // (keyboard users keep it, so they can see where they are).
-  const isPhone = () => window.matchMedia(PHONE).matches
-  const byKeyboard = useRef(false)
-  const openModal = (fromKeyboard = false) => {
-    if (!nugget || !isPhone()) return
-    byKeyboard.current = fromKeyboard
-    dialog.current?.showModal()
-  }
-  const onModalClose = () => {
-    if (!byKeyboard.current) ref.current?.blur()
-  }
 
   return (
     <div
       ref={ref}
-      className={`illustration-slot size-${size} ${className}${nugget ? ' has-nugget' : ''}${hinted ? ' hinted' : ''}`}
-      // With a nugget, it can be reached with the keyboard (and tapped on phones).
-      tabIndex={nugget ? 0 : undefined}
-      // A labeled group: screen readers announce the label, and can still
-      // read the card's text inside it.
-      role={nugget ? 'group' : undefined}
-      aria-label={nugget ? `${item.note}. ${nugget.heading ?? 'A fun fact'}` : undefined}
-      onClick={() => openModal(false)}
-      onKeyDown={(e) => {
-        if (e.target === e.currentTarget && (e.key === 'Enter' || e.key === ' ') && isPhone()) {
-          e.preventDefault()
-          openModal(true)
-        }
-      }}
-      // --art-width: the drawing's own width, so drawings in a group (e.g.
-      // "corner-art" in index.css) can share one scale. --art-ratio: its
-      // shape (width ÷ height), used to work out its height on phones.
+      className={`illustration-slot size-${size} ${className}`}
+      // --art-width: the drawing's own width, so drawings in a group can
+      // share one scale. --art-ratio: its shape (width ÷ height).
       // --art-adjust: "peopleSize" from art.js, so the people match in size.
       style={{
         aspectRatio: item.ratio,
@@ -89,16 +49,6 @@ export default function IllustrationSlot({ name, size = 'medium', className = ''
           <span className="slot-ratio">{item.ratio.replace(' / ', ':')}</span>
         </div>
       )}
-      {nugget && (
-        <>
-          {/* Shown briefly once the drawing reaches the middle of the screen (every screen size). */}
-          <span className="nugget-hint" aria-hidden="true">
-            click me to learn more
-          </span>
-          <Nugget nugget={nugget} />
-          <NuggetModal nugget={nugget} dialog={dialog} onClose={onModalClose} />
-        </>
-      )}
     </div>
   )
 }
@@ -109,40 +59,8 @@ function ratioValue(ratio) {
   return w / h
 }
 
-// True from when the element first reaches the middle of the screen (any
-// part of it in the top half: scrolling down, its top has passed the middle;
-// scrolling back up, it has come into view at the top) until the guest
-// hovers over it, clicks or taps it, or tabs to it; then false for good, so
-// the hint fades away once they've found it. (A thin band across the middle
-// was easy to skip right over when scrolling fast in Safari.)
-function useInMiddle(ref, enabled) {
-  const [stage, setStage] = useState('waiting') // → 'showing' → 'done'
-  useEffect(() => {
-    const element = ref.current
-    if (!enabled || stage !== 'waiting' || !element) return
-    if (!('IntersectionObserver' in window)) return
-    const observer = new IntersectionObserver(
-      (entries) => entries.some((e) => e.isIntersecting) && setStage('showing'),
-      // The top half of the screen.
-      { rootMargin: '0px 0px -50% 0px' }
-    )
-    observer.observe(element)
-    return () => observer.disconnect()
-  }, [ref, enabled, stage])
-  useEffect(() => {
-    const element = ref.current
-    if (stage !== 'showing' || !element) return
-    const found = () => setStage('done')
-    const ways = ['pointerenter', 'click', 'focusin']
-    ways.forEach((w) => element.addEventListener(w, found))
-    return () => ways.forEach((w) => element.removeEventListener(w, found))
-  }, [ref, stage])
-  return stage === 'showing'
-}
-
-// What the card says: heading, text, small photos, links. Shared by the
-// pop-up card and the phone pop-up window.
-function NuggetContent({ nugget, headingId }) {
+// What a side drawing's strip says: heading, text, small photos, links.
+export function NuggetContent({ nugget, headingId }) {
   return (
     <>
       {nugget.heading && (
@@ -241,59 +159,5 @@ function Carousel({ photos }) {
         ))}
       </div>
     </div>
-  )
-}
-
-// Tablets and laptops: the pop-up card beside the drawing. The outer layer is
-// see-through and slightly bigger, so the pointer can travel from the drawing
-// onto the card without it closing.
-function Nugget({ nugget }) {
-  return (
-    <div
-      className={nugget.oneLine ? 'nugget one-line' : 'nugget'}
-      role="note"
-      style={{
-        '--nugget-gap': nugget.gap && `${nugget.gap}px`,
-        '--nugget-width': nugget.width,
-      }}
-    >
-      <div className="nugget-card">
-        <NuggetContent nugget={nugget} />
-      </div>
-    </div>
-  )
-}
-
-// Phones: the same card as a pop-up window in the middle of the screen. It
-// closes with the ×, the Escape key, or a tap on the overlay around it.
-function NuggetModal({ nugget, dialog, onClose }) {
-  const close = () => dialog.current?.close()
-  const headingId = useId()
-  return (
-    <dialog
-      ref={dialog}
-      className="nugget-modal"
-      aria-labelledby={nugget.heading ? headingId : undefined}
-      aria-label={nugget.heading ? undefined : 'A fun fact'}
-      onClose={onClose}
-      // Keep taps inside from reaching the drawing (which would reopen it).
-      onClick={(e) => {
-        e.stopPropagation()
-        // A tap on the overlay lands on the dialog itself, outside the card.
-        if (e.target === e.currentTarget) close()
-      }}
-      onKeyDown={(e) => e.stopPropagation()}
-    >
-      {/* The card itself takes focus when it opens, rather than the ×, so the ×
-          doesn't show a focus ring on every tap. */}
-      <div className="nugget-modal-card" tabIndex={-1} autoFocus>
-        <button type="button" className="nugget-modal-close" aria-label="Close" onClick={close}>
-          <svg viewBox="0 0 24 24" aria-hidden="true">
-            <path d="M6 6l12 12M18 6 6 18" />
-          </svg>
-        </button>
-        <NuggetContent nugget={nugget} headingId={headingId} />
-      </div>
-    </dialog>
   )
 }

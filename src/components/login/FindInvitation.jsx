@@ -112,13 +112,15 @@ export default function FindInvitation() {
             <SubmitArrow busy={busy} label="Find my invitation" />
           </div>
           {/* Phones only (see .invitation-device-note): a gentle nudge toward a bigger screen. */}
-          <p className="invitation-device-note">Psst — this invitation looks its best on a laptop or tablet!</p>
+          <p className="invitation-device-note">psst — this invitation looks its best on a laptop or tablet!</p>
           {error && <FormMessage id="login-error">{error}</FormMessage>}
         </form>
       ) : (
         <form onSubmit={openInvitation} noValidate autoComplete="off" data-1p-ignore data-lpignore="true" data-bwignore data-form-type="other">
-          <label htmlFor="invite-code">
-            Hi, {guest.name.split(' ')[0]}! Enter the passcode from your invitation.
+          {/* Two lines: the hello on its own, then what to do. */}
+          <label htmlFor="invite-code" className="passcode-prompt">
+            <span className="passcode-hello">Hi, {guest.name.split(' ')[0]}!</span>
+            <span>Enter the passcode from your invitation.</span>
           </label>
           <div className="field-row">
             <input
@@ -142,9 +144,13 @@ export default function FindInvitation() {
             <SubmitArrow busy={busy} label="Open my invitation" />
           </div>
           {error && <FormMessage id="login-error">{error}</FormMessage>}
-          <button type="button" className="link-button" onClick={startOver}>
-            Not {guest.name.split(' ')[0]}? Search again
-          </button>
+          {/* Only "Search again" is the link. */}
+          <p className="search-again">
+            Not {guest.name.split(' ')[0]}?{' '}
+            <button type="button" className="link-button" onClick={startOver}>
+              Search again
+            </button>
+          </p>
         </form>
       )}
 
