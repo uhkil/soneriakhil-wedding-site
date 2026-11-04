@@ -7,9 +7,10 @@
 //       tablets and laptops: as a card that pops up beside the drawing when
 //         hovering over it (or tapping it, or tabbing to it)
 //       phones (under 700px): as a pop-up window (modal) in the middle of the
-//         screen, over a light overlay, with an × to close it. A "click me to
-//         learn more" hint appears above the drawing once it has been
-//         scrolled to the middle of the screen, for 2.5 seconds.
+//         screen, over a light overlay, with an × to close it.
+//     On every screen size, a "click me to learn more" hint appears above the
+//     drawing once it has been scrolled to the middle of the screen, for 2.5
+//     seconds.
 // Usage: <IllustrationSlot name="heroCouple" size="large" />
 // size: "small", "medium", or "large" (sets the maximum width).
 // Drawings only download once the guest scrolls near them, so the top of the
@@ -87,7 +88,7 @@ export default function IllustrationSlot({ name, size = 'medium', className = ''
       )}
       {nugget && (
         <>
-          {/* Phones only (index.css hides it elsewhere). */}
+          {/* Shown briefly once the drawing reaches the middle of the screen (every screen size). */}
           <span className="nugget-hint" aria-hidden="true">
             click me to learn more
           </span>
