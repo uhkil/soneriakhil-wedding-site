@@ -4,6 +4,7 @@
 // every second.
 // Once it arrives, it shows zeros.
 import { useEffect, useState } from 'react'
+import art from '../../data/art.js'
 
 // If there's no event to go by: the start of the weekend, Arlington time.
 const WEEKEND = new Date('2027-04-09T00:00:00-05:00')
@@ -20,10 +21,6 @@ function timeLeft(to) {
 }
 
 const two = (n) => String(n).padStart(2, '0')
-
-// How many times the line repeats in each half of the ticker (enough to
-// reach across the widest screens).
-const TICKER_REPEATS = 12
 
 export default function Countdown({ to = WEEKEND }) {
   const [left, setLeft] = useState(() => timeLeft(to))
@@ -44,24 +41,9 @@ export default function Countdown({ to = WEEKEND }) {
     <div className="countdown">
       {/* Screen readers get one short sentence instead of numbers changing every second. */}
       <p className="visually-hidden">{left.days} days until the wedding</p>
-      {/* Behind the numbers: "get ready to dance in" repeated, drifting left to
-          right, showing in the gaps between the numbers (see .countdown-ticker). */}
-      <div className="countdown-ticker" aria-hidden="true">
-        <div className="countdown-ticker-track">
-          {/* Two identical halves, so the loop is seamless. Between each
-              sentence: a small round dot (drawn, so it's a true circle). */}
-          {Array.from({ length: 2 }, (_, half) => (
-            <span key={half} className="ticker-half">
-              {Array.from({ length: TICKER_REPEATS }, (_, i) => (
-                <span key={i} className="ticker-phrase">
-                  get ready to dance in
-                  <span className="ticker-dot" />
-                </span>
-              ))}
-            </span>
-          ))}
-        </div>
-      </div>
+      {/* A single flower at each end (the right one mirrored). */}
+      <div className="countdown-row">
+        <CountdownFlower />
       <div className="countdown-units" aria-hidden="true">
         {units.map(([value, label]) => (
           <div key={label} className="countdown-unit">
@@ -70,6 +52,19 @@ export default function Countdown({ to = WEEKEND }) {
           </div>
         ))}
       </div>
+        <CountdownFlower mirrored />
+      </div>
+    </div>
+  )
+}
+
+// A single flower beside the countdown: the drawing if it's in art.js
+// ("countdownFlower"), otherwise a small placeholder in its shape.
+function CountdownFlower({ mirrored = false }) {
+  const flower = art.countdownFlower
+  return (
+    <div className={`countdown-flower${mirrored ? ' mirrored' : ''}`} style={{ aspectRatio: flower.ratio }} aria-hidden="true">
+      {flower.src ? <img src={import.meta.env.BASE_URL + flower.src} alt="" draggable="false" /> : <span>flower</span>}
     </div>
   )
 }

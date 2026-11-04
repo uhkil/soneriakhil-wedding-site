@@ -26,6 +26,13 @@
 // placeholder instead).
 
 const art = {
+  countdownFlower: {
+    // A single flower on each side of the countdown (the right one mirrored).
+    // To add the drawing: src: 'assets/art/flower.webp' (and set ratio to its shape).
+    src: '',
+    ratio: '1 / 2',
+    note: 'A single flower beside the countdown',
+  },
   coffeeDate: {
     src: 'assets/art/coffee-date.webp',
     ratio: '963 / 754',
@@ -97,8 +104,9 @@ const art = {
     tint: true,
     note: 'The two of us playing basketball',
     nugget: {
+      heading: 'fun fact',
       // (non-breaking hyphens keep “p-i-g” on one line)
-      text: 'fun fact: soneri has beaten akhil in p\u2011i\u2011g 3 times!',
+      text: 'soneri has beaten akhil in p\u2011i\u2011g 3 times!',
     },
   },
   'event-ceremony': {
@@ -139,19 +147,19 @@ const art = {
     note: 'The two of us out on a hike',
     nugget: {
       heading: 'national parks we’ve explored',
-      // Each park's own name stands out; "thin" is the rest, in lighter
-      // letters. No links yet: an empty href shows the name as plain text.
+      // Just each park's name. No links yet: an empty href shows the name
+      // as plain text.
       links: [
-        { label: 'Zion', thin: 'National Park', href: '' },
-        { label: 'Bryce Canyon', thin: 'National Park', href: '' },
-        { label: 'Joshua Tree', thin: 'National Park', href: '' },
-        { label: 'Yosemite', thin: 'National Park', href: '' },
-        { label: 'Patagonia', thin: 'National Park', href: '' },
-        { label: 'Rocky Mountain', thin: 'National Park', href: '' },
-        { label: 'Acadia', thin: 'National Park', href: '' },
-        { label: 'Olympic', thin: 'National Park', href: '' },
-        { label: 'Redwood', thin: 'National and State Parks', href: '' },
-        { label: 'Manuel Antonio', thin: 'National Park', href: '' },
+        { label: 'Zion', href: '' },
+        { label: 'Bryce Canyon', href: '' },
+        { label: 'Joshua Tree', href: '' },
+        { label: 'Yosemite', href: '' },
+        { label: 'Patagonia', href: '' },
+        { label: 'Rocky Mountain', href: '' },
+        { label: 'Acadia', href: '' },
+        { label: 'Olympic', href: '' },
+        { label: 'Redwood', href: '' },
+        { label: 'Manuel Antonio', href: '' },
       ],
     },
   },

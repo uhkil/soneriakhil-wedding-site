@@ -54,7 +54,7 @@ export default function SideDrawing({ name, side = 'right' }) {
           )}
         </div>
         {item.nugget && (
-          <div className="side-drawing-text">
+          <div className={`side-drawing-text${item.nugget.gallery ? ' has-gallery' : ''}`}>
             <NuggetContent nugget={item.nugget} />
           </div>
         )}

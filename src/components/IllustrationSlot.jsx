@@ -97,7 +97,7 @@ export function NuggetContent({ nugget, headingId }) {
 function Carousel({ photos }) {
   const ref = useRef(null)
   const [current, setCurrent] = useState(0)
-  // Keep the dots in step with swiping.
+  // Keep the count in step with swiping.
   const onScroll = () => {
     const strip = ref.current
     setCurrent(Math.round(strip.scrollLeft / strip.clientWidth))
@@ -107,57 +107,52 @@ function Carousel({ photos }) {
     ref.current.scrollTo({ left: i * ref.current.clientWidth, behavior: smooth ? 'smooth' : 'auto' })
   }
 
+  const arrow = (direction) => (
+    <button
+      type="button"
+      className={`carousel-arrow ${direction}`}
+      aria-label={direction === 'prev' ? 'Previous photo' : 'Next photo'}
+      disabled={direction === 'prev' ? current === 0 : current === photos.length - 1}
+      onClick={() => goTo(direction === 'prev' ? current - 1 : current + 1)}
+    >
+      <svg viewBox="0 0 24 24" aria-hidden="true">
+        <path d={direction === 'prev' ? 'M15 5l-7 7 7 7' : 'M9 5l7 7-7 7'} />
+      </svg>
+    </button>
+  )
+
+  // An arrow on either side of the photo, and below it how far along you
+  // are ("2 / 6").
   return (
     <div className="nugget-carousel">
-      <div className="nugget-carousel-window">
-        <div ref={ref} className="nugget-carousel-strip" onScroll={onScroll}>
-          {photos.map((piece, i) =>
-            typeof piece === 'string' ? (
-              <span key={piece} className="nugget-photo">
-                {piece}
-              </span>
-            ) : (
-              <img
-                key={piece.src}
-                className="nugget-photo"
-                src={import.meta.env.BASE_URL + piece.src}
-                alt={piece.alt}
-                loading="lazy"
-                draggable="false"
-                aria-hidden={i !== current}
-              />
-            )
-          )}
+      <div className="nugget-carousel-row">
+        {arrow('prev')}
+        <div className="nugget-carousel-window">
+          <div ref={ref} className="nugget-carousel-strip" onScroll={onScroll}>
+            {photos.map((piece, i) =>
+              typeof piece === 'string' ? (
+                <span key={piece} className="nugget-photo">
+                  {piece}
+                </span>
+              ) : (
+                <img
+                  key={piece.src}
+                  className="nugget-photo"
+                  src={import.meta.env.BASE_URL + piece.src}
+                  alt={piece.alt}
+                  loading="lazy"
+                  draggable="false"
+                  aria-hidden={i !== current}
+                />
+              )
+            )}
+          </div>
         </div>
-        <button type="button" className="carousel-arrow prev" aria-label="Previous photo" disabled={current === 0} onClick={() => goTo(current - 1)}>
-          <svg viewBox="0 0 24 24" aria-hidden="true">
-            <path d="M15 5l-7 7 7 7" />
-          </svg>
-        </button>
-        <button
-          type="button"
-          className="carousel-arrow next"
-          aria-label="Next photo"
-          disabled={current === photos.length - 1}
-          onClick={() => goTo(current + 1)}
-        >
-          <svg viewBox="0 0 24 24" aria-hidden="true">
-            <path d="M9 5l7 7-7 7" />
-          </svg>
-        </button>
+        {arrow('next')}
       </div>
-      <div className="carousel-dots" role="group" aria-label="Photos">
-        {photos.map((_, i) => (
-          <button
-            key={i}
-            type="button"
-            className={i === current ? 'active' : ''}
-            aria-label={`Photo ${i + 1} of ${photos.length}`}
-            aria-current={i === current}
-            onClick={() => goTo(i)}
-          />
-        ))}
-      </div>
+      <p className="carousel-count" aria-live="polite">
+        {current + 1} / {photos.length}
+      </p>
     </div>
   )
 }

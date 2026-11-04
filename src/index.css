@@ -1210,8 +1210,76 @@ h2:hover .title-berry.mirrored {
   outline-offset: 2px;
   border-radius: 2px;
 }
+/* The pottery photos: the title and the photo centered on the same line,
+   with an arrow on either side of the photo (faded at either end) and how
+   far along you are below it ("2 / 6"). */
+.side-drawing-text.has-gallery {
+  text-align: center;
+  justify-self: center;
+}
 .side-drawing-text .nugget-carousel {
-  max-width: 280px;
+  margin-top: 16px;
+}
+.side-drawing-text .nugget-carousel-row {
+  display: grid;
+  grid-template-columns: auto minmax(0, 260px) auto;
+  justify-content: center;
+  align-items: center;
+  gap: 14px;
+}
+.side-drawing-text .carousel-arrow {
+  position: static;
+  translate: none;
+  width: 38px;
+  height: 38px;
+  border: 1.5px solid rgba(202, 233, 255, 0.6);
+  background: transparent;
+}
+.side-drawing-text .carousel-arrow:hover:not(:disabled) {
+  background: rgba(202, 233, 255, 0.12);
+}
+.side-drawing-text .carousel-arrow:disabled {
+  opacity: 0.3; /* still there, so the layout doesn't jump */
+  pointer-events: none;
+}
+.side-drawing-text .carousel-count {
+  margin: 12px 0 0;
+  font: 500 0.85rem/1 var(--font-ui);
+  letter-spacing: 0.08em;
+  font-variant-numeric: tabular-nums;
+}
+
+/* Phones: the column beside the drawing is narrow, so the arrows sit over
+   the photo's left and right edges instead (on dark circles). */
+@media (max-width: 699px) {
+  .side-drawing-text .nugget-carousel-row {
+    position: relative;
+    display: block;
+  }
+  .side-drawing-text .carousel-arrow {
+    position: absolute;
+    top: 50%;
+    z-index: 1;
+    width: 30px;
+    height: 30px;
+    margin-top: -15px;
+    border: none;
+    background: rgba(0, 52, 89, 0.72);
+  }
+  .side-drawing-text .carousel-arrow.prev {
+    left: 6px;
+  }
+  .side-drawing-text .carousel-arrow.next {
+    right: 6px;
+  }
+}
+
+/* The title on one line where it fits (laptops, and iPads when there's
+   room); otherwise it wraps. */
+@media (min-width: 700px) {
+  .side-drawing-text {
+    max-width: 34rem;
+  }
 }
 
 /* Laptops: the strip eases open while the pointer is over it (anywhere
@@ -4856,7 +4924,11 @@ img.nugget-photo {
    animation's area, and there's 16px of room below that area.) */
 .countdown {
   position: relative;
-  width: 32%;
+  /* about a third of the page for the numbers, plus room for a flower and
+     its gap at each end */
+  --flower-w: calc(clamp(64px, 6.5vw, 96px) / 2);
+  --flower-gap: clamp(16px, 2vw, 32px);
+  width: calc(32% + 2 * (var(--flower-w) + var(--flower-gap)));
   min-width: min(300px, calc(100% - 32px));
   margin: calc(var(--home-gap) - 28px) auto 0;
   color: var(--ink);
@@ -4910,103 +4982,65 @@ img.nugget-photo {
   margin-right: -0.32em; /* keeps the spaced-out word centered */
 }
 
-/* The ticker: "get ready to dance in" repeated in one line across the whole
-   page, level with the numbers and behind them, drifting slowly left to
-   right. Each number-and-label pair sits on a patch of the page's light
-   blue (with room either side), so the moving words only show in the gaps
-   between them. The line is written out twice; moving it by exactly one
-   copy and starting again loops without a jump. Still, for anyone who has
-   asked their device for less motion. */
-.countdown-ticker {
-  position: absolute;
-  z-index: 0;
-  top: 0;
-  left: calc(50% - 50vw);
-  width: 100vw;
-  height: clamp(1.36rem, 2.72vw, 2.56rem); /* the numbers' height */
-  overflow: hidden;
-  user-select: none;
-}
-
-.countdown-ticker-track {
-  display: flex;
-  width: max-content;
-  height: 100%;
-  animation: ticker-right 132s linear infinite; /* 10% faster than the first 145s */
-}
-
-.countdown-ticker-track .ticker-half {
-  display: flex;
+/* A single flower at each end of the countdown (CountdownFlower in
+   Countdown.jsx): a small placeholder until the drawing is ready. */
+.countdown-row {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
   align-items: center;
-  white-space: pre;
-  font-family: var(--font-display);
-  /* The same size and face as the numbers, in a softer blue so the
-     numbers stay the focus. */
-  font-weight: 900;
-  font-stretch: 125%;
-  font-size: clamp(1.36rem, 2.72vw, 2.56rem);
-  line-height: 1;
+  gap: var(--flower-gap);
+}
+.countdown-flower {
+  height: clamp(64px, 6.5vw, 96px);
+  display: grid;
+  place-items: center;
+  box-sizing: border-box;
+  border: 1.5px dashed rgba(0, 52, 89, 0.45);
+  border-radius: 999px;
+  color: rgba(0, 52, 89, 0.6);
+  font: 500 0.6rem/1 var(--font-ui);
   letter-spacing: 0.08em;
-  word-spacing: -0.12em; /* the words a little closer together */
   text-transform: uppercase;
-  color: rgba(0, 52, 89, 0.42);
 }
-
-.countdown-ticker-track .ticker-phrase {
-  display: flex;
-  align-items: center;
+.countdown-flower:has(img) {
+  border: none;
 }
-
-/* The dot between sentences: a true circle (the font's dot is nearly square). */
-.countdown-ticker-track .ticker-dot {
-  flex: none;
-  width: 0.3em;
-  height: 0.3em;
-  margin: 0 0.42em 0 0.34em; /* about the same room as the old dot had */
-  border-radius: 50%;
-  background: currentColor;
+.countdown-flower img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
 }
-
-/* It stops while the pointer is over the moving words or the countdown. */
-.countdown:hover .countdown-ticker-track {
-  animation-play-state: paused;
+.countdown-flower.mirrored img {
+  transform: scaleX(-1);
 }
-
-@keyframes ticker-right {
-  from {
-    translate: -50% 0;
-  }
-  to {
-    translate: 0 0;
+.countdown-flower span {
+  writing-mode: vertical-rl;
+}
+/* iPads: a little wider, so the numbers keep their room beside the flowers. */
+@media (min-width: 700px) and (max-width: 1199px) {
+  .countdown {
+    min-width: min(480px, calc(100% - 32px));
   }
 }
-
-@media (prefers-reduced-motion: reduce) {
-  .countdown-ticker-track {
-    animation: none;
-  }
-}
-
-/* Phones: no ticker (the gaps between the numbers are too narrow for it). */
+/* Phones: smaller flowers, closer in. */
 @media (max-width: 699px) {
-  .countdown-ticker {
-    display: none;
+  .countdown {
+    --flower-gap: 8px;
+  }
+  .countdown-flower {
+    height: 52px;
+    font-size: 0.45rem;
+  }
+}
+@media (max-width: 359px) {
+  .countdown {
+    --flower-gap: 6px;
+  }
+  .countdown-flower {
+    height: 44px;
   }
 }
 
-.countdown-units {
-  position: relative;
-  z-index: 1; /* on top of the ticker */
-}
-
-.countdown-unit {
-  padding: 0 14px;
-  background: var(--paper);
-}
-
-#home {
-  overflow-x: clip; /* the full-width ticker never makes the page scroll sideways */
-}
 
 /* Phones: the countdown spans most of the width. */
 @media (max-width: 720px) {
