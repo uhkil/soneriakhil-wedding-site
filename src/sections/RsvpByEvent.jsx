@@ -54,6 +54,8 @@ export default function RsvpByEvent() {
   const [error, setError] = useState('')
   const [checked, setChecked] = useState(false) // after the first Send: flag what's missing
   const [celebrate, setCelebrate] = useState(null)
+  // Which tab is showing: 'coming' (who's coming to each event) or 'details'.
+  const [tab, setTab] = useState('coming')
 
   const displayName = (g) => (g.isPlusOne ? 'Your guest' : `${g.firstName} ${g.lastName}`)
   const onFile = (g) => party.onFile?.[g.guestId] || {}
@@ -167,12 +169,14 @@ export default function RsvpByEvent() {
     const found = findProblems()
     if (found.length) {
       setError('')
-      requestAnimationFrame(() => {
+      // Go to the tab with the first thing missing, then to that spot.
+      setTab(found[0].card.startsWith('event-') ? 'coming' : 'details')
+      requestAnimationFrame(() => requestAnimationFrame(() => {
         const spot = document.getElementById(found[0].id)
         const smooth = !window.matchMedia('(prefers-reduced-motion: reduce)').matches
         spot?.scrollIntoView({ behavior: smooth ? 'smooth' : 'auto', block: 'center' })
         ;(spot?.querySelector('input') ?? spot)?.focus({ preventScroll: true })
-      })
+      }))
       return
     }
     setError('')
@@ -204,10 +208,39 @@ export default function RsvpByEvent() {
       <p className="rsvp-intro">
         {party.hasResponded
           ? 'We have your RSVP. You can change anything below and save again.'
-          : 'Let us know who’s coming. Open each event to answer for everyone invited to it.'}
+          : 'Let us know who’s coming to each event, then add your details.'}
       </p>
 
-      <div className="rsvp-form" role="form" aria-label="RSVP">
+      <div className="rsvp-form rsvp-v2" role="form" aria-label="RSVP">
+        {/* Two tabs (the same pill toggle as Travel's): who's coming, and your
+            details. A coral dot marks a tab with something still missing. */}
+        <div
+          className="view-toggle travel-toggle rsvp-tabs"
+          role="tablist"
+          aria-label="RSVP steps"
+          style={{ '--index': tab === 'coming' ? 0 : 1, '--count': 2 }}
+        >
+          {[
+            ['coming', 'Who’s coming?', (p) => p.card.startsWith('event-')],
+            ['details', 'Your details', (p) => !p.card.startsWith('event-')],
+          ].map(([id, label, belongs]) => (
+            <button
+              key={id}
+              type="button"
+              role="tab"
+              id={`tab-${id}`}
+              aria-selected={tab === id}
+              aria-controls={`card-${id}`}
+              className={tab === id ? 'selected' : ''}
+              onClick={() => setTab(id)}
+            >
+              {label}
+              {problems.some(belongs) && <span className="rsvp-tab-dot" aria-label="(needs attention)" />}
+            </button>
+          ))}
+        </div>
+
+        {tab === 'coming' && (
         <Card id="coming" title="Who’s coming?">
           {phone ? (
             // Phones: one short list per event.
@@ -263,6 +296,9 @@ export default function RsvpByEvent() {
           )}
         </Card>
 
+        )}
+
+        {tab === 'details' && (
         <Card id="details" title="Your details">
           <p className="field-hint rsvp-details-intro">
             We need at least one email and one phone number for your invitation. Add them for everyone if you’d like.
@@ -365,6 +401,8 @@ export default function RsvpByEvent() {
           </div>
         </Card>
 
+        )}
+
         {problems.length > 0 && (
           <FormMessage>
             {problems.length === 1
@@ -387,9 +425,23 @@ export default function RsvpByEvent() {
           </FormMessage>
         )}
 
-        <button className="button rsvp-submit" type="button" onClick={save} disabled={status === 'saving'}>
-          {status === 'saving' ? 'Saving…' : party.hasResponded ? 'Update RSVP' : 'Send RSVP'}
-        </button>
+        {/* First tab: on to the details. Second tab: send. */}
+        {tab === 'coming' ? (
+          <button
+            className="button rsvp-submit"
+            type="button"
+            onClick={() => {
+              setTab('details')
+              requestAnimationFrame(() => document.querySelector('.rsvp-tabs')?.scrollIntoView({ behavior: 'smooth', block: 'start' }))
+            }}
+          >
+            Next: your details →
+          </button>
+        ) : (
+          <button className="button rsvp-submit" type="button" onClick={save} disabled={status === 'saving'}>
+            {status === 'saving' ? 'Saving…' : party.hasResponded ? 'Update RSVP' : 'Send RSVP'}
+          </button>
+        )}
       </div>
       <RsvpCelebration open={Boolean(celebrate)} attending={celebrate?.attending} onClose={() => setCelebrate(null)} />
     </>
@@ -400,7 +452,8 @@ export default function RsvpByEvent() {
 function Card({ id, title, children }) {
   return (
     <div id={`card-${id}`} role="group" aria-labelledby={`card-${id}-title`} className={`rsvp-guest open rsvp-card-${id}`}>
-      <p className="rsvp-name rsvp-card-title" id={`card-${id}-title`}>
+      {/* The tab above already names the card, so its title is for screen readers only. */}
+      <p className="visually-hidden" id={`card-${id}-title`}>
         {title}
       </p>
       <div className="rsvp-card-body">{children}</div>

@@ -5785,3 +5785,55 @@ img.nugget-photo {
     display: none;
   }
 }
+
+/* ----- RSVP by event, take 3 (practice only): two tabs, light boxes ----- */
+
+/* The tabs sit above the one card; a little closer than Travel's. */
+.rsvp-tabs.travel-toggle {
+  margin: 8px auto 28px;
+}
+.rsvp-tabs button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+}
+/* A small coral dot on a tab with something still missing. */
+.rsvp-tab-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #e8604c;
+  flex: none;
+}
+
+/* Every box on the dark cards: light blue, with dark blue words. */
+[data-design='honey'] .rsvp-v2 .rsvp-field input:not([type='checkbox']):not([type='radio']),
+[data-design='honey'] .rsvp-v2 .rsvp-field textarea,
+[data-design='honey'] .rsvp-v2 .rsvp-field select {
+  background-color: var(--paper);
+  border-color: var(--paper);
+  color: var(--ink);
+}
+[data-design='honey'] .rsvp-v2 .rsvp-field input::placeholder,
+[data-design='honey'] .rsvp-v2 .rsvp-field textarea::placeholder {
+  color: var(--ink);
+  opacity: 0.5;
+}
+[data-design='honey'] .rsvp-v2 .rsvp-field select {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23003459' stroke-width='2.4' stroke-linecap='round'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
+}
+[data-design='honey'] .rsvp-v2 .rsvp-field select.shows-saved {
+  color: rgba(0, 52, 89, 0.5);
+}
+/* A problem: a coral edge, strong enough to see on the light box. */
+[data-design='honey'] .rsvp-v2 .rsvp-field input[aria-invalid='true'],
+[data-design='honey'] .rsvp-v2 .rsvp-field select[aria-invalid='true'],
+[data-design='honey'] .rsvp-v2 .rsvp-field textarea[aria-invalid='true'] {
+  border-color: #e8604c;
+  box-shadow: 0 0 0 1px #e8604c;
+}
+/* "Next" scrolls the tabs to the top, just under the menu bar. */
+.rsvp-tabs {
+  scroll-margin-top: calc(var(--nav-height) + 24px);
+}
