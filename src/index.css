@@ -1318,10 +1318,10 @@ img.nugget-photo {
    "click me to learn more" hint above it, and tapping opens the card as a
    pop-up window in the middle of the screen (see IllustrationSlot.jsx). ----- */
 
-/* The hint: a small dark-blue pill centered above the drawing, with a little
-   point aimed down at it. Hidden until the drawing reaches the middle of the
-   screen (.hinted); then it fades in, bobs gently, and fades away again
-   after 2.5 seconds. On every screen size. */
+/* The hint: a small dark-blue pill centered above the drawing. Hidden until
+   the drawing reaches the middle of the screen (.hinted); then it fades in,
+   bobs gently, and stays until the guest hovers over, clicks, or taps the
+   drawing. On every screen size. */
 .nugget-hint {
   position: absolute;
   bottom: calc(100% + 16px);
@@ -1337,16 +1337,6 @@ img.nugget-photo {
   pointer-events: none;
   opacity: 0;
   transition: opacity 0.5s ease;
-}
-
-.nugget-hint::after {
-  content: '';
-  position: absolute;
-  top: 100%;
-  left: 50%;
-  translate: -50% -1px;
-  border: 6px solid transparent;
-  border-top-color: var(--ink);
 }
 
 .illustration-slot.hinted .nugget-hint {

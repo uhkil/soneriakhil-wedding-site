@@ -9,8 +9,8 @@
 //       phones (under 700px): as a pop-up window (modal) in the middle of the
 //         screen, over a light overlay, with an × to close it.
 //     On every screen size, a "click me to learn more" hint appears above the
-//     drawing once it has been scrolled to the middle of the screen, for 2.5
-//     seconds.
+//     drawing once it has been scrolled to the middle of the screen, and stays
+//     until the guest hovers over, clicks, or taps the drawing.
 // Usage: <IllustrationSlot name="heroCouple" size="large" />
 // size: "small", "medium", or "large" (sets the maximum width).
 // Drawings only download once the guest scrolls near them, so the top of the
@@ -109,14 +109,12 @@ function ratioValue(ratio) {
   return w / h
 }
 
-// How long the "click me to learn more" hint stays up, in milliseconds.
-const HINT_TIME = 2500
-
-// True for HINT_TIME once the element first reaches the middle of the
-// screen (any part of it in the top half: scrolling down, its top has passed
-// the middle; scrolling back up, it has come into view at the top); then
-// false for good, so the hint shows once and fades away. (A thin band across
-// the middle was easy to skip right over when scrolling fast in Safari.)
+// True from when the element first reaches the middle of the screen (any
+// part of it in the top half: scrolling down, its top has passed the middle;
+// scrolling back up, it has come into view at the top) until the guest
+// hovers over it, clicks or taps it, or tabs to it; then false for good, so
+// the hint fades away once they've found it. (A thin band across the middle
+// was easy to skip right over when scrolling fast in Safari.)
 function useInMiddle(ref, enabled) {
   const [stage, setStage] = useState('waiting') // → 'showing' → 'done'
   useEffect(() => {
@@ -132,10 +130,13 @@ function useInMiddle(ref, enabled) {
     return () => observer.disconnect()
   }, [ref, enabled, stage])
   useEffect(() => {
-    if (stage !== 'showing') return
-    const timer = setTimeout(() => setStage('done'), HINT_TIME)
-    return () => clearTimeout(timer)
-  }, [stage])
+    const element = ref.current
+    if (stage !== 'showing' || !element) return
+    const found = () => setStage('done')
+    const ways = ['pointerenter', 'click', 'focusin']
+    ways.forEach((w) => element.addEventListener(w, found))
+    return () => ways.forEach((w) => element.removeEventListener(w, found))
+  }, [ref, stage])
   return stage === 'showing'
 }
 
