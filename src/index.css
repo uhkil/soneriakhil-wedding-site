@@ -5195,6 +5195,74 @@ img.nugget-photo {
   color: #ffb4a9;
 }
 
+/* ----- The RSVP form by event (RsvpByEvent.jsx) ----- */
+
+/* A card's header: its title, and (for events) the date and time of day in
+   small capitals under it. */
+.rsvp-card-titles {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 10px;
+}
+[data-design='honey'] .rsvp-card-sub {
+  padding-left: 2px;
+  font-family: var(--font-ui);
+  font-size: 0.68rem;
+  font-weight: 500;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--paper);
+}
+
+/* One person in an event: their name, then Accept / Decline. */
+[data-design='honey'] .rsvp-person-name {
+  margin: 0 0 10px;
+  font-family: var(--font-ui);
+  font-weight: 600;
+  font-size: 1.05rem;
+  color: var(--paper);
+}
+[data-design='honey'] .rsvp-guest .rsvp-person.missing .rsvp-choices {
+  border-color: #ffb4a9;
+}
+[data-design='honey'] .rsvp-guest .rsvp-person.missing .rsvp-person-name {
+  color: #ffb4a9;
+}
+.rsvp-person:focus {
+  outline: none; /* it's only focused to bring the keyboard to it */
+}
+
+/* Your details: one block per person, a thin line between them. */
+.rsvp-details-intro {
+  margin: 0;
+}
+.rsvp-details-person {
+  display: grid;
+  gap: 16px;
+  padding-top: 20px;
+  border-top: 1px solid rgba(202, 233, 255, 0.25);
+}
+.rsvp-details-person .rsvp-person-name {
+  margin: 0;
+}
+/* Email and phone side by side on iPads and laptops. */
+.rsvp-details-row {
+  display: grid;
+  gap: 16px;
+}
+@media (min-width: 700px) {
+  .rsvp-details-row {
+    grid-template-columns: 1fr 1fr;
+    align-items: start;
+  }
+}
+.rsvp-details-person .rsvp-field input {
+  width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
+}
+
 /* Small helping lines under a box: "On file. Leave blank to keep it." and
    tips like the one about phone numbers outside the US. They sit snug under
    their box (the field already puts 8px between its parts; these pull in

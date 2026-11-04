@@ -25,7 +25,8 @@ import { useState } from 'react'
 import Section from '../components/Section.jsx'
 import IllustrationSlot from '../components/IllustrationSlot.jsx'
 import { useGuest } from '../guest/GuestProvider.jsx'
-import { submitRsvp } from '../api/rsvpApi.js'
+import { submitRsvp, isPractice } from '../api/rsvpApi.js'
+import RsvpByEvent from './RsvpByEvent.jsx'
 import FormMessage from '../components/FormMessage.jsx'
 import RsvpCelebration from '../components/RsvpCelebration.jsx'
 import RsvpAddress from '../components/RsvpAddress.jsx'
@@ -205,6 +206,11 @@ export default function RsvpSection() {
           title right up to the top of the screen. */}
       <div className="rsvp-body">
       <h2>RSVP</h2>
+      {/* The new by-event design, tried out in practice mode first. */}
+      {isPractice ? (
+        <RsvpByEvent />
+      ) : (
+      <>
       <p className="rsvp-intro">
         {party.hasResponded
           ? 'We have your RSVP. You can change anything below and save again.'
@@ -412,8 +418,10 @@ export default function RsvpSection() {
           {status === 'saving' ? 'Saving…' : party.hasResponded ? 'Update RSVP' : 'Send RSVP'}
         </button>
       </div>
+      </>
+      )}
       </div>
-      <RsvpCelebration open={Boolean(celebrate)} attending={celebrate?.attending} onClose={() => setCelebrate(null)} />
+      {!isPractice && <RsvpCelebration open={Boolean(celebrate)} attending={celebrate?.attending} onClose={() => setCelebrate(null)} />}
     </Section>
   )
 }
