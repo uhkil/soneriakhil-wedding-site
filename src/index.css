@@ -1201,7 +1201,7 @@ h2:hover .title-berry.mirrored {
 }
 .side-drawing-text li {
   position: relative;
-  padding-left: 1.5em;
+  padding-left: 1.3em;
 }
 .side-drawing-text li + li {
   margin-top: 6px;
@@ -2625,55 +2625,6 @@ img.nugget-photo {
   outline-offset: 2px;
 }
 
-/* Under the timeline: a quiet key to the icons beside the details. A row
-   of small icon-and-meaning pairs, centered, with no border (stacked on
-   phones). The icons here are just pictures, not buttons. */
-.events-legend {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: center;
-  gap: 10px 28px;
-  margin: 72px auto 0;
-  font-family: var(--font-ui);
-  font-size: 0.74rem;
-  font-style: normal;
-  color: var(--ink);
-  opacity: 0.85;
-}
-
-.events-legend > div {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.events-legend dd {
-  margin: 0;
-}
-
-.fact-icon.legend-icon {
-  top: 0;
-  margin: 0;
-  flex: none;
-  width: 18px;
-  height: 18px;
-  cursor: default;
-}
-
-.fact-icon.legend-icon svg {
-  width: 11px;
-  height: 11px;
-}
-
-@media (max-width: 699px) {
-  .events-legend {
-    flex-direction: column;
-    align-items: flex-start; /* the icons line up in a column */
-    width: fit-content; /* and the whole key stays centered */
-    gap: 10px;
-  }
-}
-
 /* A small line under the attire (an event's "attireNote" in events.js). */
 .attire-note {
   position: relative;
@@ -3144,7 +3095,9 @@ img.nugget-photo {
 
 /* The Memories toggle, with one button per topic. */
 .travel-toggle {
-  grid-template-columns: repeat(var(--count), auto);
+  /* equal-width tabs (each as wide as the widest label), so the highlight
+     always lines up with the chosen one */
+  grid-template-columns: repeat(var(--count), 1fr);
   margin: 56px auto 40px; /* 40px between the toggle and the card below */
 }
 
@@ -3159,6 +3112,13 @@ img.nugget-photo {
 /* One big card for the chosen topic: as tall as its text needs. */
 .travel-panel {
   padding: 36px 40px 38px;
+}
+
+/* "What to do": a placeholder until the list is ready. */
+.travel-coming-soon {
+  margin: 8px 0 4px;
+  text-align: center;
+  font-style: italic;
 }
 
 /* Phones: the toggle spans the width, its buttons sharing it evenly. */
@@ -3356,27 +3316,27 @@ img.nugget-photo {
 
 .faq-answer li {
   position: relative;
-  padding-left: 1.5em;
+  padding-left: 1.3em;
 }
 
 .faq-answer li + li {
   margin-top: 6px;
 }
 
-/* Bullets: a small four-pointed sparkle (like the twinkles around the disco
-   ball), in the text's own color, centered on the first line. Used in the
-   FAQ answers and the side drawings' lists. */
+/* Bullets: a small square with softly rounded corners, in the text's own
+   color, centered on the first line. Used in the FAQ answers and the side
+   drawings' lists. */
 .faq-answer li::before,
 .side-drawing-text li::before {
   content: '';
   position: absolute;
-  left: 0.05em;
-  top: 0.4em; /* (older browsers) */
-  top: calc(0.5lh - 6px);
-  width: 12px;
-  height: 12px;
+  left: 0.15em;
+  top: 0.5em; /* (older browsers) */
+  top: calc(0.5lh - 3.5px);
+  width: 7px;
+  height: 7px;
+  border-radius: 2px;
   background: currentColor;
-  clip-path: path('M6 0C6.6 3.9 8.1 5.4 12 6C8.1 6.6 6.6 8.1 6 12C5.4 8.1 3.9 6.6 0 6C3.9 5.4 5.4 3.9 6 0Z');
 }
 
 .faq-item p {

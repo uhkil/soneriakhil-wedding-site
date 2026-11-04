@@ -1,5 +1,6 @@
-// Getting there and where to stay: a pill toggle (like Memories') picks a
-// topic, shown in one big dark-blue card that grows to fit its text.
+// Where to stay, getting there, and what to do: a pill toggle (like
+// Memories') picks a topic, shown in one big dark-blue card that grows to
+// fit its text.
 import { useState } from 'react'
 import Section from '../components/Section.jsx'
 import IllustrationSlot from '../components/IllustrationSlot.jsx'
@@ -66,6 +67,12 @@ const topics = [
         </div>
       </>
     ),
+  },
+  {
+    id: 'what-to-do',
+    title: 'What to do',
+    // A placeholder until the list is ready.
+    body: <p className="travel-coming-soon">Things to do in Dallas coming soon!</p>,
   },
 ]
 
