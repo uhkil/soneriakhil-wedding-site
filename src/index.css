@@ -5225,90 +5225,99 @@ img.nugget-photo {
   opacity: 0.85;
 }
 
-/* A compact Yes / No switch. */
-[data-design='honey'] .rsvp-yes-no .rsvp-choices {
-  flex-wrap: nowrap; /* Yes and No always side by side */
+/* Who's coming: one block per event (its name and date, then the name
+   chips under it), a thin line between events. */
+.rsvp-chip-hint {
+  margin: 0;
+  font-family: var(--font-ui);
+  font-size: 0.9rem;
+  color: rgba(202, 233, 255, 0.85);
 }
-[data-design='honey'] .rsvp-yes-no .rsvp-choice label {
-  min-width: 0;
-  padding: 7px 10px;
-  letter-spacing: 0.1em;
+.rsvp-chip-event {
+  display: grid;
+  row-gap: 14px;
+  padding-top: 20px;
+  border-top: 1px solid rgba(202, 233, 255, 0.25);
+  border-radius: 0;
 }
-/* Four events across a narrow iPad: a little tighter still. */
-@media (max-width: 899px) {
-  [data-design='honey'] .rsvp-yes-no .rsvp-choice label {
-    padding: 7px 8px;
-    letter-spacing: 0.06em;
-  }
-}
-.rsvp-yes-no {
-  display: inline-block;
-  border-radius: 12px;
-}
-.rsvp-yes-no:focus {
+.rsvp-chip-event:focus {
   outline: none;
 }
-[data-design='honey'] .rsvp-guest .rsvp-yes-no.missing .rsvp-choices {
+.rsvp-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+.rsvp-chip-note {
+  margin-top: -6px !important;
+}
+@media (max-width: 699px) {
+  .rsvp-chip-event {
+    padding-top: 18px;
+  }
+  .rsvp-chips {
+    gap: 8px;
+  }
+  [data-design='honey'] .rsvp-chip {
+    padding: 9px 15px;
+    font-size: 0.9rem;
+  }
+}
+
+/* A chip: a person's name in a pill. Tapped ("coming"): filled light blue,
+   with a check mark. "None of us" is the same, dashed until it's chosen. */
+[data-design='honey'] .rsvp-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 10px 18px;
+  border: 1.5px solid rgba(202, 233, 255, 0.7);
+  border-radius: 999px;
+  background: transparent;
+  color: var(--paper);
+  font: 600 0.95rem/1.2 var(--font-ui);
+  cursor: pointer;
+  transition: background-color 0.15s ease, color 0.15s ease;
+}
+[data-design='honey'] .rsvp-chip:hover {
+  background: rgba(202, 233, 255, 0.12);
+}
+[data-design='honey'] .rsvp-chip.on {
+  background: var(--paper);
+  border-color: var(--paper);
+  color: var(--ink);
+}
+[data-design='honey'] .rsvp-chip:focus-visible {
+  outline: 2px solid var(--paper);
+  outline-offset: 2px;
+}
+.rsvp-chip-check {
+  display: none;
+  width: 16px;
+  height: 16px;
+  margin-left: -4px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2.6;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.rsvp-chip.on .rsvp-chip-check {
+  display: block;
+}
+[data-design='honey'] .rsvp-chip-none {
+  border-style: dashed;
+  font-weight: 500;
+}
+[data-design='honey'] .rsvp-chip-none.on {
+  border-style: solid;
+}
+/* Not answered yet (after Send): coral edges on the chips. */
+[data-design='honey'] .rsvp-chip-event.missing .rsvp-chip {
   border-color: #ffb4a9;
 }
-
-/* iPads and laptops: people down the side, events across the top, a thin
-   line between people. */
-.rsvp-grid {
-  display: grid;
-  grid-template-columns: minmax(7em, 1.2fr) repeat(var(--events), minmax(0, 1fr));
-}
-.rsvp-grid-row {
-  display: contents;
-}
-.rsvp-grid-row > * {
-  display: flex;
-  align-items: center;
-  padding: 14px 8px;
-  border-top: 1px solid rgba(202, 233, 255, 0.18);
-}
-.rsvp-grid-row > :first-child {
-  padding-left: 0;
-}
-.rsvp-grid-head > * {
-  padding-top: 0;
-  border-top: none;
-}
-/* Each event's name and date: lined up with its switches below, sitting on
-   the line above the first person. */
-.rsvp-grid-head .rsvp-event-head {
-  flex-direction: column;
-  align-items: flex-start;
-  justify-content: flex-end;
-}
-.rsvp-grid-cell {
-  justify-content: flex-start;
-}
-[data-design='honey'] .rsvp-list-name {
-  font-family: var(--font-ui);
-  font-weight: 600;
-  font-size: 1rem;
-  color: var(--paper);
-}
-.rsvp-not-invited {
-  padding-left: 1.4em;
-  color: rgba(202, 233, 255, 0.45);
-}
-
-/* Phones: a short list per event (name on the left, Yes / No on the right). */
-.rsvp-list-event + .rsvp-list-event {
-  padding-top: 18px;
-  border-top: 1px solid rgba(202, 233, 255, 0.25);
-}
-.rsvp-list-event .rsvp-event-head {
-  margin-bottom: 6px;
-}
-.rsvp-list-row {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-  padding: 8px 0;
+[data-design='honey'] .rsvp-chip-event.missing .rsvp-event-head {
+  color: #ffb4a9;
 }
 
 /* Your details: the address and the note, each under a small heading after

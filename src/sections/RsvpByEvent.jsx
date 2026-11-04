@@ -1,9 +1,10 @@
 // The RSVP form, organized by event (the new design; for now only in
 // practice mode — see RsvpSection.jsx). Two cards, always open:
-//   - Who's coming?: a grid, with each person down the side and each event
-//     across the top, and a Yes / No switch where they meet ("—" if that
-//     person isn't invited to that event). Phones, too narrow for that, get
-//     the same thing as a short list per event.
+//   - Who's coming?: one short row per event, with a name button ("chip")
+//     for each person invited to it. Tap the people who are coming; tapping
+//     anyone marks everyone else as not coming, and "None of us" marks the
+//     whole group as not coming. An event counts as answered once someone's
+//     tapped (or "None of us").
 //   - Your details: for each person, their email, phone, and dietary needs
 //     (and a plus-one's name); then the mailing address and one note for the
 //     whole invitation. The invitation needs at least one email and one
@@ -16,7 +17,7 @@
 // If something's missing when they press Send, the spots are outlined with
 // a short note, the page scrolls to the first one, and a message by the
 // button says what to do.
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import { useGuest } from '../guest/GuestProvider.jsx'
 import { submitRsvp } from '../api/rsvpApi.js'
 import FormMessage from '../components/FormMessage.jsx'
@@ -63,7 +64,10 @@ export default function RsvpByEvent() {
   const invitedTo = (ev) => people.filter((g) => g.invitedEvents.includes(ev.id))
   const noteOnFile = people.some((g) => onFile(g).note)
 
-  const phone = usePhone()
+  // The chips show first names (full names if two people share one).
+  const firstNames = people.map((g) => g.firstName)
+  const chipName = (g) =>
+    g.isPlusOne ? 'Your guest' : firstNames.filter((n) => n === g.firstName).length > 1 ? displayName(g) : g.firstName
 
   function updateGuest(guestId, change) {
     setAnswers((all) => {
@@ -77,14 +81,13 @@ export default function RsvpByEvent() {
   // ----- What's missing or wrong: { id (the spot), card, message } -----
   function findProblems() {
     const list = []
-    // Each event: everyone invited to it has answered.
-    party.events.forEach((ev) =>
-      invitedTo(ev).forEach((g) => {
-        if (!answers[g.guestId].attending[ev.id]) {
-          list.push({ id: `${g.guestId}-${ev.id}`, card: `event-${ev.id}`, message: 'Please choose Accept or Decline.' })
-        }
-      })
-    )
+    // Each event: answered for everyone invited to it.
+    party.events.forEach((ev) => {
+      if (invitedTo(ev).some((g) => !answers[g.guestId].attending[ev.id])) {
+        const message = invitedTo(ev).length > 1 ? 'Please tap who’s coming, or “None of us.”' : 'Please tap your name if you’re coming, or “Can’t make it.”'
+        list.push({ id: `event-${ev.id}`, card: `event-${ev.id}`, message })
+      }
+    })
     // Details: a plus-one who's coming needs a name; every email and phone
     // typed must look right; and the invitation needs one of each.
     people.forEach((g) => {
@@ -124,43 +127,81 @@ export default function RsvpByEvent() {
   const problemFor = (id) => problems.find((p) => p.id === id)
   const cardFlagged = (card) => problems.some((p) => p.card === card)
 
-  // One person's Yes / No for one event.
-  function yesNo(g, ev) {
-    const group = `${g.guestId}-${ev.id}`
-    const problem = problemFor(group)
+  // Tap a person: they switch between coming and not, and anyone not yet
+  // answered for this event is marked not coming. "None of us": no one is.
+  function tapPerson(ev, g) {
+    setAnswers((all) => {
+      const copy = { ...all }
+      invitedTo(ev).forEach((p) => {
+        const a = { ...copy[p.guestId], attending: { ...copy[p.guestId].attending } }
+        if (p.guestId === g.guestId) a.attending[ev.id] = a.attending[ev.id] === 'yes' ? 'no' : 'yes'
+        else if (!a.attending[ev.id]) a.attending[ev.id] = 'no'
+        copy[p.guestId] = a
+      })
+      return copy
+    })
+    setStatus('editing')
+  }
+  function noneOfUs(ev) {
+    invitedTo(ev).forEach((g) => updateGuest(g.guestId, (c) => (c.attending[ev.id] = 'no')))
+  }
+
+  // One event: its name and date, then a chip for each person invited.
+  function eventChips(ev) {
+    const invited = invitedTo(ev)
+    const problem = problemFor(`event-${ev.id}`)
+    const answered = invited.every((g) => answers[g.guestId].attending[ev.id])
+    const nobody = answered && invited.every((g) => answers[g.guestId].attending[ev.id] === 'no')
     return (
-      <span
-        id={group}
+      <div
+        key={ev.id}
+        id={`event-${ev.id}`}
         tabIndex={-1}
-        className={`rsvp-yes-no${problem ? ' missing' : ''}`}
-        role="radiogroup"
-        aria-label={`${displayName(g)}, ${ev.name}`}
-        {...invalid(problem, `${group}-note`)}
+        className={`rsvp-chip-event${problem ? ' missing' : ''}`}
+        role="group"
+        aria-labelledby={`event-${ev.id}-name`}
+        {...invalid(problem, `event-${ev.id}-note`)}
       >
-        <span className="rsvp-choices">
-          {[
-            ['yes', 'Yes'],
-            ['no', 'No'],
-          ].map(([value, label]) => (
-            <span key={value} className="rsvp-choice">
-              <input
-                type="radio"
-                id={`${group}-${value}`}
-                name={group}
-                value={value}
-                checked={answers[g.guestId].attending[ev.id] === value}
-                onChange={() => updateGuest(g.guestId, (c) => (c.attending[ev.id] = value))}
-              />
-              <label htmlFor={`${group}-${value}`}>{label}</label>
-            </span>
-          ))}
-        </span>
-        {problem && (
-          <span id={`${group}-note`} className="visually-hidden">
-            {problem.message}
+        <p className="rsvp-event-head" id={`event-${ev.id}-name`}>
+          {ev.name}
+          <span>
+            {ev.date} · {ev.timeOfDay}
           </span>
+        </p>
+        <div className="rsvp-chips">
+          {invited.map((g) => {
+            const coming = answers[g.guestId].attending[ev.id] === 'yes'
+            return (
+              <button
+                key={g.guestId}
+                type="button"
+                className={`rsvp-chip${coming ? ' on' : ''}`}
+                aria-pressed={coming}
+                aria-label={`${displayName(g)} is coming to ${ev.name}`}
+                onClick={() => tapPerson(ev, g)}
+              >
+                <svg className="rsvp-chip-check" viewBox="0 0 24 24" aria-hidden="true">
+                  <path d="M5 12.5l4.5 4.5L19 7.5" />
+                </svg>
+                {chipName(g)}
+              </button>
+            )
+          })}
+          <button
+            type="button"
+            className={`rsvp-chip rsvp-chip-none${nobody ? ' on' : ''}`}
+            aria-pressed={nobody}
+            onClick={() => noneOfUs(ev)}
+          >
+            {invited.length > 1 ? 'None of us' : 'Can’t make it'}
+          </button>
+        </div>
+        {problem && (
+          <p id={`event-${ev.id}-note`} className="field-note rsvp-chip-note">
+            {problem.message}
+          </p>
         )}
-      </span>
+      </div>
     )
   }
 
@@ -242,58 +283,8 @@ export default function RsvpByEvent() {
 
         {tab === 'coming' && (
         <Card id="coming" title="Who’s coming?">
-          {phone ? (
-            // Phones: one short list per event.
-            party.events.map((ev) => (
-              <div key={ev.id} className="rsvp-list-event">
-                <p className="rsvp-event-head">
-                  {ev.name}
-                  <span>
-                    {ev.date} · {ev.timeOfDay}
-                  </span>
-                </p>
-                {invitedTo(ev).map((g) => (
-                  <div key={g.guestId} className="rsvp-list-row">
-                    <span className="rsvp-list-name">{displayName(g)}</span>
-                    {yesNo(g, ev)}
-                  </div>
-                ))}
-              </div>
-            ))
-          ) : (
-            // iPads and laptops: people down the side, events across the top.
-            <div className="rsvp-grid" style={{ '--events': party.events.length }} role="table" aria-label="Who’s coming to each event">
-              <div className="rsvp-grid-row rsvp-grid-head" role="row">
-                <span role="columnheader" className="rsvp-grid-corner" />
-                {party.events.map((ev) => (
-                  <span key={ev.id} role="columnheader" className="rsvp-event-head">
-                    {ev.name}
-                    <span>
-                      {ev.date} · {ev.timeOfDay}
-                    </span>
-                  </span>
-                ))}
-              </div>
-              {people.map((g) => (
-                <div key={g.guestId} className="rsvp-grid-row" role="row">
-                  <span role="rowheader" className="rsvp-list-name">
-                    {displayName(g)}
-                  </span>
-                  {party.events.map((ev) => (
-                    <span key={ev.id} role="cell" className="rsvp-grid-cell">
-                      {g.invitedEvents.includes(ev.id) ? (
-                        yesNo(g, ev)
-                      ) : (
-                        <span className="rsvp-not-invited" aria-label="Not invited">
-                          —
-                        </span>
-                      )}
-                    </span>
-                  ))}
-                </div>
-              ))}
-            </div>
-          )}
+          <p className="rsvp-chip-hint">Tap everyone who’s coming.</p>
+          {party.events.map(eventChips)}
         </Card>
 
         )}
@@ -459,19 +450,6 @@ function Card({ id, title, children }) {
       <div className="rsvp-card-body">{children}</div>
     </div>
   )
-}
-
-// Phones (under 700px): the list instead of the grid.
-function usePhone() {
-  const query = '(max-width: 699px)'
-  const [phone, setPhone] = useState(() => window.matchMedia(query).matches)
-  useEffect(() => {
-    const list = window.matchMedia(query)
-    const update = () => setPhone(list.matches)
-    list.addEventListener('change', update)
-    return () => list.removeEventListener('change', update)
-  }, [])
-  return phone
 }
 
 function invalid(problem, noteId) {

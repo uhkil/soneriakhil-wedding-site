@@ -34,6 +34,8 @@ const parties = {
 const guests = [
   { guestId: 'G001', partyId: 'P001', firstName: 'Priya', lastName: 'Shah' },
   { guestId: 'G002', partyId: 'P001', firstName: 'Rohan', lastName: 'Shah' },
+  { guestId: 'G009', partyId: 'P001', firstName: 'Anika', lastName: 'Shah' },
+  { guestId: 'G010', partyId: 'P001', firstName: 'Dev', lastName: 'Shah' },
   { guestId: 'G003', partyId: 'P002', firstName: 'Priya', lastName: 'Shah' },
   { guestId: 'G007', partyId: 'P002', firstName: '', lastName: '', isPlusOne: true },
   { guestId: 'G004', partyId: 'P003', firstName: 'Jordan', lastName: 'Lee' },
