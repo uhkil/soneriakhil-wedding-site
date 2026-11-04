@@ -65,8 +65,10 @@ const HEADERS = {
   Settings: ['setting', 'value'],
   Events: ['event_id', 'name', 'date', 'time_of_day', 'time', 'location', 'address', 'attire', 'description'],
   // One extra column per event (yes / no) is added automatically after these.
-  RSVPs: ['updated_at', 'party_id', 'party_name', 'guest_id', 'guest_name', 'plus_one', 'dietary', 'email', 'phone', 'note'],
-  'Party Responses': ['updated_at', 'party_id', 'party_name', 'email', 'phone', 'note'],
+  RSVPs: ['updated_at', 'party_id', 'party_name', 'guest_id', 'guest_name', 'plus_one', 'dietary', 'email', 'phone', 'note',
+    // The invitation's mailing address: all in one cell, then its parts.
+    'address', 'address_street', 'address_apt', 'address_city', 'address_state', 'address_zip', 'address_country'],
+  'Party Responses': ['updated_at', 'party_id', 'party_name', 'email', 'phone', 'note', 'address'],
   'Change Log': ['submitted_at', 'party_id', 'party_name', 'who', 'answers', 'dietary'],
 }
 
@@ -402,9 +404,13 @@ function partyDetails(partyId, list) {
   const memberIds = new Set(guests.map((g) => g.guestId))
   const answers = {}
   const onFile = {}
+  let addressOnFile = '' // only the place ("Dallas, TX"), never the street
   readTab(TAB.rsvps)
     .filter((r) => memberIds.has(r.guest_id))
     .forEach((r) => {
+      if (r.address && !addressOnFile) {
+        addressOnFile = [r.address_city, r.address_country === 'United States' ? r.address_state : r.address_country].filter(Boolean).join(', ')
+      }
       const attending = {}
       events.forEach((ev) => {
         if (r[ev.id]) attending[ev.id] = r[ev.id]
@@ -426,6 +432,7 @@ function partyDetails(partyId, list) {
     // Answered = anyone on it has saved answers (worked out per person, so
     // renaming a household or moving someone between households keeps it right).
     hasResponded: Object.keys(answers).length > 0,
+    addressOnFile,
   }
 }
 
@@ -441,6 +448,12 @@ function saveRsvp(req, list) {
   const allEventIds = list.events.map((ev) => ev.event_id)
   const savedRows = byId(readTab(TAB.rsvps).filter((r) => guestsById[r.guest_id]), 'guest_id')
   const now = new Date()
+
+  // The mailing address (one for the whole invitation). Blank boxes keep the
+  // saved one; otherwise it's checked and tidied, and saved on every row.
+  const newAddress = cleanAddress(req.address)
+  const savedAddressRow = Object.values(savedRows).find((r) => r.address) || {}
+  const address = newAddress || Object.fromEntries(ADDRESS_COLUMNS.map((c) => [c, savedAddressRow[c] || '']))
 
   // Check everything first, so a mistake never leaves a half-saved RSVP.
   const guestRows = []
@@ -486,6 +499,7 @@ function saveRsvp(req, list) {
       email,
       phone,
       note,
+      ...address,
       ...attending,
       // For the Change Log: "Sangeet: yes · Reception: no"
       _summary: guest.invitedEvents
@@ -503,6 +517,7 @@ function saveRsvp(req, list) {
     email: savedResponse.email || '',
     phone: savedResponse.phone || '',
     note: savedResponse.note || '',
+    address: address.address || savedResponse.address || '',
   }
 
   // Only one save at a time, so two guests saving at once can't collide.
@@ -530,7 +545,7 @@ function saveRsvp(req, list) {
     guestRows.forEach((r) =>
       logRow(
         r.guest_name || '(unnamed plus-one)',
-        `${r._summary} · email: ${r.email || '—'} · phone: ${r.phone || '—'} · note: ${r.note || '—'}`,
+        `${r._summary} · email: ${r.email || '—'} · phone: ${r.phone || '—'} · note: ${r.note || '—'} · address: ${r.address || '—'}`,
         r.dietary
       )
     )
@@ -612,7 +627,8 @@ function ensureColumns(sheet, columns) {
  * apostrophe tells Sheets "this is text"; it isn't shown in the cell.
  */
 function asText(value) {
-  return typeof value === 'string' && /^[=+\-@]/.test(value) ? "'" + value : value
+  // (Also plain numbers like ZIP code 07030, so Sheets keeps the leading zero.)
+  return typeof value === 'string' && (/^[=+\-@]/.test(value) || /^\d+$/.test(value)) ? "'" + value : value
 }
 
 /** Updates the row whose keyColumn matches, or adds a new row. */
@@ -693,6 +709,46 @@ function groups(d, sizes) {
 }
 function joinParts(code, parts) {
   return [code].concat(parts.filter(Boolean)).join(' ')
+}
+
+// The mailing address, the same way the website checks it (src/guest/address.js).
+const ADDRESS_COLUMNS = ['address', 'address_street', 'address_apt', 'address_city', 'address_state', 'address_zip', 'address_country']
+const COUNTRY_NAMES = { US: 'United States', CA: 'Canada', IN: 'India', GB: 'United Kingdom' }
+const US_STATE_CODES = ('AL AK AZ AR CA CO CT DE DC FL GA HI ID IL IN IA KS KY LA ME MD MA MI MN MS MO MT NE NV NH NJ NM NY ' +
+  'NC ND OH OK OR PA RI SC SD TN TX UT VT VA WA WV WI WY AS GU MP PR VI AA AE AP').split(' ')
+
+/**
+ * The address the guest typed → its columns (with "address" all in one
+ * cell: "123 Main St, Apt 4, Dallas, TX 75201"), or null if they left it
+ * blank (keep the saved one). A mistake is a friendly UserError.
+ */
+function cleanAddress(raw) {
+  if (!raw || typeof raw !== 'object') return null
+  const a = {}
+  ;['country', 'otherCountry', 'street', 'apt', 'city', 'state', 'zip'].forEach((k) => (a[k] = limit(raw[k], 150)))
+  if (!['otherCountry', 'street', 'apt', 'city', 'state', 'zip'].some((k) => a[k])) return null
+  const us = !a.country || a.country === 'US'
+  const country = us ? 'United States' : a.country === 'OTHER' ? a.otherCountry : COUNTRY_NAMES[a.country] || a.country
+  if (!country) throw new UserError('Please add the country for your mailing address.')
+  if (!a.street) throw new UserError('Please add the street for your mailing address.')
+  if (!a.city) throw new UserError('Please add the city for your mailing address.')
+  if (us) {
+    a.state = a.state.toUpperCase()
+    if (!US_STATE_CODES.includes(a.state)) throw new UserError('Please choose the state for your mailing address.')
+    if (!/^\d{5}(-\d{4})?$/.test(a.zip)) throw new UserError('Please check the ZIP code (5 digits).')
+  }
+  const oneLine = us
+    ? `${a.street}${a.apt ? ', ' + a.apt : ''}, ${a.city}, ${a.state} ${a.zip}`
+    : [a.street, a.apt, a.city, [a.state, a.zip].filter(Boolean).join(' '), country].filter(Boolean).join(', ')
+  return {
+    address: oneLine,
+    address_street: a.street,
+    address_apt: a.apt,
+    address_city: a.city,
+    address_state: a.state,
+    address_zip: a.zip,
+    address_country: country,
+  }
 }
 
 /** priya.shah@gmail.com → p•••h@gmail.com */
@@ -849,7 +905,7 @@ function refreshAllGuests(list, answers) {
 
   const header = ['Name', 'Household', 'Side', 'Group']
     .concat(events.map((ev) => ev.name))
-    .concat(['Dietary', 'Email', 'Phone', 'Note', 'Last updated'])
+    .concat(['Dietary', 'Email', 'Phone', 'Address', 'Note', 'Last updated'])
   const rows = people.map((g) => {
     const a = answers[g.guestId] || {}
     let name = `${g.firstName} ${g.lastName}`.trim()
@@ -857,7 +913,7 @@ function refreshAllGuests(list, answers) {
     const perEvent = events.map((ev) => (g.invitedEvents.includes(ev.event_id) ? a[ev.event_id] || 'waiting' : '—'))
     return [name, g.household, g.side, g.group]
       .concat(perEvent)
-      .concat([a.dietary || '', a.email || '', a.phone || '', a.note || '', a.updated_at || ''])
+      .concat([a.dietary || '', a.email || '', a.phone || '', a.address || '', a.note || '', a.updated_at || ''])
   })
   const all = [header].concat(rows)
 

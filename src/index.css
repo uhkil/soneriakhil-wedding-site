@@ -4899,6 +4899,58 @@ img.nugget-photo {
   margin-top: -6px;
 }
 
+/* ---------- The "Mailing address" card on the RSVP form ---------- */
+.rsvp-address .address-intro {
+  margin: 0;
+}
+/* City and state (or state and postal code) side by side. */
+.rsvp-address .address-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr);
+  gap: 12px;
+  align-items: start;
+}
+.rsvp-address .address-zip {
+  max-width: 220px;
+}
+/* Boxes fill their column exactly (so City never runs into State). */
+.rsvp-address .rsvp-field input {
+  width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
+}
+/* The menus (country, state) look like the other boxes, with a small arrow. */
+[data-design='honey'] .rsvp-field select {
+  appearance: none;
+  -webkit-appearance: none;
+  width: 100%;
+  padding: 11px 40px 11px 16px;
+  border: 1.5px solid rgba(202, 233, 255, 0.7);
+  border-radius: 12px;
+  background: transparent
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23cae9ff' stroke-width='2.4' stroke-linecap='round'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E")
+    no-repeat right 14px center / 16px;
+  color: var(--paper);
+  font-family: var(--font-ui);
+  font-size: 0.95rem;
+  line-height: 25px; /* the same height as the text boxes */
+  box-sizing: border-box;
+  height: 49px;
+  cursor: pointer;
+}
+[data-design='honey'] .rsvp-field select:focus {
+  outline: 2px solid var(--paper);
+  outline-offset: 2px;
+}
+/* The open list uses the system's own colors; keep its text readable. */
+[data-design='honey'] .rsvp-field select option {
+  color: #003459;
+  background: #ffffff;
+}
+[data-design='honey'] .rsvp-guest select[aria-invalid='true'] {
+  border-color: #ffb4a9;
+}
+
 /* ---------- "You're on the list!" (the pop-up after an RSVP is saved) ----------
    The dialog covers the whole screen (see-through), so the confetti can fly
    anywhere; the card sits in the middle, styled like the login pop-up. */

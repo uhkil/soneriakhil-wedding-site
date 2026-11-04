@@ -28,6 +28,8 @@ import { useGuest } from '../guest/GuestProvider.jsx'
 import { submitRsvp } from '../api/rsvpApi.js'
 import FormMessage from '../components/FormMessage.jsx'
 import RsvpCelebration from '../components/RsvpCelebration.jsx'
+import RsvpAddress from '../components/RsvpAddress.jsx'
+import { addressProblems, blankAddress, isStarted } from '../guest/address.js'
 // The email and phone rules (the same ones the Sheet checks), so a typo is
 // caught before sending.
 import { EMAIL, COM_TYPO, formatPhone, isValidPhone } from '../guest/contact.js'
@@ -65,6 +67,13 @@ export default function RsvpSection() {
   // The "it's saved!" pop-up, and whether anyone in the party is coming
   // (confetti) or everyone declined (a softer thank-you).
   const [celebrate, setCelebrate] = useState(null) // null | { attending: true/false }
+  // The mailing address (one for the whole invitation). Its boxes start
+  // empty; a saved one only shows as the city it's in (party.addressOnFile).
+  const [address, setAddress] = useState(blankAddress)
+  const updateAddress = (change) => {
+    setAddress(change)
+    setStatus('editing')
+  }
 
   const eventsById = Object.fromEntries(party.events.map((e) => [e.id, e]))
   const displayName = (g) => (g.isPlusOne ? 'Your guest' : `${g.firstName} ${g.lastName}`)
@@ -126,7 +135,13 @@ export default function RsvpSection() {
     return list
   }
 
-  const findProblems = () => party.guests.flatMap(problemsFor)
+  // The address is needed unless one is already saved (then only checked if
+  // the guest starts changing it).
+  const problemsForAddress = () =>
+    !party.addressOnFile || isStarted(address)
+      ? addressProblems(address).map((p) => ({ id: `addr-${p.field}`, field: p.field, message: p.message }))
+      : []
+  const findProblems = () => [...party.guests.flatMap(problemsFor), ...problemsForAddress()]
   const problems = checked ? findProblems() : []
   const problemFor = (id) => problems.find((p) => p.id === id)
 
@@ -137,7 +152,14 @@ export default function RsvpSection() {
       setError('')
       // Open every card that needs something, then bring the first problem
       // into view and put the keyboard there.
-      setOpenCards((open) => new Set([...open, ...party.guests.filter((g) => problemsFor(g).length).map((g) => g.guestId)]))
+      setOpenCards(
+        (open) =>
+          new Set([
+            ...open,
+            ...party.guests.filter((g) => problemsFor(g).length).map((g) => g.guestId),
+            ...(problemsForAddress().length ? ['address'] : []),
+          ])
+      )
       requestAnimationFrame(() => {
         const first = document.getElementById(found[0].id)
         const smooth = !window.matchMedia('(prefers-reduced-motion: reduce)').matches
@@ -154,12 +176,15 @@ export default function RsvpSection() {
         partyId: party.partyId,
         token,
         guests: party.guests.map((g) => ({ guestId: g.guestId, ...answers[g.guestId] })),
+        // Blank boxes keep the saved address.
+        address: isStarted(address) ? address : null,
       })
       setParty(updated) // the site now shows the saved version
       // Saved contact info stays private, so clear those boxes (they'll say "on file").
       setAnswers((all) =>
         Object.fromEntries(Object.entries(all).map(([id, a]) => [id, { ...a, email: '', phone: '', note: '' }]))
       )
+      setAddress(blankAddress())
       setStatus('saved')
       const anyoneComing = Object.values(answers).some((a) => Object.values(a.attending).includes('yes'))
       setCelebrate({ attending: anyoneComing })
@@ -347,6 +372,16 @@ export default function RsvpSection() {
             </div>
           )
         })}
+
+        <RsvpAddress
+          address={address}
+          onChange={updateAddress}
+          onFile={party.addressOnFile}
+          open={openCards.has('address')}
+          onToggle={() => toggleCard('address')}
+          problemFor={(field) => problemFor(`addr-${field}`)}
+          flagged={checked && problemsForAddress().length > 0}
+        />
 
         {problems.length > 0 && (
           <FormMessage>

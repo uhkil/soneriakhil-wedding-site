@@ -292,27 +292,13 @@ function View({ id, view, children }) {
 // the screen. Every frame holds a photo; only if there are too few photos to
 // reach across the screen do empty frames fill the rest. Each photo sits in a
 // box behind its frame's opening, so it scrolls along with the film.
-// Ways to move along it: a mouse wheel or trackpad (up/down scrolls it
-// sideways until either end, then the page carries on), clicking and dragging
-// the film, the thin scroll bar, or the arrow keys once it's been clicked.
+// Ways to move along it: a sideways trackpad swipe (or shift + mouse wheel),
+// clicking and dragging the film, the thin scroll bar, the arrow keys once
+// it's been clicked, or a finger swipe on phones and tablets. Scrolling up
+// and down always scrolls the page (with 78 photos, turning it into sideways
+// scrolling made the page feel stuck).
 function FilmStrip({ onOpen }) {
   const ref = useRef(null)
-
-  // The wheel: turn up/down scrolling into sideways scrolling.
-  useEffect(() => {
-    const strip = ref.current
-    const onWheel = (e) => {
-      if (Math.abs(e.deltaX) >= Math.abs(e.deltaY)) return // already sideways
-      const by = e.deltaY * (e.deltaMode === 1 ? 16 : 1)
-      const end = strip.scrollWidth - strip.clientWidth
-      const atEnd = by < 0 ? strip.scrollLeft <= 0 : strip.scrollLeft >= end - 1
-      if (atEnd) return // let the page scroll on
-      e.preventDefault()
-      strip.scrollLeft += by
-    }
-    strip.addEventListener('wheel', onWheel, { passive: false })
-    return () => strip.removeEventListener('wheel', onWheel)
-  }, [])
 
   // Click and drag (with a mouse; fingers already swipe it). It only counts
   // as a drag once the mouse has moved a few pixels, so a plain click still

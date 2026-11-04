@@ -92,8 +92,8 @@ All Guests**):
 | Tab | What's in it |
 |---|---|
 | **Summary** | Headcount per event (invited / yes / no / waiting); **copy-ready lists** of all emails, all phone numbers, and the emails and phones of guests who are coming (one cell each, comma-separated, each only once); and which invitations haven't answered yet. |
-| **All Guests** | One row per guest (and per plus-one spot), including those who haven't answered: household, side, group, `yes` / `no` / `waiting` per event (`—` = not invited), dietary needs, email, phone, note. Use **Data → Create a filter** (already on) to show e.g. only the bride's side; the filter stays when the tab refreshes. |
-| **RSVPs** | The saved answers, one row per guest. |
+| **All Guests** | One row per guest (and per plus-one spot), including those who haven't answered: household, side, group, `yes` / `no` / `waiting` per event (`—` = not invited), dietary needs, email, phone, mailing address (all in one cell, e.g. `123 Main St, Apt 4, Dallas, TX 75201`), note. Use **Data → Create a filter** (already on) to show e.g. only the bride's side; the filter stays when the tab refreshes. |
+| **RSVPs** | The saved answers, one row per guest, including the invitation's mailing address: in one cell (`address`) and in parts (`address_street`, `address_apt`, `address_city`, `address_state`, `address_zip`, `address_country`), handy for printing address labels. |
 | **Party Responses** | When each invitation last saved. |
 | **Change Log** | Every submission, timestamped, so changed answers are never lost. |
 

@@ -4,6 +4,11 @@
 // Try: "Jordan Lee", "Priya Shah" (two matches), or "Sam Rivera" (invited
 // only to April 10's events), with the passcode CELEBRATE.
 import { maskEmail, maskPhone } from '../guest/contact.js'
+import { COUNTRIES } from '../guest/address.js'
+
+// "Dallas, TX" or "London, United Kingdom"
+const addressPlace = (a) =>
+  a.country === 'US' ? `${a.city}, ${a.state}` : `${a.city}, ${a.country === 'OTHER' ? a.otherCountry : COUNTRIES.find(([c]) => c === a.country)[1]}`
 
 const events = [
   { id: 'ceremony', name: 'Intimate Ceremony', date: 'April 9', timeOfDay: 'Morning', time: '10:00 AM', location: 'Practice Venue', address: '123 Example St, Dallas, TX', attire: 'Formal', description: 'Practice-mode details.' },
@@ -61,6 +66,8 @@ function partyDetails(partyId) {
     answers: answers.answers,
     onFile,
     hasResponded: Boolean(saved[partyId]),
+    // Like the real back end: only the city a saved address is in.
+    addressOnFile: answers.address ? addressPlace(answers.address) : '',
   }
 }
 
@@ -105,7 +112,8 @@ export async function handlePractice(req) {
       // Like the Sheet: US numbers are saved without the +1.
       if (contact[g.guestId].phone) contact[g.guestId].phone = contact[g.guestId].phone.replace(/^\+1 /, '')
     })
-    saved[req.partyId] = { answers, contact }
+    // A blank address keeps the saved one.
+    saved[req.partyId] = { answers, contact, address: req.address || saved[req.partyId]?.address || null }
     return { ok: true, party: partyDetails(req.partyId) }
   }
 
