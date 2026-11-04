@@ -52,6 +52,9 @@ export default function IllustrationSlot({ name, size = 'medium', className = ''
       className={`illustration-slot size-${size} ${className}${nugget ? ' has-nugget' : ''}${hinted ? ' hinted' : ''}`}
       // With a nugget, it can be reached with the keyboard (and tapped on phones).
       tabIndex={nugget ? 0 : undefined}
+      // A labeled group: screen readers announce the label, and can still
+      // read the card's text inside it.
+      role={nugget ? 'group' : undefined}
       aria-label={nugget ? `${item.note}. ${nugget.heading ?? 'A fun fact'}` : undefined}
       onClick={() => openModal(false)}
       onKeyDown={(e) => {

@@ -101,10 +101,10 @@ function TravelTabs() {
           </button>
         ))}
       </div>
-      <article className="travel-card travel-panel" role="tabpanel" aria-label={topic.title}>
+      <div className="travel-card travel-panel" role="tabpanel" aria-label={topic.title}>
         <h3 className="card-pill">{topic.title}</h3>
         <div className="travel-text">{topic.body}</div>
-      </article>
+      </div>
     </div>
   )
 }

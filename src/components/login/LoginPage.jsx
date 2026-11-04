@@ -21,7 +21,8 @@ export default function LoginPage() {
       <div className="invitation-card">
         {/* One line, like the names at the top of the site: bold capitals with
             a flowing script "&". */}
-        <p className="invitation-names">
+        {/* The page's main heading for screen readers (it looks the same). */}
+        <p className="invitation-names" role="heading" aria-level={1}>
           Soneri{' '}
           <span className="invitation-and" aria-label="and">
             &amp;
