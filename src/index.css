@@ -408,10 +408,9 @@ summary:focus-visible {
 /* ---------- Sections ---------- */
 
 .section {
-  /* Each section is at least one screen tall (minus the nav bar),
-     so jumping to a section shows only that section.
-     To turn this off, delete the min-height line. */
-  min-height: calc(100dvh - var(--nav-height));
+  /* (Sections used to be at least one screen tall; that left uneven empty
+     space around short sections, above the side drawings' strips. Jumping
+     to a section still brings its title to the top: see useTitleJumps.js.) */
   box-sizing: border-box;
   display: flex;
   flex-direction: column;
@@ -1044,31 +1043,52 @@ h2:hover .title-berry.mirrored {
 
 /* ----- Side drawings (SideDrawing.jsx): hiking, pottery, museum, coffee
    date, basketball. Each sits in a strip across the whole screen, just
-   above its section's title, alternating right and left. Scrolled to the
-   middle of the screen (.lit), the strip turns dark blue, the drawing turns
-   light blue, and its little extra about us fades in on the other side.
+   above its section's title, alternating right and left. The strip turns
+   dark blue (on laptops while the pointer is over it; on phones and iPads
+   bit by bit as the drawing is scrolled up to the middle of the screen),
+   with the drawing's little extra about us in light blue on the other side.
+   The drawing keeps its colors, on a soft wavy shape in the page's light
+   blue.
 
-   Same size, edge spacing and space above and below as the corner drawings
-   had: the drawing is as far from its edge of the screen as before
-   (--edge-gap), and the text is that same distance from the other edge.
-   The strip adds --strip-pad of dark blue above and below the drawing,
-   taken out of the space around it (so the drawing is still 240px from
-   what's above and below on iPads and laptops). ----- */
+   --reveal: how open the strip is, from 0 (closed) to 1 (open). The strip
+   opens from its middle outward, top and bottom.
+
+   Spacing: the drawing is as far from its edge of the screen as the corner
+   drawings were (--edge-gap), and the words are the same distance from the
+   other edge. --space-above / --space-below are the empty space between
+   the strip and the nearest thing you can see above and below it, the same
+   both ways (see the per-section adjustments after this block). ----- */
+@property --reveal {
+  syntax: '<number>';
+  inherits: true;
+  initial-value: 0;
+}
+
 .side-drawing {
+  --reveal: 0;
   --corner-art-scale: 0.3323;
-  --strip-pad: 48px;
+  /* dark blue above and below the drawing: its wavy shape's reach (14% of
+     the drawing's height) plus 40px */
+  --strip-pad: calc(min(var(--art-width) * var(--corner-art-scale) * var(--art-adjust, 1) * 1px, 40vw) / var(--art-ratio) * 0.14 + 40px);
+  --strip-space: 176px; /* empty space between the strip and what's around it */
   --page-gutter: calc((100vw - min(980px, 100vw - 48px)) / 2);
   --edge-gap: max(calc(var(--page-gutter) / 2), min(var(--page-gutter), 200px));
   position: relative;
+  isolation: isolate;
   width: 100vw;
-  margin: calc(240px - 192px - var(--strip-pad)) 0 calc(240px - var(--strip-pad)) calc(50% - 50vw);
+  margin: calc(var(--strip-space) - 192px + var(--above-fix, 0px)) 0 calc(var(--strip-space) + var(--below-fix, 0px))
+    calc(50% - 50vw);
   padding: var(--strip-pad) var(--edge-gap);
   box-sizing: border-box;
-  background: rgba(0, 52, 89, 0); /* see-through until lit */
-  transition: background-color 0.6s ease;
 }
-.side-drawing.lit {
+
+/* The dark blue, opening from the middle. */
+.side-strip {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
   background: var(--ink);
+  clip-path: inset(calc((1 - var(--reveal)) * 50%) 0);
 }
 
 .side-drawing-inner {
@@ -1088,47 +1108,49 @@ h2:hover .title-berry.mirrored {
 .side-drawing-art {
   grid-area: art;
   position: relative;
-  width: calc(var(--art-width) * var(--corner-art-scale) * var(--art-adjust, 1) * 1px);
-  max-width: 45vw;
+  /* the drawing's width; its wavy shape reaches 16% further out each side
+     and 14% further up and down, so the shape (not the drawing) is what
+     sits --edge-gap from the screen's edge */
+  --art-w: min(calc(var(--art-width) * var(--corner-art-scale) * var(--art-adjust, 1) * 1px), 40vw);
+  width: var(--art-w);
+  margin: 0 calc(var(--art-w) * 0.16);
 }
 .side-drawing-art img {
+  position: relative;
+  z-index: 1;
   display: block;
   width: 100%;
   height: 100%;
   object-fit: contain;
-  transition: opacity 0.6s ease;
-}
-.side-drawing-art .side-art-light {
-  position: absolute;
-  inset: 0;
-  opacity: 0;
-}
-.side-drawing.lit .side-art-light {
-  opacity: 1;
-}
-.side-drawing.lit .side-art-dark {
-  opacity: 0;
 }
 
-/* The words: light blue, on the strip's other side. Hidden (but still there
-   for screen readers and the keyboard) until the strip is lit. */
+/* The soft shape around the drawing: the page's own light blue, a bit
+   bigger than the drawing all round. */
+.side-blob {
+  position: absolute;
+  top: -14%;
+  left: -16%;
+  width: 132%;
+  height: 128%;
+  fill: var(--paper);
+  overflow: visible;
+}
+
+/* The words: light blue, fading in as the strip opens. */
 .side-drawing-text {
   grid-area: text;
   max-width: 26rem;
   color: var(--paper);
   font: 400 1rem/1.5 var(--font-ui);
   text-align: left;
-  opacity: 0;
-  transform: translateY(10px);
-  transition: opacity 0.6s ease 0.15s, transform 0.6s ease 0.15s;
+  opacity: calc((var(--reveal) - 0.45) / 0.55);
+  transform: translateY(calc((1 - var(--reveal)) * 12px));
   pointer-events: none;
 }
 .side-left .side-drawing-text {
   justify-self: end; /* up against its own edge's spacing, like the drawing */
 }
-.side-drawing.lit .side-drawing-text {
-  opacity: 1;
-  transform: none;
+.side-drawing.open .side-drawing-text {
   pointer-events: auto;
 }
 .side-drawing-text p {
@@ -1163,28 +1185,43 @@ h2:hover .title-berry.mirrored {
   max-width: 280px;
 }
 
+/* Laptops: the strip eases open while the pointer is over it (anywhere
+   across the screen), or the keyboard is on one of its links. */
+@media (min-width: 1200px) {
+  .side-drawing {
+    transition: --reveal 0.6s ease;
+  }
+  .side-drawing:hover,
+  .side-drawing:focus-within {
+    --reveal: 1;
+  }
+  .side-drawing:hover .side-drawing-text,
+  .side-drawing:focus-within .side-drawing-text {
+    pointer-events: auto;
+  }
+}
+
+/* iPads: a little closer together. */
+@media (max-width: 1199px) {
+  .side-drawing {
+    --strip-space: 144px;
+  }
+}
+
 /* Phones: the drawing at about half the width as before, the words in the
-   space beside it, a little smaller. Enough empty space above and below
-   that, in the middle of the screen, it's the only thing showing. */
+   space beside it, a little smaller. */
 @media (max-width: 699px) {
   .side-drawing {
-    --strip-pad: 32px;
+    --strip-space: 112px;
     --edge-gap: 24px;
-    /* the drawing's width and height on this phone */
-    --phone-art-w: calc((100vw - 48px) * 0.55 * var(--art-width) * var(--art-adjust, 1) / 963);
-    --art-height: calc(var(--phone-art-w) / var(--art-ratio));
-    /* half the screen left over around the drawing, plus 24px (the space
-       above already includes the two sections' padding, 96px each) */
-    --clear-space: calc((100lvh - var(--nav-height) - var(--art-height)) / 2 + 24px);
-    margin-top: max(0px, calc(var(--clear-space) - 192px - var(--strip-pad)));
-    margin-bottom: max(160px, calc(var(--clear-space) - var(--strip-pad)));
+    --phone-art-w: min(calc((100vw - 48px) * 0.46 * var(--art-width) * var(--art-adjust, 1) / 963), 48vw);
+    --strip-pad: calc(var(--phone-art-w) / var(--art-ratio) * 0.14 + 28px);
   }
   .side-drawing-inner {
-    gap: 16px;
+    gap: 12px;
   }
   .side-drawing-art {
-    width: var(--phone-art-w);
-    max-width: 62vw;
+    --art-w: var(--phone-art-w);
   }
   .side-drawing-text {
     font-size: 0.85rem;
@@ -1201,12 +1238,30 @@ h2:hover .title-berry.mirrored {
   }
 }
 
-@media (prefers-reduced-motion: reduce) {
-  .side-drawing,
-  .side-drawing-art img,
-  .side-drawing-text {
-    transition: none;
-  }
+/* Each section's title starts a little differently below its strip (how
+   far the letters sit inside their line, and on phones the camera and disco
+   ball beside two of the titles), so each gets a small correction to make
+   the space below its strip match the space above (measured, in pixels, to
+   the nearest thing you can see). */
+@media (min-width: 1200px) {
+  #memories .side-drawing { --below-fix: -2px; }
+  #events .side-drawing { --below-fix: -3px; }
+  #travel .side-drawing { --below-fix: -6px; }
+  #registry .side-drawing { --below-fix: -10px; }
+  #rsvp .side-drawing { --below-fix: -8px; }
+}
+@media (min-width: 700px) and (max-width: 1199px) {
+  #memories .side-drawing { --below-fix: -1px; }
+  #events .side-drawing { --below-fix: -3px; }
+  #travel .side-drawing { --below-fix: -4px; }
+  #registry .side-drawing { --below-fix: -5px; }
+  #rsvp .side-drawing { --below-fix: -5px; }
+}
+@media (max-width: 699px) {
+  #memories .side-drawing { --below-fix: 19px; }
+  #events .side-drawing { --below-fix: 14px; }
+  #travel .side-drawing { --below-fix: -1px; }
+  #rsvp .side-drawing { --below-fix: -2px; }
 }
 
 /* ----- Nuggets: a little card about us that pops up beside a drawing

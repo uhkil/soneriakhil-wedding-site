@@ -2,30 +2,37 @@
 // coffee date, basketball), just above a section's title, on the left or
 // right of the page.
 //
-// It sits in a strip that runs across the whole screen. When the drawing is
-// scrolled to the middle of the screen, the strip turns dark blue, the
-// drawing turns light blue, and its little extra about us (the "nugget" in
-// src/data/art.js: a heading, text, a list of links, or photos) fades in on
-// the other side, in light blue. Once the strip has scrolled away, it goes
-// back to the plain page. Tabbing to one of its links turns it on too.
+// It sits in a strip that runs across the whole screen. The strip turns dark
+// blue to break up the page, with the drawing's little extra about us (the
+// "nugget" in src/data/art.js: a heading, text, a list of links, or photos)
+// in light blue on the other side. The drawing keeps its own colors, on a
+// soft, wavy light-blue shape (the page's color, so it's only noticeable
+// once the strip is dark around it).
+//   - Laptops (1200px and up): the strip appears while the pointer is over
+//     it (or the keyboard is on one of its links).
+//   - Phones and iPads: it opens as the drawing is scrolled up to the middle
+//     of the screen, a little more with every bit of scrolling (and closes
+//     again scrolling back down the page).
 //
 // Usage: <SideDrawing name="hikingDate" side="right" />
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef } from 'react'
 import art from '../data/art.js'
 import { useNearScreen } from './useNearScreen.js'
 import { NuggetContent } from './IllustrationSlot.jsx'
+
+const LAPTOP = '(min-width: 1200px)'
 
 export default function SideDrawing({ name, side = 'right' }) {
   const item = art[name]
   const ref = useRef(null)
   const near = useNearScreen(ref)
-  const lit = useLit(ref)
-  const url = (src) => (near && src ? import.meta.env.BASE_URL + src : undefined)
+  useScrollReveal(ref)
+  const blob = useMemo(() => blobPath(name), [name])
 
   return (
     <div
       ref={ref}
-      className={`side-drawing side-${side}${lit ? ' lit' : ''}`}
+      className={`side-drawing side-${side}`}
       // The drawing's own width and shape, and "peopleSize" from art.js (so
       // the two of us come out the same size in every drawing).
       style={{
@@ -34,12 +41,17 @@ export default function SideDrawing({ name, side = 'right' }) {
         '--art-adjust': item.peopleSize ?? 1,
       }}
     >
+      {/* The dark-blue strip itself, behind everything (see .side-strip). */}
+      <div className="side-strip" aria-hidden="true" />
       <div className="side-drawing-inner">
-        {/* The drawing: the dark-blue one, with the light-blue copy on top
-            that fades in when the strip turns dark. */}
         <div className="side-drawing-art" role="img" aria-label={item.note} style={{ aspectRatio: item.ratio }}>
-          {url(item.src) && <img className="side-art-dark" src={url(item.src)} alt="" draggable="false" decoding="async" />}
-          {url(item.lightSrc) && <img className="side-art-light" src={url(item.lightSrc)} alt="" draggable="false" decoding="async" />}
+          {/* The soft light-blue shape around the drawing. */}
+          <svg className="side-blob" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">
+            <path d={blob} />
+          </svg>
+          {near && item.src && (
+            <img src={import.meta.env.BASE_URL + item.src} alt="" draggable="false" decoding="async" />
+          )}
         </div>
         {item.nugget && (
           <div className="side-drawing-text">
@@ -57,41 +69,72 @@ function ratioValue(ratio) {
   return w / h
 }
 
-// On once the middle of the strip reaches the middle part of the screen
-// (between 20% and 80% of the way down); off again once almost all of it
-// has scrolled off the screen. (On and off at different points, so it
-// doesn't flicker while a guest reads it.)
-function useLit(ref) {
-  const [lit, setLit] = useState(false)
+// Phones and iPads: how far open the strip is (--reveal, 0 to 1), from where
+// the drawing is on the screen: closed while its middle is in the bottom 15%
+// of the screen, opening as it's scrolled up, fully open once it reaches the
+// middle. "open" lets its links be tapped once it's mostly open. (Laptops
+// use hovering instead, in index.css.)
+function useScrollReveal(ref) {
   useEffect(() => {
     const element = ref.current
     if (!element) return
+    const laptop = window.matchMedia(LAPTOP)
+    const art = element.querySelector('.side-drawing-art')
     let frame = 0
-    const check = () => {
+    const update = () => {
       frame = 0
-      const r = element.getBoundingClientRect()
-      const screen = window.innerHeight
-      const middle = (r.top + r.bottom) / 2
-      const showing = Math.min(r.bottom, screen) - Math.max(r.top, 0)
-      setLit((on) => {
-        if (!on) return middle > screen * 0.2 && middle < screen * 0.8
-        return showing > Math.min(r.height, screen) * 0.15
-      })
+      if (laptop.matches) {
+        element.style.removeProperty('--reveal')
+        element.classList.remove('open')
+        return
+      }
+      const r = art.getBoundingClientRect()
+      const middle = (r.top + r.bottom) / 2 / window.innerHeight // 0 = top of screen, 1 = bottom
+      const reveal = Math.min(1, Math.max(0, (0.85 - middle) / (0.85 - 0.5)))
+      element.style.setProperty('--reveal', reveal.toFixed(3))
+      element.classList.toggle('open', reveal > 0.6)
     }
     const soon = () => {
-      if (!frame) frame = requestAnimationFrame(check)
+      if (!frame) frame = requestAnimationFrame(update)
     }
-    const onFocus = () => setLit(true)
-    check()
+    update()
     window.addEventListener('scroll', soon, { passive: true })
     window.addEventListener('resize', soon)
-    element.addEventListener('focusin', onFocus)
+    laptop.addEventListener('change', soon)
     return () => {
       cancelAnimationFrame(frame)
       window.removeEventListener('scroll', soon)
       window.removeEventListener('resize', soon)
-      element.removeEventListener('focusin', onFocus)
+      laptop.removeEventListener('change', soon)
     }
   }, [ref])
-  return lit
+}
+
+// A soft, wavy outline (in a 100 × 100 box), a little different for each
+// drawing: 12 points around a rounded square (a "squircle", so even the
+// drawing's corners stay inside it), each pushed in a little, joined with
+// smooth curves.
+function blobPath(seedText) {
+  let seed = [...seedText].reduce((n, ch) => (n * 31 + ch.charCodeAt(0)) >>> 0, 7)
+  const random = () => {
+    seed = (seed * 1664525 + 1013904223) >>> 0
+    return seed / 2 ** 32
+  }
+  const count = 12
+  const points = Array.from({ length: count }, (_, i) => {
+    const angle = (i / count) * Math.PI * 2 + (random() - 0.5) * 0.2
+    const squish = (v) => Math.sign(v) * Math.sqrt(Math.abs(v)) // rounded-square shape
+    const radius = 50 * (0.95 + random() * 0.05) // gently wavy
+    return [50 + squish(Math.cos(angle)) * radius, 50 + squish(Math.sin(angle)) * radius]
+  })
+  // Smooth curves through the points (Catmull-Rom, as Bézier curves).
+  const at = (i) => points[(i + count) % count]
+  let d = `M${at(0)[0].toFixed(2)},${at(0)[1].toFixed(2)}`
+  for (let i = 0; i < count; i++) {
+    const [p0, p1, p2, p3] = [at(i - 1), at(i), at(i + 1), at(i + 2)]
+    const c1 = [p1[0] + (p2[0] - p0[0]) / 6, p1[1] + (p2[1] - p0[1]) / 6]
+    const c2 = [p2[0] - (p3[0] - p1[0]) / 6, p2[1] - (p3[1] - p1[1]) / 6]
+    d += ` C${c1.map((v) => v.toFixed(2)).join(',')} ${c2.map((v) => v.toFixed(2)).join(',')} ${p2.map((v) => v.toFixed(2)).join(',')}`
+  }
+  return d + 'Z'
 }

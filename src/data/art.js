@@ -18,7 +18,6 @@
 // a link's optional "before" and "note" are plain text shown before and
 // after it (so only part of the line is the link), and "thin" is text shown
 // after it in lighter letters (e.g. Zion + "National Park").
-// "lightSrc" (side drawings): the same drawing in light blue, for the dark strip.
 // "peopleSize" (side drawings only): makes the drawing bigger or smaller so
 // the two of us come out the same size in every drawing (the coffee date is
 // the 1). Measured by eye from Akhil's head; nudge it if one looks off.
@@ -29,7 +28,6 @@
 const art = {
   coffeeDate: {
     src: 'assets/art/coffee-date.webp',
-    lightSrc: 'assets/art/coffee-date-light.webp', // the light-blue copy, for its dark-blue strip
     ratio: '963 / 754',
     tint: true,
     note: 'The two of us on a coffee date, playing cards',
@@ -54,7 +52,6 @@ const art = {
   },
   museumDate: {
     src: 'assets/art/museum-date.webp',
-    lightSrc: 'assets/art/museum-date-light.webp', // the light-blue copy, for its dark-blue strip
     peopleSize: 1.34, // so the two of us come out the same size as in the coffee date
     ratio: '597 / 784',
     tint: true,
@@ -76,7 +73,6 @@ const art = {
   },
   potteryDate: {
     src: 'assets/art/pottery-date.webp',
-    lightSrc: 'assets/art/pottery-date-light.webp', // the light-blue copy, for its dark-blue strip
     peopleSize: 0.78, // so the two of us come out the same size as in the coffee date
     ratio: '885 / 1017',
     tint: true,
@@ -96,7 +92,6 @@ const art = {
   },
   basketballDate: {
     src: 'assets/art/basketball-date.webp',
-    lightSrc: 'assets/art/basketball-date-light.webp', // the light-blue copy, for its dark-blue strip
     peopleSize: 1.15, // so the two of us come out the same size as in the coffee date
     ratio: '1015 / 775',
     tint: true,
@@ -138,7 +133,6 @@ const art = {
   },
   hikingDate: {
     src: 'assets/art/hiking-date.webp',
-    lightSrc: 'assets/art/hiking-date-light.webp', // the light-blue copy, for its dark-blue strip
     peopleSize: 1.09, // so the two of us come out the same size as in the coffee date
     ratio: '799 / 1104',
     tint: true,
