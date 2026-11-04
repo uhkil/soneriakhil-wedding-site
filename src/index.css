@@ -3585,6 +3585,16 @@ img.nugget-photo {
   margin-left: -9em;
 }
 
+/* Phones: small enough that one whole sentence fits across the screen (the
+   sentence is about 28.4 times as wide as the letters are tall), and the
+   rows 25% closer together (31px apart instead of 42px). */
+@media (max-width: 699px) {
+  .login-backdrop p {
+    font-size: min(1.1rem, calc((100vw - 28px) / 28.4));
+    line-height: 31px;
+  }
+}
+
 [data-design='honey'] .invitation-card {
   position: relative; /* drawn on top of the repeated line */
 }

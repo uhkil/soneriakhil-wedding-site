@@ -49,7 +49,7 @@ export default function App() {
           <footer className="site-footer">
             {/* The same script "&" as the big names at the top, sized to the text. */}
             <p>
-              &lt;3&nbsp;this website was made from scratch and designed with luv by soneri{' '}
+              &lt;3&nbsp;this website was designed with luv by soneri{' '}
               <span className="footer-and" aria-label="and">
                 &amp;
               </span>{' '}

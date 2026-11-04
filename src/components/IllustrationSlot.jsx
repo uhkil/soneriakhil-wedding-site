@@ -113,7 +113,10 @@ function ratioValue(ratio) {
 const HINT_TIME = 2500
 
 // True for HINT_TIME once the element first reaches the middle of the
-// screen; then false for good, so the hint shows once and fades away.
+// screen (any part of it in the top half: scrolling down, its top has passed
+// the middle; scrolling back up, it has come into view at the top); then
+// false for good, so the hint shows once and fades away. (A thin band across
+// the middle was easy to skip right over when scrolling fast in Safari.)
 function useInMiddle(ref, enabled) {
   const [stage, setStage] = useState('waiting') // → 'showing' → 'done'
   useEffect(() => {
@@ -122,8 +125,8 @@ function useInMiddle(ref, enabled) {
     if (!('IntersectionObserver' in window)) return
     const observer = new IntersectionObserver(
       (entries) => entries.some((e) => e.isIntersecting) && setStage('showing'),
-      // Only a thin band across the middle of the screen counts.
-      { rootMargin: '-45% 0px -45% 0px' }
+      // The top half of the screen.
+      { rootMargin: '0px 0px -50% 0px' }
     )
     observer.observe(element)
     return () => observer.disconnect()
