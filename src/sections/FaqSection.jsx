@@ -25,7 +25,7 @@ const faqs = [
   },
   {
     question: 'Are kids welcome?',
-    answer: ['If your children are listed on your RSVP form, they’re invited.'],
+    answer: ['We kindly ask that only the children listed on your invitation join us for the celebration. Thank you for understanding.'],
   },
   {
     question: 'Where should I park?',
