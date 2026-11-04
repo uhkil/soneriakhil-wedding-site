@@ -2660,9 +2660,11 @@ img.nugget-photo {
 }
 
 /* Every event's drawing is the same height (each as wide as its shape
-   needs), so the couple appears at the same size at every event. */
+   needs), so the couple appears at the same size at every event. A drawing
+   with something above the couple's heads (like a safa) sets "peopleSize"
+   in art.js (--art-adjust) to be that much taller. */
 .timeline-art.illustration-slot {
-  height: 440px;
+  height: calc(440px * var(--art-adjust, 1));
   width: auto;
   max-width: 100%;
 }
@@ -2693,7 +2695,7 @@ img.nugget-photo {
   }
 
   .timeline-art.illustration-slot {
-    height: 320px;
+    height: calc(320px * var(--art-adjust, 1));
   }
 
   /* The dot sits halfway down the event's drawing of the two of us. */

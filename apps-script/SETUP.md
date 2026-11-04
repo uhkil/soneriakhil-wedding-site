@@ -85,8 +85,9 @@ is private too: the script only sends names and events to the website.
 Pasting from another spreadsheet: paste the names (and household, side,
 group) into their columns, then check the event boxes. IDs fill themselves in.
 
-**The script fills in** (don't edit these by hand; they're rebuilt after every
-RSVP, or via **Wedding RSVP → Refresh Summary and All Guests**):
+**The script fills in** (don't edit these by hand; they're rebuilt about a
+minute after each RSVP, or right away via **Wedding RSVP → Refresh Summary and
+All Guests**):
 
 | Tab | What's in it |
 |---|---|

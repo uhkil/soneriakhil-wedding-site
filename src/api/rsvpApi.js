@@ -2,11 +2,14 @@
 //
 // Practice mode: add ?practice to the address (e.g. localhost:5173/?practice)
 // to use fake guests instead of the real Sheet. Handy for testing.
+// It only works on this computer (or another device on the same Wi-Fi):
+// on the live site, ?practice does nothing, so no one can skip the passcode.
 import { RSVP_API_URL } from '../config.js'
 import { handlePractice } from './practiceApi.js'
 import { withEventDetails } from '../data/events.js'
 
-export const isPractice = new URLSearchParams(window.location.search).has('practice')
+const onThisComputer = /^(localhost|127\.0\.0\.1|\[::1\]|192\.168\.\d+\.\d+|10\.\d+\.\d+\.\d+)$/.test(window.location.hostname)
+export const isPractice = onThisComputer && new URLSearchParams(window.location.search).has('practice')
 
 // Sends one request and returns the reply, or throws an Error whose
 // message is safe to show to guests.

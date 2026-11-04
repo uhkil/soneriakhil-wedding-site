@@ -128,11 +128,17 @@ function doPost(e) {
  * name (ignoring capitals and extra spaces). Someone with no household is
  * their own invitation, under their guest id.
  */
-function loadGuestList() {
+function loadGuestList(fresh) {
+  // Remembered for a few minutes (see "Speed" below), so a guest's search,
+  // passcode, and RSVP don't each re-read the whole Guests tab.
+  if (!fresh) {
+    const remembered = cacheGet('guestList')
+    if (remembered) return remembered
+  }
   ensureGuestIds()
   const events = readTab(TAB.events).filter((ev) => ev.event_id)
   const people = []
-  readTab(TAB.guests).forEach((row) => {
+  readGuestRows().forEach((row) => {
     const fullName = `${row.first_name || ''} ${row.last_name || ''}`.trim()
     if (!row.guest_id || !fullName) return
     const household = row.household || ''
@@ -154,7 +160,37 @@ function loadGuestList() {
       people.push({ ...person, guestId: row.guest_id + '-guest', firstName: '', lastName: '', isPlusOne: true, hostName: fullName })
     }
   })
-  return { events, people }
+  const list = { events, people }
+  cachePut('guestList', list)
+  return list
+}
+
+/** The Guests tab's rows with a name in them, as objects (like readTab, but
+ *  skipping the hundreds of empty checkbox rows below the last guest). */
+function readGuestRows() {
+  const sheet = getTab(TAB.guests)
+  const header = guestHeader(sheet)
+  const last = lastGuestRow(sheet, header)
+  if (last < 2) return []
+  return sheet
+    .getRange(2, 1, last - 1, header.length)
+    .getDisplayValues()
+    .map((r) => Object.fromEntries(header.map((h, i) => [h, (r[i] || '').trim()])))
+}
+
+function guestHeader(sheet) {
+  return sheet.getRange(1, 1, 1, Math.max(sheet.getLastColumn(), 1)).getDisplayValues()[0].map((h) => h.trim())
+}
+
+/** The last row of the Guests tab with a first or last name in it (1 if none). */
+function lastGuestRow(sheet, header) {
+  const cols = ['first_name', 'last_name'].map((h) => header.indexOf(h)).filter((i) => i >= 0)
+  const last = sheet.getLastRow()
+  if (last < 2 || !cols.length) return 1
+  const from = Math.min(...cols)
+  const names = sheet.getRange(2, from + 1, last - 1, Math.max(...cols) - from + 1).getDisplayValues()
+  for (let i = names.length - 1; i >= 0; i--) if (names[i].some((v) => v.trim())) return i + 2
+  return 1
 }
 
 /**
@@ -165,14 +201,14 @@ function loadGuestList() {
  */
 function ensureGuestIds() {
   const sheet = getTab(TAB.guests)
-  const header = sheet.getRange(1, 1, 1, Math.max(sheet.getLastColumn(), 1)).getDisplayValues()[0].map((h) => h.trim())
+  const header = guestHeader(sheet)
   const idCol = header.indexOf('guest_id')
   if (idCol === -1) {
     throw new Error('The Guests tab has no guest_id column. Use Wedding RSVP → Switch to the new guest list.')
   }
-  if (sheet.getLastRow() < 2) return
   const needsId = () => {
-    const rows = sheet.getRange(2, 1, sheet.getLastRow() - 1, header.length).getDisplayValues()
+    const last = lastGuestRow(sheet, header)
+    const rows = last < 2 ? [] : sheet.getRange(2, 1, last - 1, header.length).getDisplayValues()
     const seen = new Set()
     const ids = rows.map((r) => r[idCol].trim())
     const missing = []
@@ -204,18 +240,60 @@ function ensureGuestIds() {
       sheet.getRange(i + 2, idCol + 1).setValue('G' + String(next).padStart(3, '0'))
     })
     props.setProperty('LAST_GUEST_ID', String(next))
+    forgetRemembered()
   } finally {
     lock.releaseLock()
   }
 }
 
-/** Google runs this whenever someone edits the Sheet: new guests get their ids right away. */
+/**
+ * Google runs this whenever someone edits the Sheet. Edits to Guests, Events,
+ * or Settings show up on the website right away (the remembered copies are
+ * forgotten), and new guests get their ids.
+ */
 function onEdit(e) {
   try {
-    if (e && e.range && e.range.getSheet().getName() === TAB.guests) ensureGuestIds()
+    const name = e && e.range ? e.range.getSheet().getName() : ''
+    if ([TAB.guests, TAB.events, TAB.settings].includes(name)) forgetRemembered()
+    if (name === TAB.guests) ensureGuestIds()
   } catch (err) {
     console.error(err) // the ids are filled in on the next request instead
   }
+}
+
+// ---------------------------------------------------------------------------
+// Speed: remembering the guest list for a few minutes
+// ---------------------------------------------------------------------------
+// Reading the Sheet is the slow part of every request. The guest list and
+// passcode are remembered (in Google's cache, packed small) for a few
+// minutes. Any edit to Guests, Events, or Settings forgets them right away
+// (onEdit above), and so does Wedding RSVP → Refresh. Saved answers (RSVPs)
+// are never remembered: they're always read fresh.
+
+const REMEMBER_SECONDS = 5 * 60
+
+function cacheGet(key) {
+  try {
+    const packed = CacheService.getScriptCache().get(key)
+    if (!packed) return null
+    const blob = Utilities.newBlob(Utilities.base64Decode(packed), 'application/x-gzip')
+    return JSON.parse(Utilities.ungzip(blob).getDataAsString())
+  } catch (err) {
+    return null
+  }
+}
+
+function cachePut(key, value) {
+  try {
+    const packed = Utilities.base64Encode(Utilities.gzip(Utilities.newBlob(JSON.stringify(value))).getBytes())
+    if (packed.length < 90000) CacheService.getScriptCache().put(key, packed, REMEMBER_SECONDS) // (Google's limit is 100 KB)
+  } catch (err) {
+    // too big or the cache is unavailable: it just reads the Sheet each time
+  }
+}
+
+function forgetRemembered() {
+  CacheService.getScriptCache().removeAll(['guestList', 'passcode'])
 }
 
 // ---------------------------------------------------------------------------
@@ -281,8 +359,11 @@ function verifyCode(guestId, code) {
 
 /** The wedding passcode from the Settings tab (row "site_passcode"). */
 function sitePasscode() {
+  const remembered = cacheGet('passcode')
+  if (remembered) return remembered
   const row = readTab(TAB.settings).find((r) => r.setting === 'site_passcode')
   if (!row || !row.value) throw new UserError("RSVPs aren't open yet. Please check back soon.")
+  cachePut('passcode', row.value)
   return row.value
 }
 
@@ -457,8 +538,8 @@ function saveRsvp(req, list) {
     lock.releaseLock()
   }
 
-  refreshReports()
-  return partyDetails(req.partyId)
+  refreshSoon() // Summary and All Guests catch up about a minute later
+  return partyDetails(req.partyId, list)
 }
 
 
@@ -684,7 +765,8 @@ function limit(text, max) {
  * (It also adds a checkbox column to Guests for any new event in Events.)
  */
 function refreshReports() {
-  const list = loadGuestList()
+  forgetRemembered()
+  const list = loadGuestList(true)
   ensureEventColumns(list.events)
   const answers = byId(readTab(TAB.rsvps), 'guest_id')
   refreshSummary(list, answers)
@@ -812,6 +894,33 @@ function refreshAllGuests(list, answers) {
   Object.keys(criteria).forEach((c) => {
     if (Number(c) <= header.length) filter.setColumnFilterCriteria(Number(c), criteria[c])
   })
+}
+
+/**
+ * After an RSVP: rebuilds Summary and All Guests about a minute later, in the
+ * background, so the guest doesn't wait for it. Several RSVPs close together
+ * share one rebuild. (If background runs aren't allowed yet, it rebuilds
+ * right away instead, like before.)
+ */
+function refreshSoon() {
+  const cache = CacheService.getScriptCache()
+  if (cache.get('refreshScheduled')) return
+  try {
+    ScriptApp.newTrigger('refreshFromTrigger').timeBased().after(60 * 1000).create()
+    cache.put('refreshScheduled', 'yes', 10 * 60)
+  } catch (err) {
+    console.error(err)
+    refreshReports()
+  }
+}
+
+/** Runs about a minute after an RSVP (see refreshSoon). */
+function refreshFromTrigger() {
+  ScriptApp.getProjectTriggers()
+    .filter((t) => t.getHandlerFunction() === 'refreshFromTrigger')
+    .forEach((t) => ScriptApp.deleteTrigger(t))
+  CacheService.getScriptCache().remove('refreshScheduled')
+  refreshReports()
 }
 
 /** Adds a checkbox column to the Guests tab for any event that doesn't have one yet. */

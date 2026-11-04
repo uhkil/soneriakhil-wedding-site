@@ -124,10 +124,14 @@ const art = {
 
   'event-indian-wedding': {
     // (a new file name, so browsers don't keep showing the old drawing)
-    src: 'assets/art/indian-outfit-v2.webp',
-    ratio: '626 / 1104',
+    src: 'assets/art/indian-outfit-v3.webp',
+    ratio: '626 / 1124',
+    // His safa (turban) makes this drawing taller than the couple: shown a
+    // little taller (1124 / 1104), so the two of us come out the same size as
+    // at the other events.
+    peopleSize: 1.018,
     tint: true,
-    note: 'The two of us dressed for the Indian wedding, in flower garlands',
+    note: 'The two of us dressed for the Indian wedding, in flower garlands (him in a safa)',
   },
   'event-reception': {
     src: 'assets/art/reception-outfit.webp',
