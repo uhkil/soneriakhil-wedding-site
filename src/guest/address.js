@@ -1,14 +1,6 @@
 // The mailing address on the RSVP form: one per invitation. The Google
 // Sheet's script (apps-script/Code.gs) checks and formats it the same way.
 
-export const COUNTRIES = [
-  ['US', 'United States'],
-  ['CA', 'Canada'],
-  ['IN', 'India'],
-  ['GB', 'United Kingdom'],
-  ['OTHER', 'Another country'],
-]
-
 // US states (plus DC, territories, and military mail), for the State menu.
 export const US_STATES = [
   ['AL', 'Alabama'], ['AK', 'Alaska'], ['AZ', 'Arizona'], ['AR', 'Arkansas'], ['CA', 'California'],
@@ -27,25 +19,25 @@ export const US_STATES = [
   ['AP', 'Armed Forces Pacific'],
 ]
 
+// country: 'US', or 'INTL' once the guest checks "I don't live in the
+// United States" (then otherCountry is the country they type, if any).
 export const blankAddress = () => ({ country: 'US', otherCountry: '', street: '', apt: '', city: '', state: '', zip: '' })
 
-// Has the guest typed anything (other than picking a country)?
+// Has the guest typed anything?
 export const isStarted = (a) => ['otherCountry', 'street', 'apt', 'city', 'state', 'zip'].some((k) => a[k].trim())
 
 export const ZIP = /^\d{5}(-\d{4})?$/
 
 // What's missing or wrong, in the order the boxes appear: [{ field, message }].
+// Outside the US nothing is required (addresses differ too much to check).
 export function addressProblems(a) {
+  if (a.country !== 'US') return []
   const list = []
-  const us = a.country === 'US'
-  if (a.country === 'OTHER' && !a.otherCountry.trim()) list.push({ field: 'otherCountry', message: 'Please add the country.' })
   if (!a.street.trim()) list.push({ field: 'street', message: 'Please add the street address.' })
-  if (us) {
-    if (!a.zip.trim()) list.push({ field: 'zip', message: 'Please add the ZIP code.' })
-    else if (!ZIP.test(a.zip.trim())) list.push({ field: 'zip', message: 'Please check the ZIP code (5 digits).' })
-  }
   if (!a.city.trim()) list.push({ field: 'city', message: 'Please add the city.' })
-  if (us && !US_STATES.some(([code]) => code === a.state)) list.push({ field: 'state', message: 'Please choose the state.' })
+  if (!US_STATES.some(([code]) => code === a.state)) list.push({ field: 'state', message: 'Please choose the state.' })
+  if (!a.zip.trim()) list.push({ field: 'zip', message: 'Please add the ZIP code.' })
+  else if (!ZIP.test(a.zip.trim())) list.push({ field: 'zip', message: 'Please check the ZIP code (5 digits).' })
   return list
 }
 

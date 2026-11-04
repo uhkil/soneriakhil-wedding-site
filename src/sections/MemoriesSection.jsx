@@ -300,6 +300,31 @@ function View({ id, view, children }) {
 function FilmStrip({ onOpen }) {
   const ref = useRef(null)
 
+  // The frames are sized so the photo at the right edge is always cut off
+  // (about 40% of its frame showing): an obvious sign there's more to see.
+  // Of the sizes that do that, it picks the one closest to the usual frame
+  // size (--film-w in index.css), and redoes it when the screen changes size.
+  useEffect(() => {
+    const strip = ref.current
+    const PEEK = 0.4
+    const fit = () => {
+      strip.style.removeProperty('--film-w') // back to the usual size, to measure it
+      const usual = strip.querySelector('.film-frame')?.getBoundingClientRect().width
+      const across = strip.clientWidth
+      if (!usual || !across) return
+      const fits = across / usual
+      const sizes = [Math.floor(fits - PEEK), Math.ceil(fits - PEEK)]
+        .filter((whole) => whole >= 1)
+        .map((whole) => across / (whole + PEEK))
+        .sort((a, b) => Math.abs(a - usual) - Math.abs(b - usual))
+      if (sizes.length) strip.style.setProperty('--film-w', `${Math.floor(sizes[0])}px`)
+    }
+    fit()
+    const observer = new ResizeObserver(fit)
+    observer.observe(strip)
+    return () => observer.disconnect()
+  }, [])
+
   // Click and drag (with a mouse; fingers already swipe it). It only counts
   // as a drag once the mouse has moved a few pixels, so a plain click still
   // opens the photo; the click that ends a drag is ignored.

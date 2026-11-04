@@ -1,15 +1,16 @@
 // The "Mailing address" card on the RSVP form: one address for the whole
 // invitation (for thank-you cards and anything else we mail).
 //
-// Separate boxes (street, apartment, ZIP, city, state), so browsers and
+// Separate boxes (street, apartment, city, state, ZIP), so browsers and
 // iPhones can fill in a saved address in one tap. Typing a US ZIP code fills
-// in the city and state (the guest can still change them). Guests outside the
-// US pick their country and get the usual international boxes instead.
+// in the city and state if they're still empty (the guest can change them).
+// "I don't live in the United States" swaps the State menu for a plain box,
+// adds a Country box, and makes nothing required.
 //
 // A saved address isn't sent back to the website: the card only says the
 // city it's in ("On file: Dallas, TX"), and leaving the boxes blank keeps it.
 import { useEffect, useRef } from 'react'
-import { COUNTRIES, US_STATES, ZIP, lookUpZip } from '../guest/address.js'
+import { US_STATES, ZIP, lookUpZip } from '../guest/address.js'
 
 export default function RsvpAddress({ address, onChange, onFile, open, onToggle, problemFor, flagged }) {
   const us = address.country === 'US'
@@ -92,62 +93,61 @@ export default function RsvpAddress({ address, onChange, onFile, open, onToggle,
             : 'One address for everyone on your invitation, for anything we mail you.'}
         </p>
 
-        <div className="rsvp-field address-country">
-          <label htmlFor="addr-country">Country</label>
-          <select id="addr-country" autoComplete="country" value={address.country} onChange={(e) => set('country', e.target.value)}>
-            {COUNTRIES.map(([code, name]) => (
-              <option key={code} value={code}>
-                {name}
-              </option>
-            ))}
-          </select>
-        </div>
-        {address.country === 'OTHER' && box('otherCountry', 'Which country?', { autoComplete: 'country-name' })}
-
         {box('street', 'Street address', { autoComplete: 'address-line1' })}
         {box('apt', 'Apartment, suite, etc. (optional)', { autoComplete: 'address-line2' })}
 
         {us ? (
-          <>
-            {box('zip', 'ZIP code', { autoComplete: 'postal-code', inputMode: 'numeric', maxLength: 10 })}
-            <div className="address-row">
-              {box('city', 'City', { autoComplete: 'address-level2' })}
-              <div className="rsvp-field address-state">
-                <label htmlFor="addr-state">State</label>
-                <select
-                  id="addr-state"
-                  autoComplete="address-level1"
-                  value={address.state}
-                  onChange={(e) => {
-                    autoFilled.current.state = false
-                    set('state', e.target.value)
-                  }}
-                  {...(stateProblem ? { 'aria-invalid': true, 'aria-describedby': 'addr-state-note' } : {})}
-                >
-                  <option value="">Choose…</option>
-                  {US_STATES.map(([code, name]) => (
-                    <option key={code} value={code}>
-                      {name}
-                    </option>
-                  ))}
-                </select>
-                {stateProblem && (
-                  <p id="addr-state-note" className="field-note">
-                    {stateProblem.message}
-                  </p>
-                )}
-              </div>
+          <div className="address-row address-row-us">
+            {box('city', 'City', { autoComplete: 'address-level2' })}
+            <div className="rsvp-field address-state">
+              <label htmlFor="addr-state">State</label>
+              <select
+                id="addr-state"
+                autoComplete="address-level1"
+                value={address.state}
+                onChange={(e) => {
+                  autoFilled.current.state = false
+                  set('state', e.target.value)
+                }}
+                {...(stateProblem ? { 'aria-invalid': true, 'aria-describedby': 'addr-state-note' } : {})}
+              >
+                <option value="">Choose…</option>
+                {US_STATES.map(([code, name]) => (
+                  <option key={code} value={code}>
+                    {name}
+                  </option>
+                ))}
+              </select>
+              {stateProblem && (
+                <p id="addr-state-note" className="field-note">
+                  {stateProblem.message}
+                </p>
+              )}
             </div>
-          </>
+            {box('zip', 'ZIP code', { autoComplete: 'postal-code', inputMode: 'numeric', maxLength: 10 })}
+          </div>
         ) : (
           <>
-            {box('city', 'City / town', { autoComplete: 'address-level2' })}
+            {box('city', 'City / town (optional)', { autoComplete: 'address-level2' })}
             <div className="address-row">
               {box('state', 'State / province (optional)', { autoComplete: 'address-level1' })}
-              {box('zip', 'Postal code (if any)', { autoComplete: 'postal-code' })}
+              {box('zip', 'Postal code (optional)', { autoComplete: 'postal-code' })}
             </div>
+            {box('otherCountry', 'Country (optional)', { autoComplete: 'country-name' })}
           </>
         )}
+        {us && <p className="field-hint address-zip-hint">Typing your ZIP code fills in the city and state.</p>}
+
+        {/* Outside the US: no State menu or ZIP check, and nothing required. */}
+        <label className="address-abroad">
+          <input
+            type="checkbox"
+            checked={!us}
+            // (A US state means nothing abroad, and the other way round.)
+            onChange={(e) => onChange((a) => ({ ...a, country: e.target.checked ? 'INTL' : 'US', state: '' }))}
+          />
+          <span>I don’t live in the United States</span>
+        </label>
       </div>
     </div>
   )

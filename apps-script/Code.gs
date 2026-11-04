@@ -409,7 +409,8 @@ function partyDetails(partyId, list) {
     .filter((r) => memberIds.has(r.guest_id))
     .forEach((r) => {
       if (r.address && !addressOnFile) {
-        addressOnFile = [r.address_city, r.address_country === 'United States' ? r.address_state : r.address_country].filter(Boolean).join(', ')
+        const where = r.address_country === 'United States' ? r.address_state : r.address_country === 'Outside the US' ? '' : r.address_country
+        addressOnFile = [r.address_city, where].filter(Boolean).join(', ') || 'your country'
       }
       const attending = {}
       events.forEach((ev) => {
@@ -713,7 +714,6 @@ function joinParts(code, parts) {
 
 // The mailing address, the same way the website checks it (src/guest/address.js).
 const ADDRESS_COLUMNS = ['address', 'address_street', 'address_apt', 'address_city', 'address_state', 'address_zip', 'address_country']
-const COUNTRY_NAMES = { US: 'United States', CA: 'Canada', IN: 'India', GB: 'United Kingdom' }
 const US_STATE_CODES = ('AL AK AZ AR CA CO CT DE DC FL GA HI ID IL IN IA KS KY LA ME MD MA MI MN MS MO MT NE NV NH NJ NM NY ' +
   'NC ND OH OK OR PA RI SC SD TN TX UT VT VA WA WV WI WY AS GU MP PR VI AA AE AP').split(' ')
 
@@ -727,12 +727,12 @@ function cleanAddress(raw) {
   const a = {}
   ;['country', 'otherCountry', 'street', 'apt', 'city', 'state', 'zip'].forEach((k) => (a[k] = limit(raw[k], 150)))
   if (!['otherCountry', 'street', 'apt', 'city', 'state', 'zip'].some((k) => a[k])) return null
+  // "I don't live in the United States": nothing is required or checked.
   const us = !a.country || a.country === 'US'
-  const country = us ? 'United States' : a.country === 'OTHER' ? a.otherCountry : COUNTRY_NAMES[a.country] || a.country
-  if (!country) throw new UserError('Please add the country for your mailing address.')
-  if (!a.street) throw new UserError('Please add the street for your mailing address.')
-  if (!a.city) throw new UserError('Please add the city for your mailing address.')
+  const country = us ? 'United States' : a.otherCountry
   if (us) {
+    if (!a.street) throw new UserError('Please add the street for your mailing address.')
+    if (!a.city) throw new UserError('Please add the city for your mailing address.')
     a.state = a.state.toUpperCase()
     if (!US_STATE_CODES.includes(a.state)) throw new UserError('Please choose the state for your mailing address.')
     if (!/^\d{5}(-\d{4})?$/.test(a.zip)) throw new UserError('Please check the ZIP code (5 digits).')
@@ -747,7 +747,7 @@ function cleanAddress(raw) {
     address_city: a.city,
     address_state: a.state,
     address_zip: a.zip,
-    address_country: country,
+    address_country: country || 'Outside the US',
   }
 }
 

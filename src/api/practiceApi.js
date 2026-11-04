@@ -4,11 +4,10 @@
 // Try: "Jordan Lee", "Priya Shah" (two matches), or "Sam Rivera" (invited
 // only to April 10's events), with the passcode CELEBRATE.
 import { maskEmail, maskPhone } from '../guest/contact.js'
-import { COUNTRIES } from '../guest/address.js'
 
-// "Dallas, TX" or "London, United Kingdom"
+// "Dallas, TX", or "London, United Kingdom" outside the US
 const addressPlace = (a) =>
-  a.country === 'US' ? `${a.city}, ${a.state}` : `${a.city}, ${a.country === 'OTHER' ? a.otherCountry : COUNTRIES.find(([c]) => c === a.country)[1]}`
+  (a.country === 'US' ? [a.city, a.state] : [a.city, a.otherCountry]).filter(Boolean).join(', ') || 'your country'
 
 const events = [
   { id: 'ceremony', name: 'Intimate Ceremony', date: 'April 9', timeOfDay: 'Morning', time: '10:00 AM', location: 'Practice Venue', address: '123 Example St, Dallas, TX', attire: 'Formal', description: 'Practice-mode details.' },
