@@ -6,6 +6,8 @@ import PhotoSlot from '../components/PhotoSlot.jsx'
 import PhotoLink from '../components/PhotoLink.jsx'
 import ScrollReveal from '../components/ScrollReveal.jsx'
 import Art from '../components/Art.jsx'
+import Lightbox from '../components/Lightbox.jsx'
+import { useState } from 'react'
 
 // Edit this list to change the story. Each row: its paragraphs, and "photo"
 // (an image file in public/, e.g. 'assets/story/story-1.jpg'; empty = a
@@ -76,7 +78,13 @@ const rows = [
   },
 ]
 
+// The four photos, for the full-screen view (clicking one opens it there,
+// with arrows to the others).
+const fullScreen = rows.filter((row) => row.photo).map((row) => ({ src: row.photo, alt: row.alt, label: row.alt }))
+
 export default function OurStorySection() {
+  // The photo open full screen (its number), or null.
+  const [open, setOpen] = useState(null)
   return (
     <Section id="story">
       <h2>
@@ -92,7 +100,18 @@ export default function OurStorySection() {
         {rows.map((row, index) => (
           // Each row fades in as you scroll to it.
           <ScrollReveal key={index} className="story-moment">
-            <PhotoSlot src={row.photo} label="Photo" alt={row.alt} className="story-photo" />
+            {row.photo ? (
+              <button
+                type="button"
+                className="photo-button story-photo-button"
+                aria-label={`${row.alt}: view full screen`}
+                onClick={() => setOpen(fullScreen.findIndex((p) => p.src === row.photo))}
+              >
+                <PhotoSlot src={row.photo} label="Photo" alt={row.alt} className="story-photo" />
+              </button>
+            ) : (
+              <PhotoSlot src={row.photo} label="Photo" alt={row.alt} className="story-photo" />
+            )}
             <div className="story-text">
               {row.paragraphs.map((paragraph, i) => (
                 <p key={i}>{paragraph}</p>
@@ -101,6 +120,7 @@ export default function OurStorySection() {
           </ScrollReveal>
         ))}
       </div>
+      {open !== null && <Lightbox photos={fullScreen} index={open} onIndex={setOpen} onClose={() => setOpen(null)} />}
     </Section>
   )
 }
