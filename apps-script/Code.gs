@@ -75,10 +75,6 @@ const HEADERS = {
 
 const MAX_MATCHES = 5 // more matches than this → ask the guest to be more specific
 const MAX_CODE_TRIES = 8 // wrong passcodes allowed per guest, per hour
-// RSVPs close at the end of January 15, 2027, Arlington time (CST, UTC-6).
-// To move it without editing this file, add a row to the Settings tab:
-// rsvp_closes | 2027-01-20T00:00:00-06:00 (the moment it closes).
-const RSVP_CLOSES = '2027-01-16T00:00:00-06:00'
 
 // ---------------------------------------------------------------------------
 // Entry points (Google calls these when the website sends a request)
@@ -106,9 +102,6 @@ function doPost(e) {
       case 'submit': {
         const list = loadGuestList()
         requireToken(req.partyId, req.token, list)
-        if (Date.now() >= new Date(rsvpCloses()).getTime()) {
-          throw new UserError('RSVPs closed on January 15. If something has changed, please reach out to us.')
-        }
         return json({ ok: true, party: saveRsvp(req, list) })
       }
       default:
@@ -303,7 +296,7 @@ function cachePut(key, value) {
 }
 
 function forgetRemembered() {
-  CacheService.getScriptCache().removeAll(['guestList', 'passcode', 'rsvpCloses'])
+  CacheService.getScriptCache().removeAll(['guestList', 'passcode'])
 }
 
 // ---------------------------------------------------------------------------
@@ -365,17 +358,6 @@ function verifyCode(guestId, code) {
 
   cache.remove(triesKey)
   return { token: makeToken(guest.partyId), party: partyDetails(guest.partyId, list) }
-}
-
-/** When RSVPs close: the Settings tab's "rsvp_closes" row, or RSVP_CLOSES. */
-function rsvpCloses() {
-  const remembered = cacheGet('rsvpCloses')
-  if (remembered) return remembered
-  const row = readTab(TAB.settings).find((r) => r.setting === 'rsvp_closes')
-  const value = row && row.value && !isNaN(new Date(row.value).getTime()) ? row.value : RSVP_CLOSES
-  const closes = new Date(value).toISOString()
-  cachePut('rsvpCloses', closes)
-  return closes
 }
 
 /** The wedding passcode from the Settings tab (row "site_passcode"). */
@@ -466,7 +448,6 @@ function partyDetails(partyId, list) {
     hasResponded: Object.keys(answers).length > 0,
     addressOnFile,
     addressMasked,
-    rsvpCloses: rsvpCloses(), // when the website stops taking changes
   }
 }
 

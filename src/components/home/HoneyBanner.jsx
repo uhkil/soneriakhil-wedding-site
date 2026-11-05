@@ -1,11 +1,12 @@
 // The Home banner: huge bold names with a
 // flowing script ampersand, the date and place on the left, a welcome on the
 // right, then the animation of the two of them dancing and waving hello.
-// Further down (after some space): a countdown to the wedding, and an RSVP button.
+// Further down (after some space): a countdown to the wedding, and an RSVP
+// button (until RSVPs close: showRsvp).
 import HoneyDance from './HoneyDance.jsx'
 import Countdown from './Countdown.jsx'
 
-export default function HoneyBanner({ welcome, dates, countdownTo }) {
+export default function HoneyBanner({ welcome, dates, countdownTo, showRsvp = true }) {
   return (
     <div className="honey">
       {/* The first screen: the names, then the dancing couple filling the rest. */}
@@ -35,9 +36,11 @@ export default function HoneyBanner({ welcome, dates, countdownTo }) {
       {/* Below the first screen: some breathing room, then the countdown. */}
       <Countdown to={countdownTo} />
       {/* A shortcut to the RSVP form at the bottom of the page. */}
-      <a className="button countdown-rsvp" href="#rsvp">
-        RSVP
-      </a>
+      {showRsvp && (
+        <a className="button countdown-rsvp" href="#rsvp">
+          RSVP
+        </a>
+      )}
     </div>
   )
 }

@@ -1133,33 +1133,25 @@ h2:hover .title-berry.mirrored {
   margin-top: 16px;
 }
 .side-drawing-text .nugget-carousel-row {
-  display: grid;
-  grid-template-columns: auto minmax(0, 260px) auto;
-  justify-content: center;
-  align-items: center;
-  gap: 14px;
+  width: min(260px, 100%);
+  margin: 0 auto;
 }
-.side-drawing-text .carousel-arrow {
-  position: static;
-  translate: none;
-  width: 38px;
-  height: 38px;
-  border: 1.5px solid rgba(202, 233, 255, 0.6);
-  background: transparent;
-}
-.side-drawing-text .carousel-arrow:hover:not(:disabled) {
-  background: rgba(202, 233, 255, 0.12);
-}
-.side-drawing-text .carousel-arrow:disabled {
-  opacity: 0.3; /* still there, so the layout doesn't jump */
-  pointer-events: none;
-}
+/* The count under the photo, with the Memories grid's small arrows either
+   side ("‹ 2 / 10 ›"), in the strip's light blue. Faded at either end. */
 .side-drawing-text .carousel-count {
-  white-space: nowrap; /* "1 / 6" never splits across lines */
-  margin: 12px 0 0;
-  font: 500 0.85rem/1 var(--font-ui);
-  letter-spacing: 0.08em;
+  margin-top: 10px;
+  white-space: nowrap; /* "1 / 10" never splits across lines */
+  color: var(--paper);
   font-variant-numeric: tabular-nums;
+}
+.side-drawing-text .carousel-count .count-arrow {
+  color: inherit;
+}
+.side-drawing-text .carousel-count .count-arrow:hover:not(:disabled) {
+  background: rgba(202, 233, 255, 0.14);
+}
+.side-drawing-text .carousel-count .count-arrow:focus-visible {
+  outline-color: var(--paper);
 }
 
 /* Each photo is a button that opens it full screen. */
@@ -1175,43 +1167,6 @@ h2:hover .title-berry.mirrored {
 .nugget-photo-button:focus-visible {
   outline: 2px solid var(--paper);
   outline-offset: -4px;
-}
-
-/* Phones: the column beside the drawing is narrow, so the photo takes its
-   whole width and the arrows sit either side of the count below it
-   ("‹ 3 / 6 ›"). */
-@media (max-width: 699px) {
-  .side-drawing-text .nugget-carousel {
-    display: grid;
-    grid-template-columns: auto auto auto;
-    grid-template-areas:
-      'photo photo photo'
-      'prev count next';
-    justify-content: center;
-    align-items: center;
-    column-gap: 12px;
-  }
-  .side-drawing-text .nugget-carousel-row {
-    display: contents;
-  }
-  .side-drawing-text .nugget-carousel-window {
-    grid-area: photo;
-    margin-bottom: 10px;
-  }
-  .side-drawing-text .carousel-arrow.prev {
-    grid-area: prev;
-  }
-  .side-drawing-text .carousel-arrow.next {
-    grid-area: next;
-  }
-  .side-drawing-text .carousel-count {
-    grid-area: count;
-    margin: 0;
-  }
-  .side-drawing-text .carousel-arrow {
-    width: 30px;
-    height: 30px;
-  }
 }
 
 /* The title on one line where it fits (laptops, and iPads when there's
@@ -1304,9 +1259,10 @@ li.has-thin {
 }
 
 /* The photo carousel (e.g. the pottery pieces): one photo at a time, as
-   wide as the card, in a 3:4 window. The photos sit side by side in a strip
-   that scrolls sideways a photo at a time (swipe on phones); its scroll bar
-   is hidden, since the arrows and dots do that job. */
+   wide as the card, in a square window (the photos are square, so nothing
+   is cropped). The photos sit side by side in a strip that scrolls sideways
+   a photo at a time (swipe on phones); its scroll bar is hidden, since the
+   arrows below do that job. */
 .nugget-carousel {
   margin-top: 12px;
 }
@@ -1335,7 +1291,7 @@ li.has-thin {
   align-items: center;
   justify-content: center;
   width: 100%;
-  aspect-ratio: 3 / 4;
+  aspect-ratio: 1;
   box-sizing: border-box;
   border: 1.5px dashed currentColor;
   border-radius: 12px;
@@ -1354,51 +1310,6 @@ img.nugget-photo {
   border: 2px solid var(--paper);
 }
 
-/* Round arrows over the photo's left and right edges; faded at either end. */
-.carousel-arrow {
-  position: absolute;
-  top: 50%;
-  translate: 0 -50%;
-  display: grid;
-  place-items: center;
-  width: 34px;
-  height: 34px;
-  padding: 0;
-  border: none;
-  border-radius: 50%;
-  background: rgba(0, 52, 89, 0.72);
-  color: var(--paper);
-  cursor: pointer;
-  transition: opacity 0.2s ease;
-}
-
-.carousel-arrow.prev {
-  left: 8px;
-}
-
-.carousel-arrow.next {
-  right: 8px;
-}
-
-.carousel-arrow:disabled {
-  opacity: 0;
-  pointer-events: none;
-}
-
-.carousel-arrow:focus-visible {
-  outline: 2px solid var(--paper);
-  outline-offset: 2px;
-}
-
-.carousel-arrow svg {
-  width: 16px;
-  height: 16px;
-  fill: none;
-  stroke: currentColor;
-  stroke-width: 2.4;
-  stroke-linecap: round;
-  stroke-linejoin: round;
-}
 
 @keyframes modal-in {
   from {
@@ -1437,8 +1348,8 @@ img.nugget-photo {
   stroke-linecap: round;
 }
 
-/* On narrow screens, stack the photo above the text. */
-@media (max-width: 640px) {
+/* Phones (under 700px): the photo above the text. */
+@media (max-width: 699px) {
   .story-moment {
     grid-template-columns: 1fr;
     gap: 20px;
@@ -2576,7 +2487,7 @@ img.nugget-photo {
 
 /* On phones: the line moves to the left edge, and each event
    stacks its artwork above its details, all on the right of the line. */
-@media (max-width: 700px) {
+@media (max-width: 699px) {
   .timeline::before {
     left: 11px;
   }
@@ -2946,6 +2857,13 @@ img.nugget-photo {
 .rsvp-intro {
   text-align: center;
   margin: 0 0 32px;
+}
+
+/* "RSVPs close January 15, 2027": its own line under the intro. */
+.rsvp-deadline {
+  display: block;
+  margin-top: 6px;
+  font-weight: 600;
 }
 
 .rsvp .rsvp-form {
@@ -4069,8 +3987,8 @@ img.nugget-photo {
   text-align: right;
 }
 
-/* Phones and small tablets: the names stack (SONERI / & / AKHIL), centered and big. */
-@media (max-width: 720px) {
+/* Phones (under 700px): the names stack (SONERI / & / AKHIL), centered and big. */
+@media (max-width: 699px) {
   .hero .honey-names {
     flex-wrap: wrap;
     justify-content: center;
@@ -4218,7 +4136,7 @@ img.nugget-photo {
 
 /* Phones: no room beside them, so the stage moves down a little and both
    bubbles sit above their heads: hers on the left, his on the right. */
-@media (max-width: 720px) {
+@media (max-width: 699px) {
   .honey-stage-wrap {
     /* The couple shrinks to fit what's left of the first screen (so their
        feet show), but never smaller than this. */
@@ -4350,7 +4268,7 @@ img.nugget-photo {
   }
 }
 
-@media (max-width: 720px) {
+@media (max-width: 699px) {
   .honey-stage-wrap .honey-bubble {
     border-radius: 18px;
   }
@@ -4478,6 +4396,12 @@ img.nugget-photo {
   color: var(--ink);
 }
 
+/* Once RSVPs close there's no button, so the same space goes under the
+   countdown itself. */
+.honey > .countdown:last-child {
+  margin-bottom: calc(var(--home-gap) - 96px);
+}
+
 /* The RSVP button under the countdown. Below it: the same space as above
    the countdown, less Our Story's own 96px of top padding. */
 .countdown-rsvp {
@@ -4527,7 +4451,7 @@ img.nugget-photo {
 }
 
 /* Phones: the countdown spans most of the width. */
-@media (max-width: 720px) {
+@media (max-width: 699px) {
   .honey {
     --home-gap: 72px;
   }

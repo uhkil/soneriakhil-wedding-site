@@ -22,16 +22,11 @@ import FormMessage from '../components/FormMessage.jsx'
 import RsvpCelebration from '../components/RsvpCelebration.jsx'
 import RsvpAddress from '../components/RsvpAddress.jsx'
 import EventName from '../components/EventName.jsx'
+import { rsvpClosed } from '../data/schedule.js'
 import { ABROAD, addressProblems, isStarted, livesAbroad, startingAddress } from '../guest/address.js'
 import { EMAIL, COM_TYPO, formatPhone, isValidPhone } from '../guest/contact.js'
 
 const LOGGED_OUT = 'Please find your invitation again.'
-
-// RSVPs close at the end of January 15, 2027, Arlington time. The Sheet's
-// script sends its own date (party.rsvpCloses, which can be moved from the
-// Settings tab); this is the fallback. After it, the form shows the
-// guest's answers without letting them change, and the script refuses changes.
-const RSVP_CLOSES = '2027-01-16T00:00:00-06:00'
 
 function savedAnswers(party) {
   return Object.fromEntries(
@@ -62,7 +57,8 @@ export default function RsvpByEvent() {
   const [celebrate, setCelebrate] = useState(null)
   // Which tab is showing: 'coming' (who's coming to each event) or 'details'.
   const [tab, setTab] = useState('coming')
-  const closed = Date.now() >= new Date(party.rsvpCloses || RSVP_CLOSES).getTime()
+  // After January 15, 2027 (see rsvpClosed in schedule.js): answers only, no changes.
+  const closed = rsvpClosed(party)
 
   const displayName = (g) => (g.isPlusOne ? 'Your guest' : `${g.firstName} ${g.lastName}`)
   const onFile = (g) => party.onFile?.[g.guestId] || {}
@@ -265,6 +261,8 @@ export default function RsvpByEvent() {
         {party.hasResponded
           ? 'We have your RSVP. You can change anything below and save again.'
           : 'Let us know who’s coming to each event, then add your details.'}
+        {/* On its own line. */}
+        <span className="rsvp-deadline">RSVPs close January 15, 2027</span>
       </p>
 
       <div className="rsvp-form rsvp-v2" role="form" aria-label="RSVP">

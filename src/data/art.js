@@ -78,14 +78,20 @@ const art = {
     note: 'The two of us at a pottery class',
     nugget: {
       heading: 'some pieces we’ve made',
-      // Shown one at a time, in this order (web-sized copies, in public/assets/pottery/).
+      // Shown one at a time, in this order (web-sized copies in
+      // public/assets/pottery/, 1600px, for full screen; and 600px copies in
+      // public/assets/pottery/small/, which the card shows).
       gallery: [
-        { src: 'assets/pottery/pottery-4.jpg', alt: 'A black glazed jug carved with a cat' },
-        { src: 'assets/pottery/pottery-3.jpg', alt: 'A small red glazed pouring cup' },
-        { src: 'assets/pottery/pottery-1.jpg', alt: 'Four clay cups drying on boards on a pottery wheel' },
-        { src: 'assets/pottery/pottery-6.jpg', alt: 'A clay vase with a wavy ridge, on a turntable' },
-        { src: 'assets/pottery/pottery-2.jpg', alt: 'A curving clay candle holder, propped up with a sponge' },
-        { src: 'assets/pottery/pottery-5.jpg', alt: 'A white clay corner with a window and steps' },
+        { src: 'assets/pottery/pottery-01.jpg', alt: 'A black glazed jug carved with a cat' },
+        { src: 'assets/pottery/pottery-02.jpg', alt: 'A small red glazed pouring cup' },
+        { src: 'assets/pottery/pottery-03.jpg', alt: 'A cup with a smiling clown face' },
+        { src: 'assets/pottery/pottery-04.jpg', alt: 'A clay vase with a wavy ridge, on a turntable' },
+        { src: 'assets/pottery/pottery-05.jpg', alt: 'A white clay house with purple trim' },
+        { src: 'assets/pottery/pottery-06.jpg', alt: 'A white clay corner with a window and steps' },
+        { src: 'assets/pottery/pottery-07.jpg', alt: 'Two curving black candle holders' },
+        { src: 'assets/pottery/pottery-08.jpg', alt: 'A bowl glazed half blue, half cream' },
+        { src: 'assets/pottery/pottery-09.jpg', alt: 'Soneri at the wheel, with a clay mug in front' },
+        { src: 'assets/pottery/pottery-10.jpg', alt: 'The two of us at a pottery class' },
       ],
     },
   },

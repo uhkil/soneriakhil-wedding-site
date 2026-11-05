@@ -35,3 +35,14 @@ export function dateRange(events) {
   const lastDay = dates[dates.length - 1].split(/\s+/)[1]
   return `${month} ${firstDay}–${lastDay}, ${YEAR}`
 }
+
+// RSVPs close at the end of January 15, 2027, Arlington time (CST in
+// January). After that, the RSVP buttons (under the countdown, and Send at
+// the bottom of the form) go away, and the RSVP section shows the guest's
+// answers without letting them change. (If the Sheet's script ever sends
+// its own date, party.rsvpCloses, that one is used instead.)
+export const RSVP_CLOSES = '2027-01-16T00:00:00-06:00'
+
+export function rsvpClosed(party) {
+  return Date.now() >= new Date(party?.rsvpCloses || RSVP_CLOSES).getTime()
+}

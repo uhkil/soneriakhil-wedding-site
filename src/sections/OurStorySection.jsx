@@ -35,7 +35,7 @@ const rows = [
       <>
         But it wasn’t until the fateful sunny Texas pandemic day, when Soneri parked her Jeep in the gravel lot of the{' '}
         <PhotoLink photo="assets/story/links/blueberry-farm.jpg" alt="The blueberry farm">blueberry farm</PhotoLink>, that their parallel lines converged. She was
-        going to meet her friend Karan, who invited his cute SF roommate, Akhil. “You would get along,” he told them
+        going to meet her friend Karan, who invited his cute SF roommate, Akhil. “Y’all would get along,” he told them
         both.
       </>,
     ],
@@ -104,10 +104,10 @@ const rows = [
 const small = (photo) => photo.replace('assets/story/', 'assets/story/small/')
 const fullScreen = rows.filter((row) => row.photo).map((row) => ({ src: small(row.photo), full: row.photo, alt: row.alt, label: row.alt }))
 // The copies to pick from, and how wide the photo is shown: most of a
-// phone's width (under 641px; a shade under, so a standard iPhone gets the
+// phone's width (under 700px; a shade under, so a standard iPhone gets the
 // 1000px copy, 99% as sharp as its screen, instead of the full size),
 // otherwise up to 450px.
-const storySizes = '(max-width: 640px) 84vw, 450px'
+const storySizes = '(max-width: 699px) 84vw, 450px'
 const storySrcSet = (row) => srcSetFor([[small(row.photo), 1000], [row.photo, row.width]])
 
 export default function OurStorySection() {

@@ -15,6 +15,7 @@ import art from '../data/art.js'
 import { useNearScreen } from './useNearScreen.js'
 import { createPortal } from 'react-dom'
 import Lightbox from './Lightbox.jsx'
+import { srcSetFor } from './photoUrl.js'
 
 export default function IllustrationSlot({ name, size = 'medium', className = '' }) {
   const item = art[name]
@@ -94,14 +95,24 @@ export function NuggetContent({ nugget, headingId }) {
   )
 }
 
-// Photos shown one at a time, each as big as the card allows. Arrows on
-// either side and dots underneath step through them; phones can also swipe.
+// Photos shown one at a time, each as big as the card allows. Below it, the
+// count ("2 / 10") with an arrow either side (the same small arrows as the
+// Memories camera and grid); phones can also swipe. Clicking a photo opens
+// it full screen.
+// Each photo has a 600px copy in a "small" folder beside it (what the card
+// shows: sharp even on iPhones at that size) and the full-size 1600px one,
+// which only loads full screen.
+const smallCopy = (src) => src.replace(/\/([^/]+)$/, '/small/$1')
+const CAROUSEL_SIZES = '(max-width: 699px) 45vw, 260px'
+
 function Carousel({ photos }) {
   const ref = useRef(null)
   const [current, setCurrent] = useState(0)
   // A photo opened full screen (its number), or null.
   const [open, setOpen] = useState(null)
-  const fullScreen = photos.filter((piece) => typeof piece !== 'string').map((piece) => ({ src: piece.src, alt: piece.alt, label: piece.alt }))
+  const fullScreen = photos
+    .filter((piece) => typeof piece !== 'string')
+    .map((piece) => ({ src: smallCopy(piece.src), thumb: smallCopy(piece.src), full: piece.src, alt: piece.alt, label: piece.alt }))
   // Keep the count in step with swiping.
   const onScroll = () => {
     const strip = ref.current
@@ -115,7 +126,7 @@ function Carousel({ photos }) {
   const arrow = (direction) => (
     <button
       type="button"
-      className={`carousel-arrow ${direction}`}
+      className="count-arrow"
       aria-label={direction === 'prev' ? 'Previous photo' : 'Next photo'}
       disabled={direction === 'prev' ? current === 0 : current === photos.length - 1}
       onClick={() => goTo(direction === 'prev' ? current - 1 : current + 1)}
@@ -126,12 +137,11 @@ function Carousel({ photos }) {
     </button>
   )
 
-  // An arrow on either side of the photo, and below it how far along you
-  // are ("2 / 6").
+  // The photo, and below it how far along you are ("2 / 10") with an arrow
+  // either side.
   return (
     <div className="nugget-carousel">
       <div className="nugget-carousel-row">
-        {arrow('prev')}
         <div className="nugget-carousel-window">
           <div ref={ref} className="nugget-carousel-strip" onScroll={onScroll}>
             {photos.map((piece, i) =>
@@ -150,17 +160,32 @@ function Carousel({ photos }) {
                   tabIndex={i === current ? 0 : -1}
                   onClick={() => setOpen(i)}
                 >
-                  <img className="nugget-photo" src={import.meta.env.BASE_URL + piece.src} alt={piece.alt} loading="lazy" draggable="false" />
+                  <img
+                    className="nugget-photo"
+                    src={import.meta.env.BASE_URL + smallCopy(piece.src)}
+                    srcSet={srcSetFor([
+                      [smallCopy(piece.src), 600],
+                      [piece.src, 1600],
+                    ])}
+                    sizes={CAROUSEL_SIZES}
+                    alt={piece.alt}
+                    loading="lazy"
+                    decoding="async"
+                    draggable="false"
+                  />
                 </button>
               )
             )}
           </div>
         </div>
+      </div>
+      <div className="camera-count memory-count carousel-count">
+        {arrow('prev')}
+        <span aria-live="polite">
+          {current + 1} / {photos.length}
+        </span>
         {arrow('next')}
       </div>
-      <p className="carousel-count" aria-live="polite">
-        {current + 1} / {photos.length}
-      </p>
       {/* Full screen: attached to the page itself, so it covers the whole
           screen (not just the strip it was opened from). */}
       {open !== null &&
