@@ -1356,7 +1356,7 @@ h2:hover .title-berry.mirrored {
     --art-w: var(--phone-art-w);
   }
   .side-drawing-text {
-    font-size: 0.85rem;
+    font-size: 0.75rem; /* 12px */
     line-height: 1.4;
   }
   .side-drawing-text .nugget-heading {
@@ -5783,7 +5783,7 @@ img.nugget-photo {
 .rsvp-label-row {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 2px;
 }
 .info-tip {
   position: relative;
