@@ -9,9 +9,8 @@ import Art from '../components/Art.jsx'
 
 // Edit this list to change the story. Each row: its paragraphs, and "photo"
 // (an image file in public/, e.g. 'assets/story/story-1.jpg'; empty = a
-// placeholder). Each photo shows in its own shape, uncropped, except
-// "tall: true" ones: shown 4:5, trimmed from the bottom (or, with "focus",
-// e.g. '50% 25%', a quarter of the trim from the top and the rest from the bottom).
+// placeholder). Each photo shows in its own shape, uncropped (crop the file
+// itself to change its shape).
 // For the pop-up photos, add photo="assets/story/…" to a <PhotoLink>.
 const rows = [
   {
@@ -34,7 +33,6 @@ const rows = [
   },
   {
     photo: 'assets/story/story-2.jpg',
-    tall: true,
     alt: 'Soneri and Akhil',
     paragraphs: [
       <>
@@ -73,8 +71,6 @@ const rows = [
   },
   {
     photo: 'assets/story/story-4.jpg',
-    tall: true,
-    focus: '50% 25%', // trim a little off the top too, so his face isn't at the edge
     alt: 'Soneri and Akhil',
     paragraphs: [<>The many adventures of the Blueberry Babes continue…</>],
   },
@@ -96,7 +92,7 @@ export default function OurStorySection() {
         {rows.map((row, index) => (
           // Each row fades in as you scroll to it.
           <ScrollReveal key={index} className="story-moment">
-            <PhotoSlot src={row.photo} label="Photo" alt={row.alt} className={`story-photo${row.tall ? ' tall' : ''}`} focus={row.focus} />
+            <PhotoSlot src={row.photo} label="Photo" alt={row.alt} className="story-photo" />
             <div className="story-text">
               {row.paragraphs.map((paragraph, i) => (
                 <p key={i}>{paragraph}</p>

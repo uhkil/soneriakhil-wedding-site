@@ -8,14 +8,13 @@
 // of the spot it's shown in, width ÷ height): a photo much narrower or wider
 // than its spot (e.g. a portrait photo in a landscape opening) is shown
 // whole, centered on a soft, blurred copy of itself, instead of being cropped.
-// Optional "focus": which part of a cropped photo to keep (e.g. '50% 25%').
 import { photoUrl } from './photoUrl.js'
 
 // How different the shapes must be before the photo is shown whole instead
 // of cropped: 1.35 = the photo would lose more than about a quarter.
 const SHOW_WHOLE_PAST = 1.35
 
-export default function PhotoSlot({ src, alt = '', label = 'Photo', tilt = 0, className = '', width, height, frame, focus }) {
+export default function PhotoSlot({ src, alt = '', label = 'Photo', tilt = 0, className = '', width, height, frame }) {
   const mismatch = width && height && frame ? Math.max(frame / (width / height), width / height / frame) : 1
   const whole = src && mismatch > SHOW_WHOLE_PAST
   return (
@@ -23,7 +22,7 @@ export default function PhotoSlot({ src, alt = '', label = 'Photo', tilt = 0, cl
       {src ? (
         <>
           {whole && <img className="photo-backdrop" src={photoUrl(src)} alt="" aria-hidden="true" loading="lazy" decoding="async" />}
-          <img className="photo-main" src={photoUrl(src)} alt={alt} loading="lazy" decoding="async" style={focus ? { objectPosition: focus } : undefined} />
+          <img className="photo-main" src={photoUrl(src)} alt={alt} loading="lazy" decoding="async" />
         </>
       ) : (
         <div className="photo-placeholder">{label}</div>
