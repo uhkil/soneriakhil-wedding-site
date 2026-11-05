@@ -8,12 +8,13 @@ import ScrollReveal from '../components/ScrollReveal.jsx'
 import Art from '../components/Art.jsx'
 
 // Edit this list to change the story. Each row: its paragraphs, and "photo"
-// (an image file, e.g. 'assets/story/farm.jpg'; empty = a placeholder).
+// (an image file in public/, e.g. 'assets/story/story-1.jpg'; empty = a
+// placeholder). Each photo shows in its own shape, never cropped.
 // For the pop-up photos, add photo="assets/story/…" to a <PhotoLink>.
 const rows = [
   {
-    photo: '',
-    alt: 'Soneri and Akhil at the blueberry farm',
+    photo: 'assets/story/story-1.jpg',
+    alt: 'Soneri and Akhil',
     paragraphs: [
       <>
         Soneri and Akhil should have met earlier. They went to the same middle, junior high, and senior high schools,
@@ -30,8 +31,8 @@ const rows = [
     ],
   },
   {
-    photo: '',
-    alt: 'Soneri and Akhil during the pandemic',
+    photo: 'assets/story/story-2.jpg',
+    alt: 'Soneri and Akhil',
     paragraphs: [
       <>
         They spent the next many weeks sending each other Spotify links until Akhil finally mustered the courage to
@@ -49,8 +50,8 @@ const rows = [
     ],
   },
   {
-    photo: '',
-    alt: 'Soneri and Akhil in Central Park',
+    photo: 'assets/story/story-3.jpg',
+    alt: 'Soneri and Akhil',
     paragraphs: [
       <>
         Since then, their two paths have fused together, through the cities they’ve called home (
@@ -68,8 +69,8 @@ const rows = [
     ],
   },
   {
-    photo: '',
-    alt: 'The Blueberry Babes',
+    photo: 'assets/story/story-4.jpg',
+    alt: 'Soneri and Akhil',
     paragraphs: [<>The many adventures of the Blueberry Babes continue…</>],
   },
 ]

@@ -935,6 +935,11 @@ h2:hover .title-berry.mirrored {
   aspect-ratio: 4 / 3;
   border-radius: 20px;
 }
+/* A real photo: its own shape, uncropped (tall photos stay tall). */
+.story-photo img.photo-main {
+  aspect-ratio: auto;
+  height: auto;
+}
 
 /* The first row has the text on the left and the photo on the right; every
    row after that swaps sides. */
