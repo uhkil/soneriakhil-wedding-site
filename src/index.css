@@ -5291,19 +5291,35 @@ img.nugget-photo {
   outline: 2px solid var(--paper);
   outline-offset: 2px;
 }
-.rsvp-chip-check {
-  display: none;
-  width: 16px;
-  height: 16px;
+.rsvp-chip-box {
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: 18px;
+  height: 18px;
   margin-left: -4px;
+  border: 1.5px solid currentColor;
+  border-radius: 5px;
+  box-sizing: border-box;
+}
+.rsvp-chip-box svg {
+  width: 14px;
+  height: 14px;
   fill: none;
   stroke: currentColor;
-  stroke-width: 2.6;
+  stroke-width: 3;
   stroke-linecap: round;
   stroke-linejoin: round;
+  opacity: 0;
 }
-.rsvp-chip.on .rsvp-chip-check {
-  display: block;
+/* Picked: the box fills dark blue with a light check. */
+.rsvp-chip.on .rsvp-chip-box {
+  background: var(--ink);
+  border-color: var(--ink);
+  color: var(--paper);
+}
+.rsvp-chip.on .rsvp-chip-box svg {
+  opacity: 1;
 }
 [data-design='honey'] .rsvp-chip-none {
   border-style: dashed;
@@ -5847,107 +5863,59 @@ img.nugget-photo {
   scroll-margin-top: calc(var(--nav-height) + 24px);
 }
 
-/* ----- Practice only: other "Who's coming?" layouts (RsvpComingStyles.jsx) ----- */
-
-/* The layout switcher: small dashed pills, so it reads as a practice tool. */
-.rsvp-design-picker {
+/* The "i" beside a label, with its tip just above it. */
+.rsvp-label-row {
   display: flex;
-  flex-wrap: wrap;
-  justify-content: center;
   align-items: center;
-  gap: 6px;
-  font: 500 0.75rem/1 var(--font-ui);
-  color: var(--ink);
-}
-.rsvp-design-picker span {
-  margin-right: 4px;
-  opacity: 0.7;
-}
-.rsvp-design-picker button {
-  padding: 6px 11px;
-  border: 1px dashed var(--ink);
-  border-radius: 999px;
-  background: transparent;
-  color: var(--ink);
-  font: inherit;
-  cursor: pointer;
-}
-.rsvp-design-picker button.on {
-  border-style: solid;
-  background: var(--ink);
-  color: var(--paper);
-}
-
-/* --- Two days: the weekend as a little calendar, chips inside each tile --- */
-.rsvp-tiles {
-  display: grid;
-  grid-template-columns: repeat(var(--days), minmax(0, 1fr));
-  gap: 16px;
-  padding-top: 20px;
-  border-top: 1px solid rgba(202, 233, 255, 0.25);
-}
-.rsvp-day {
-  display: grid;
-  grid-template-rows: auto;
-  grid-auto-rows: 1fr; /* morning and evening tiles the same height */
-  gap: 12px;
-  align-content: start;
-}
-[data-design='honey'] .rsvp-day-name {
-  margin: 0;
-  font: 600 0.72rem/1 var(--font-ui);
-  letter-spacing: 0.2em;
-  text-transform: uppercase;
-  color: rgba(202, 233, 255, 0.85);
-}
-[data-design='honey'] .rsvp-tile {
-  padding: 18px 18px 20px;
-  border: 1.5px solid rgba(202, 233, 255, 0.4);
-  border-radius: 18px;
-  transition: background-color 0.2s ease, border-color 0.2s ease;
-}
-/* Answered: a soft fill. */
-[data-design='honey'] .rsvp-tile.answered {
-  background: rgba(202, 233, 255, 0.1);
-  border-color: transparent;
-}
-[data-design='honey'] .rsvp-tile.missing {
-  border-color: #ffb4a9;
-}
-[data-design='honey'] .rsvp-tile.empty {
-  border: 1.5px dashed rgba(202, 233, 255, 0.15);
-}
-.rsvp-tile .rsvp-chip-event {
-  padding-top: 0;
-  border-top: none;
-  row-gap: 14px;
-}
-/* The time of day (small capitals) above the event's name. */
-.rsvp-tile-head span {
-  order: -1;
-}
-/* Slightly smaller chips, so four names fit in a tile. */
-[data-design='honey'] .rsvp-tile .rsvp-chips {
   gap: 8px;
 }
-[data-design='honey'] .rsvp-tile .rsvp-chip {
-  padding: 8px 14px;
-  font-size: 0.88rem;
+.info-tip {
+  position: relative;
+  display: inline-flex;
 }
-/* Phones: the days one under the other, one tile per line (no empty
-   outlines). */
-@media (max-width: 699px) {
-  .rsvp-tiles {
-    grid-template-columns: minmax(0, 1fr);
-    gap: 24px;
-  }
-  .rsvp-day {
-    grid-auto-rows: auto;
-  }
-  .rsvp-tile.empty {
-    display: none;
-  }
-  [data-design='honey'] .rsvp-tile {
-    padding: 16px;
+[data-design='honey'] .info-tip-button {
+  display: grid;
+  place-items: center;
+  width: 18px;
+  height: 18px;
+  padding: 0;
+  border: 1.5px solid currentColor;
+  border-radius: 50%;
+  background: transparent;
+  color: var(--paper);
+  font: italic 700 0.7rem/1 Georgia, serif;
+  cursor: pointer;
+}
+[data-design='honey'] .info-tip-button:focus-visible {
+  outline: 2px solid var(--paper);
+  outline-offset: 2px;
+}
+.info-tip-bubble {
+  position: absolute;
+  z-index: 3;
+  bottom: calc(100% + 10px);
+  left: -14px;
+  width: max-content;
+  max-width: 240px;
+  padding: 9px 12px;
+  border-radius: 10px;
+  background: var(--paper);
+  color: var(--ink);
+  font: 500 0.8rem/1.4 var(--font-ui);
+  letter-spacing: 0;
+  text-transform: none;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.18);
+  visibility: hidden;
+  opacity: 0;
+  transition: opacity 0.15s ease, visibility 0.15s;
+}
+.info-tip.open .info-tip-bubble {
+  visibility: visible;
+  opacity: 1;
+}
+@media (hover: hover) {
+  .info-tip:hover .info-tip-bubble {
+    visibility: visible;
+    opacity: 1;
   }
 }

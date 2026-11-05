@@ -17,7 +17,7 @@
 // If something's missing when they press Send, the spots are outlined with
 // a short note, the page scrolls to the first one, and a message by the
 // button says what to do.
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useGuest } from '../guest/GuestProvider.jsx'
 import { submitRsvp } from '../api/rsvpApi.js'
 import FormMessage from '../components/FormMessage.jsx'
@@ -25,7 +25,6 @@ import RsvpCelebration from '../components/RsvpCelebration.jsx'
 import RsvpAddress from '../components/RsvpAddress.jsx'
 import { ABROAD, addressProblems, isStarted, livesAbroad, startingAddress } from '../guest/address.js'
 import { EMAIL, COM_TYPO, formatPhone, isValidPhone } from '../guest/contact.js'
-import { STYLES, TilesView } from './RsvpComingStyles.jsx'
 
 const LOGGED_OUT = 'Please find your invitation again.'
 
@@ -58,23 +57,13 @@ export default function RsvpByEvent() {
   const [celebrate, setCelebrate] = useState(null)
   // Which tab is showing: 'coming' (who's coming to each event) or 'details'.
   const [tab, setTab] = useState('coming')
-  // Practice only: which layout the "Who's coming?" tab uses (see
-  // RsvpComingStyles.jsx), kept in the address as ?style=…
-  const [style, setStyleState] = useState(() => {
-    const s = new URLSearchParams(window.location.search).get('style')
-    return STYLES.some(([id]) => id === s) ? s : 'chips'
-  })
-  function setStyle(s) {
-    const url = new URL(window.location.href)
-    url.searchParams.set('style', s)
-    window.history.replaceState(null, '', url)
-    setStyleState(s)
-  }
 
   const displayName = (g) => (g.isPlusOne ? 'Your guest' : `${g.firstName} ${g.lastName}`)
   const onFile = (g) => party.onFile?.[g.guestId] || {}
   const people = party.guests
   const invitedTo = (ev) => people.filter((g) => g.invitedEvents.includes(ev.id))
+  // An invitation for just one person: Accept / Decline instead of names.
+  const solo = people.length === 1
   const noteOnFile = people.some((g) => onFile(g).note)
 
   // The chips show first names (full names if two people share one).
@@ -97,7 +86,7 @@ export default function RsvpByEvent() {
     // Each event: answered for everyone invited to it.
     party.events.forEach((ev) => {
       if (invitedTo(ev).some((g) => !answers[g.guestId].attending[ev.id])) {
-        const message = invitedTo(ev).length > 1 ? 'Please tap who’s coming, or “None of us.”' : 'Please tap your name if you’re coming, or “Can’t make it.”'
+        const message = solo ? 'Please choose Accept or Decline.' : 'Please check everyone who’s coming, or “None of us.”'
         list.push({ id: `event-${ev.id}`, card: `event-${ev.id}`, message })
       }
     })
@@ -160,7 +149,7 @@ export default function RsvpByEvent() {
   }
 
   // One event: its name and date, then a chip for each person invited.
-  function eventChips(ev, { tile = false } = {}) {
+  function eventChips(ev) {
     const invited = invitedTo(ev)
     const problem = problemFor(`event-${ev.id}`)
     const answered = invited.every((g) => answers[g.guestId].attending[ev.id])
@@ -175,48 +164,63 @@ export default function RsvpByEvent() {
         aria-labelledby={`event-${ev.id}-name`}
         {...invalid(problem, `event-${ev.id}-note`)}
       >
-        {tile ? (
-          // In a "Two days" tile the day is already above, so: the time of
-          // day, then the event's name.
-          <p className="rsvp-event-head rsvp-tile-head" id={`event-${ev.id}-name`}>
-            <span>{ev.timeOfDay}</span>
-            {ev.name}
-          </p>
-        ) : (
-          <p className="rsvp-event-head" id={`event-${ev.id}-name`}>
-            {ev.name}
-            <span>
-              {ev.date} · {ev.timeOfDay}
-            </span>
-          </p>
-        )}
+        <p className="rsvp-event-head" id={`event-${ev.id}-name`}>
+          {ev.name}
+          <span>
+            {ev.date} · {ev.timeOfDay}
+          </span>
+        </p>
         <div className="rsvp-chips">
-          {invited.map((g) => {
-            const coming = answers[g.guestId].attending[ev.id] === 'yes'
-            return (
-              <button
-                key={g.guestId}
-                type="button"
-                className={`rsvp-chip${coming ? ' on' : ''}`}
-                aria-pressed={coming}
-                aria-label={`${displayName(g)} is coming to ${ev.name}`}
-                onClick={() => tapPerson(ev, g)}
-              >
-                <svg className="rsvp-chip-check" viewBox="0 0 24 24" aria-hidden="true">
-                  <path d="M5 12.5l4.5 4.5L19 7.5" />
-                </svg>
-                {chipName(g)}
-              </button>
-            )
-          })}
-          <button
-            type="button"
-            className={`rsvp-chip rsvp-chip-none${nobody ? ' on' : ''}`}
-            aria-pressed={nobody}
-            onClick={() => noneOfUs(ev)}
-          >
-            {invited.length > 1 ? 'None of us' : 'Can’t make it'}
-          </button>
+          {solo
+            ? // Just one person: Accept or Decline.
+              [
+                ['yes', 'Accept'],
+                ['no', 'Decline'],
+              ].map(([value, label]) => {
+                const g = invited[0]
+                const picked = answers[g.guestId].attending[ev.id] === value
+                return (
+                  <button
+                    key={value}
+                    type="button"
+                    className={`rsvp-chip${picked ? ' on' : ''}`}
+                    aria-pressed={picked}
+                    aria-label={`${label} ${ev.name}`}
+                    onClick={() => updateGuest(g.guestId, (c) => (c.attending[ev.id] = value))}
+                  >
+                    <CheckBox />
+                    {label}
+                  </button>
+                )
+              })
+            : // A family: a box to check for each person who's coming.
+              invited.map((g) => {
+                const coming = answers[g.guestId].attending[ev.id] === 'yes'
+                return (
+                  <button
+                    key={g.guestId}
+                    type="button"
+                    className={`rsvp-chip${coming ? ' on' : ''}`}
+                    aria-pressed={coming}
+                    aria-label={`${displayName(g)} is coming to ${ev.name}`}
+                    onClick={() => tapPerson(ev, g)}
+                  >
+                    <CheckBox />
+                    {chipName(g)}
+                  </button>
+                )
+              })}
+          {!solo && (
+            <button
+              type="button"
+              className={`rsvp-chip rsvp-chip-none${nobody ? ' on' : ''}`}
+              aria-pressed={nobody}
+              onClick={() => noneOfUs(ev)}
+            >
+              <CheckBox />
+              None of us
+            </button>
+          )}
         </div>
         {problem && (
           <p id={`event-${ev.id}-note`} className="field-note rsvp-chip-note">
@@ -227,8 +231,6 @@ export default function RsvpByEvent() {
     )
   }
 
-  // What the "Two days" layout needs from here.
-  const helpers = { events: party.events, answers, invitedTo, eventChips, problemFor }
 
 
   async function save() {
@@ -282,16 +284,6 @@ export default function RsvpByEvent() {
       <div className="rsvp-form rsvp-v2" role="form" aria-label="RSVP">
         {/* Two tabs (the same pill toggle as Travel's): who's coming, and your
             details. A coral dot marks a tab with something still missing. */}
-        {/* Practice only: switch the "Who's coming?" layout. */}
-        <div className="rsvp-design-picker" role="group" aria-label="Try a layout">
-          <span>Try a layout:</span>
-          {STYLES.map(([id, label]) => (
-            <button key={id} type="button" className={style === id ? 'on' : ''} aria-pressed={style === id} onClick={() => { setStyle(id); setTab('coming') }}>
-              {label}
-            </button>
-          ))}
-        </div>
-
         <div
           className="view-toggle travel-toggle rsvp-tabs"
           role="tablist"
@@ -320,14 +312,10 @@ export default function RsvpByEvent() {
 
         {tab === 'coming' && (
         <Card id="coming" title="Who’s coming?">
-          {style === 'tiles' ? (
-            <TilesView h={helpers} />
-          ) : (
-            <>
-              <p className="rsvp-chip-hint">Tap everyone who’s coming.</p>
-              {party.events.map((ev) => eventChips(ev))}
-            </>
-          )}
+          <p className="rsvp-chip-hint">
+            {solo ? 'Let us know if you can make it to each event.' : 'Check everyone who’s coming to each event.'}
+          </p>
+          {party.events.map((ev) => eventChips(ev))}
         </Card>
 
         )}
@@ -374,7 +362,12 @@ export default function RsvpByEvent() {
                     <FieldNote problem={problemFor(id('email'))} id={`${id('email')}-note`} />
                   </div>
                   <div className="rsvp-field">
-                    <label htmlFor={id('phone')}>Phone</label>
+                    <span className="rsvp-label-row">
+                      <label htmlFor={id('phone')}>Phone</label>
+                      <InfoTip id={`${id('phone')}-info`} label="About phone numbers outside the US">
+                        Outside the US? Start with + and the country code (like +91 or +44).
+                      </InfoTip>
+                    </span>
                     <input
                       id={id('phone')}
                       type="tel"
@@ -402,7 +395,6 @@ export default function RsvpByEvent() {
               </div>
             )
           })}
-          <p className="field-hint">Outside the US? Start phone numbers with + and the country code (like +91 or +44).</p>
 
           <div className="rsvp-details-part">
             <RsvpAddress
@@ -524,5 +516,46 @@ function FieldNote({ problem, id }) {
     <p id={id} className="field-note">
       {problem.message}
     </p>
+  )
+}
+
+// The box inside each pill: empty until picked, then checked. It's always
+// there, so a pill doesn't change size when it's picked.
+function CheckBox() {
+  return (
+    <span className="rsvp-chip-box" aria-hidden="true">
+      <svg viewBox="0 0 24 24">
+        <path d="M5 12.5l4.5 4.5L19 7.5" />
+      </svg>
+    </span>
+  )
+}
+
+// A small "i" next to a label: tap (or point at) it for a short tip.
+// Tapping anywhere else, or Escape, closes it.
+function InfoTip({ id, label, children }) {
+  const [open, setOpen] = useState(false)
+  const ref = useRef(null)
+  useEffect(() => {
+    if (!open) return
+    const close = (e) => {
+      if (e.type === 'keydown' ? e.key === 'Escape' : !ref.current?.contains(e.target)) setOpen(false)
+    }
+    document.addEventListener('pointerdown', close)
+    document.addEventListener('keydown', close)
+    return () => {
+      document.removeEventListener('pointerdown', close)
+      document.removeEventListener('keydown', close)
+    }
+  }, [open])
+  return (
+    <span className={`info-tip${open ? ' open' : ''}`} ref={ref}>
+      <button type="button" className="info-tip-button" aria-label={label} aria-expanded={open} aria-describedby={id} onClick={() => setOpen((o) => !o)}>
+        i
+      </button>
+      <span className="info-tip-bubble" role="tooltip" id={id}>
+        {children}
+      </span>
+    </span>
   )
 }
