@@ -2254,6 +2254,17 @@ img.nugget-photo {
   outline-offset: 2px;
 }
 
+/* Phones: the icons look the same, but a finger can tap anywhere in a
+   40x40px square around each one (an invisible area that reaches past the
+   circle). */
+@media (max-width: 699px) {
+  .fact-icon::after {
+    content: '';
+    position: absolute;
+    inset: -9px;
+  }
+}
+
 /* A small line under the attire (an event's "attireNote" in events.js). */
 .attire-note {
   position: relative;
@@ -2940,6 +2951,18 @@ img.nugget-photo {
 .rsvp .rsvp-form {
   display: grid;
   gap: 20px;
+}
+
+/* After RSVPs close: the guest's answers, shown but not changeable. */
+.rsvp-closed {
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  border: none;
+}
+
+.rsvp-closed label {
+  cursor: default;
 }
 
 /* RSVP is the last section, so on its own there isn't always enough page
@@ -4352,25 +4375,34 @@ img.nugget-photo {
    bubbles that hug the words, centered text, and a clear gap between the
    two (20px, split evenly either side of the middle). */
 @media (max-width: 699px) {
+  /* The bubbles are sized to the drawing (cqw: 1% of its width), so on
+     short phones, where the couple is drawn smaller, they shrink with it
+     instead of reaching out past them, but never below 11px text. */
+  .honey-stage {
+    container-type: inline-size;
+  }
   .honey-stage-wrap .honey-bubble {
     max-width: none;
     white-space: nowrap; /* the lines break only where we chose */
-    padding: 6px 12px;
+    padding: 0.48em 0.96em;
     border-radius: 16px;
-    font-size: 0.78rem;
+    font-size: clamp(0.68rem, 3.48cqw, 0.78rem);
     line-height: 1.25;
     text-align: center;
   }
   .honey-bubble .bubble-line {
     display: block;
   }
+  /* Their bottoms stay put just above the heads, whatever their size. */
   .honey-stage-wrap .honey-bubble-her {
     right: calc(50% + 10px);
-    top: -44px;
+    top: auto;
+    bottom: calc(100% - 2px);
   }
   .honey-stage-wrap .honey-bubble-him {
     left: calc(50% + 10px);
-    top: -54px;
+    top: auto;
+    bottom: calc(100% + 8px);
   }
 }
 
@@ -4416,9 +4448,6 @@ img.nugget-photo {
   .honey-stage-wrap .honey-stage {
     top: 58px; /* room for the speech bubbles above their heads */
   }
-  .honey .countdown {
-    margin-top: 48px;
-  }
 }
 
 /* Text only screen readers hear (e.g. "182 days until the wedding"). */
@@ -4435,7 +4464,7 @@ img.nugget-photo {
    (--home-gap) above and below: from the couple's feet to the countdown,
    and from the button to the "Our Story" title. */
 .honey {
-  --home-gap: clamp(160px, 28vh, 300px);
+  --home-gap: clamp(120px, 15vh, 170px);
 }
 
 /* The countdown: about a third of the page wide. (28px less margin than
@@ -4500,7 +4529,7 @@ img.nugget-photo {
 /* Phones: the countdown spans most of the width. */
 @media (max-width: 720px) {
   .honey {
-    --home-gap: clamp(130px, 20vh, 190px);
+    --home-gap: 72px;
   }
   .countdown {
     width: calc(100% - 32px);
@@ -4701,17 +4730,14 @@ img.nugget-photo {
   letter-spacing: 0.18em;
   opacity: 0.85;
 }
-/* The name's parts (see EventName in RsvpByEvent.jsx) sit on one line... */
+/* The name's parts (see EventName.jsx) sit on one line... */
 @media (max-width: 699px) {
   [data-design='honey'] .rsvp-event-head {
     font-size: 1.08rem;
   }
-  /* ...on phones, one part per line, without the bar. */
+  /* ...on phones, one part per line, the bar ending the first. */
   .event-name-part {
     display: block;
-  }
-  .event-name-bar {
-    display: none;
   }
 }
 

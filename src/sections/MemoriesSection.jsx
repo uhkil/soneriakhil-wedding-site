@@ -8,11 +8,12 @@
 // Clicking any photo opens it full screen (Lightbox.jsx).
 import Section from '../components/Section.jsx'
 import { useEffect, useRef, useState } from 'react'
-import PhotoSlot from '../components/PhotoSlot.jsx'
+import PhotoSlot, { PhotosWanted, SHOW_WHOLE_PAST } from '../components/PhotoSlot.jsx'
 import Lightbox from '../components/Lightbox.jsx'
 import Art from '../components/Art.jsx'
 import sizes from '../assets/memories/sizes.json'
 import SideDrawing from '../components/SideDrawing.jsx'
+import { srcSetFor } from '../components/photoUrl.js'
 
 // The photos: every picture in src/assets/memories/, found automatically, so
 // adding or deleting a file there is all it takes (no list to edit). File
@@ -20,10 +21,12 @@ import SideDrawing from '../components/SideDrawing.jsx'
 // the page is opened or refreshed, the same order in all three views.
 // The pictures there are web-sized copies of the originals, and sizes.json
 // has each one's width and height (both made by scripts/sync-memories.sh).
-// Each photo also has a smaller copy in memories/small/ (1000px on its long
-// side: still sharp on every screen, including iPhones, at the size the
-// film strip and grid show them, and about half the download). The
-// full-size copy is only loaded when a photo is opened full screen.
+// Each photo also has two smaller copies: memories/small/ (1000px on its
+// long side) and memories/thumb/ (600px). The film strip, camera and grid
+// let the browser pick the smallest one that's still sharp at the size
+// they're shown on that screen: phones usually get the 600px copy (about
+// 90 KB), laptops with sharp screens the 1000px one. The full-size copy
+// (1600px) is only loaded when a photo is opened full screen.
 const files = import.meta.glob('../assets/memories/*.{jpg,jpeg,png,webp,avif}', {
   eager: true,
   query: '?url',
@@ -34,7 +37,14 @@ const smallFiles = import.meta.glob('../assets/memories/small/*.{jpg,jpeg,png,we
   query: '?url',
   import: 'default',
 })
-const smallByName = Object.fromEntries(Object.entries(smallFiles).map(([path, src]) => [path.split('/').pop(), src]))
+const thumbFiles = import.meta.glob('../assets/memories/thumb/*.{jpg,jpeg,png,webp,avif}', {
+  eager: true,
+  query: '?url',
+  import: 'default',
+})
+const byName = (found) => Object.fromEntries(Object.entries(found).map(([path, src]) => [path.split('/').pop(), src]))
+const smallByName = byName(smallFiles)
+const thumbByName = byName(thumbFiles)
 
 // Portrait photos get a tall tile in the grid (two rows high).
 const isTall = ({ width, height }) => height > width * 1.1
@@ -43,8 +53,17 @@ const shuffled = shuffle(
   Object.entries(files).map(([path, src]) => {
     const name = path.split('/').pop()
     const [width, height] = sizes[name] ?? [4, 3]
-    // src: what the film strip and grid show; full: the full-screen view.
-    return { src: smallByName[name] ?? src, full: src, width, height, alt: 'A photo of Soneri and Akhil' }
+    // The copies' widths: each is shrunk to fit a square (600, 1000, 1600).
+    const widthAt = (longSide) => (width * Math.min(1, longSide / Math.max(width, height)))
+    const srcSet = srcSetFor([
+      [thumbByName[name], widthAt(600)],
+      [smallByName[name], widthAt(1000)],
+      [src, width],
+    ])
+    // src: the fallback for very old browsers; srcSet: the copies to pick
+    // from; thumb: shown full screen while the full-size copy loads; full:
+    // the full-screen view.
+    return { src: smallByName[name] ?? src, srcSet, thumb: thumbByName[name], full: src, width, height, alt: 'A photo of Soneri and Akhil' }
   })
 )
 
@@ -89,6 +108,26 @@ const FRAME = {
   camera: 1.55, // the drawn camera's screen
   gridWide: 4 / 3, // a landscape tile in the grid
   gridTall: 0.65, // a portrait tile (two rows high)
+}
+
+// How wide each view's opening is (a little generous), for picking which
+// copy to download: on phones a share of the screen's width, elsewhere a
+// fixed size (see "Screen sizes" at the top of index.css).
+const OPENING = {
+  filmstrip: ['38vw', '380px'],
+  camera: ['48vw', '340px'],
+  grid: ['45vw', '310px'],
+}
+
+// How wide this photo is actually drawn in that opening: a photo shown
+// whole (much narrower than the opening) is narrower than it; one cropped
+// to fill it is at least as wide, wider if the photo is the wider shape.
+function photoSizes(photo, view, frame) {
+  const shape = photo.width / photo.height / frame
+  const whole = Math.max(shape, 1 / shape) > SHOW_WHOLE_PAST
+  const k = (whole ? Math.min(1, shape) : Math.max(1, shape)).toFixed(3)
+  const [phone, other] = OPENING[view]
+  return `(max-width: 699px) calc(${phone} * ${k}), calc(${other} * ${k})`
 }
 
 const VIEWS = [
@@ -155,7 +194,7 @@ export default function MemoriesSection() {
 }
 
 // A photo that opens full screen when clicked.
-function OpenablePhoto({ index, onOpen, frame, className = '', style }) {
+function OpenablePhoto({ index, onOpen, frame, view, className = '', style }) {
   const photo = photos[index]
   return (
     <button
@@ -165,7 +204,7 @@ function OpenablePhoto({ index, onOpen, frame, className = '', style }) {
       onClick={() => onOpen(index)}
       style={style}
     >
-      <PhotoSlot {...photo} frame={frame} />
+      <PhotoSlot src={photo.src} srcSet={photo.srcSet} sizes={photoSizes(photo, view, frame)} alt={photo.alt} width={photo.width} height={photo.height} frame={frame} />
     </button>
   )
 }
@@ -223,6 +262,7 @@ function Grid({ onOpen }) {
                     index={i}
                     onOpen={onOpen}
                     frame={tall ? FRAME.gridTall : FRAME.gridWide}
+                    view="grid"
                     className={tall ? 'memory-photo tall' : 'memory-photo'}
                     style={{ gridColumn: c + 1, gridRow: tall ? '1 / span 2' : row + 1 }}
                   />
@@ -277,11 +317,16 @@ function Grid({ onOpen }) {
 
 // One of the views. The hidden ones still take up room (so the box stays the
 // same height) but can't be seen, clicked, or reached with the keyboard.
+// A view's photos only start downloading once it has been chosen (until
+// then its spots stay empty), so the views not being looked at don't use up
+// the guest's data.
 function View({ id, view, children }) {
   const shown = id === view
+  const [opened, setOpened] = useState(shown)
+  if (shown && !opened) setOpened(true)
   return (
     <div className={`memories-view memories-view-${id}${shown ? ' shown' : ''}`} inert={!shown} aria-hidden={!shown}>
-      {children}
+      <PhotosWanted.Provider value={opened}>{children}</PhotosWanted.Provider>
     </div>
   )
 }
@@ -431,7 +476,7 @@ function FilmStrip({ onOpen }) {
       <div className="film-track">
         {photos.map((photo, i) => (
           <div key={photo.label} className="film-frame">
-            <OpenablePhoto index={i} onOpen={onOpen} frame={FRAME.filmstrip} className="film-photo" />
+            <OpenablePhoto index={i} onOpen={onOpen} frame={FRAME.filmstrip} view="filmstrip" className="film-photo" />
             {frameArt}
           </div>
         ))}
@@ -466,7 +511,7 @@ function Camera({ onOpen }) {
       <div className="camera-body">
         {/* The photo, in the camera's screen. */}
         <div className="camera-screen" aria-live="polite">
-          <OpenablePhoto index={current} onOpen={onOpen} frame={FRAME.camera} className="camera-photo" />
+          <OpenablePhoto index={current} onOpen={onOpen} frame={FRAME.camera} view="camera" className="camera-photo" />
         </div>
 
         {/* The camera itself, drawn in the text color. */}

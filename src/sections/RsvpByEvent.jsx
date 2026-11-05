@@ -27,6 +27,12 @@ import { EMAIL, COM_TYPO, formatPhone, isValidPhone } from '../guest/contact.js'
 
 const LOGGED_OUT = 'Please find your invitation again.'
 
+// RSVPs close at the end of January 15, 2027, Arlington time. The Sheet's
+// script sends its own date (party.rsvpCloses, which can be moved from the
+// Settings tab); this is the fallback. After it, the form shows the
+// guest's answers without letting them change, and the script refuses changes.
+const RSVP_CLOSES = '2027-01-16T00:00:00-06:00'
+
 function savedAnswers(party) {
   return Object.fromEntries(
     party.guests.map((g) => {
@@ -56,6 +62,7 @@ export default function RsvpByEvent() {
   const [celebrate, setCelebrate] = useState(null)
   // Which tab is showing: 'coming' (who's coming to each event) or 'details'.
   const [tab, setTab] = useState('coming')
+  const closed = Date.now() >= new Date(party.rsvpCloses || RSVP_CLOSES).getTime()
 
   const displayName = (g) => (g.isPlusOne ? 'Your guest' : `${g.firstName} ${g.lastName}`)
   const onFile = (g) => party.onFile?.[g.guestId] || {}
@@ -229,6 +236,27 @@ export default function RsvpByEvent() {
       setError(err.message)
       setStatus('editing')
     }
+  }
+
+  if (closed) {
+    return (
+      <>
+        <p className="rsvp-intro">
+          {party.hasResponded
+            ? 'RSVPs closed on January 15. Here’s what we have for you. If something has changed, please reach out to us.'
+            : 'RSVPs closed on January 15. If you still need to RSVP, please reach out to us.'}
+        </p>
+        {party.hasResponded && (
+          // Their answers, to look at but not change.
+          <fieldset className="rsvp-form rsvp-v2 rsvp-closed" disabled aria-label="Your RSVP">
+            <Card id="coming" title="Who’s coming?">
+              <p className="rsvp-chip-hint">Your answers:</p>
+              {party.events.map((ev) => eventChips(ev))}
+            </Card>
+          </fieldset>
+        )}
+      </>
+    )
   }
 
   return (

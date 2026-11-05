@@ -8,16 +8,22 @@ import PhotoLink from '../components/PhotoLink.jsx'
 import ScrollReveal from '../components/ScrollReveal.jsx'
 import Art from '../components/Art.jsx'
 import Lightbox from '../components/Lightbox.jsx'
+import { srcSetFor } from '../components/photoUrl.js'
 import { Fragment, useState } from 'react'
 
 // Edit this list to change the story. Each row: its paragraphs, and "photo"
 // (an image file in public/, e.g. 'assets/story/story-1.jpg'; empty = a
 // placeholder). Each photo shows in its own shape, uncropped (crop the file
 // itself to change its shape).
+// Each photo also has a copy 1000px wide in public/assets/story/small/ (same
+// file name), which the page shows on most screens; the full-size one
+// (1600px on its long side) is for phones with very sharp screens and the
+// full-screen view. "width" is the full-size file's width in pixels.
 // The underlined words' photos are in public/assets/story/links/.
 const rows = [
   {
     photo: 'assets/story/story-1.jpg',
+    width: 1600,
     alt: 'Soneri and Akhil',
     paragraphs: [
       <>
@@ -36,6 +42,7 @@ const rows = [
   },
   {
     photo: 'assets/story/story-2-v2.jpg',
+    width: 1280,
     alt: 'Soneri and Akhil',
     paragraphs: [
       <>
@@ -48,13 +55,14 @@ const rows = [
         proud. Akhil read Soneri’s favorite books and watched her favorite TV shows, Soneri asked her brother to give
         her a crash course on the NBA. They spent many cozy pandemic days embroidering sweatshirts, biking, painting
         leaves, and having picnics. Soneri fell in love with Akhil’s giving nature, shared creativity, and ability to
-        make her laugh like no one else ever had, and Akhil fell in love with her warmth, whimsy, and passion for
-        living.
+        make her laugh like no one else ever had, and Akhil fell in love with her warmth, curiosity, passion for
+        living, and infectious smile{' :‑)'}
       </>,
     ],
   },
   {
     photo: 'assets/story/story-3.jpg',
+    width: 1600,
     alt: 'Soneri and Akhil',
     paragraphs: [
       <>
@@ -85,6 +93,7 @@ const rows = [
   },
   {
     photo: 'assets/story/story-4-v2.jpg',
+    width: 1280,
     alt: 'Soneri and Akhil',
     paragraphs: [<>The many adventures of the Blueberry Babes continue &lt;3</>],
   },
@@ -92,7 +101,14 @@ const rows = [
 
 // The four photos, for the full-screen view (clicking one opens just that
 // one; no arrows to the others).
-const fullScreen = rows.filter((row) => row.photo).map((row) => ({ src: row.photo, alt: row.alt, label: row.alt }))
+const small = (photo) => photo.replace('assets/story/', 'assets/story/small/')
+const fullScreen = rows.filter((row) => row.photo).map((row) => ({ src: small(row.photo), full: row.photo, alt: row.alt, label: row.alt }))
+// The copies to pick from, and how wide the photo is shown: most of a
+// phone's width (under 641px; a shade under, so a standard iPhone gets the
+// 1000px copy, 99% as sharp as its screen, instead of the full size),
+// otherwise up to 450px.
+const storySizes = '(max-width: 640px) 84vw, 450px'
+const storySrcSet = (row) => srcSetFor([[small(row.photo), 1000], [row.photo, row.width]])
 
 export default function OurStorySection() {
   // The photo open full screen (its number), or null.
@@ -117,9 +133,9 @@ export default function OurStorySection() {
                 type="button"
                 className="photo-button story-photo-button"
                 aria-label={`${row.alt}: view full screen`}
-                onClick={() => setOpen(fullScreen.findIndex((p) => p.src === row.photo))}
+                onClick={() => setOpen(fullScreen.findIndex((p) => p.full === row.photo))}
               >
-                <PhotoSlot src={row.photo} label="Photo" alt={row.alt} className="story-photo" eager />
+                <PhotoSlot src={small(row.photo)} srcSet={storySrcSet(row)} sizes={storySizes} label="Photo" alt={row.alt} className="story-photo" eager />
               </button>
             ) : (
               <PhotoSlot src={row.photo} label="Photo" alt={row.alt} className="story-photo" eager />

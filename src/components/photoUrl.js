@@ -6,3 +6,12 @@
 export function photoUrl(src) {
   return /^(\/|\.|[a-z]+:)/i.test(src) ? src : import.meta.env.BASE_URL + src
 }
+
+// A "srcset": the same photo at several widths, for the browser to choose
+// from. copies: [[address, its width in pixels], ...].
+export function srcSetFor(copies) {
+  return copies
+    .filter(([src, width]) => src && width)
+    .map(([src, width]) => `${photoUrl(src)} ${Math.round(width)}w`)
+    .join(', ')
+}

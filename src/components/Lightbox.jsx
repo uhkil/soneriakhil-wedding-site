@@ -17,6 +17,14 @@ export default function Lightbox({ photos, index, onIndex, onClose }) {
   const several = photos.length > 1
   const step = (by) => several && onIndex((index + by + photos.length) % photos.length)
 
+  // Once this photo has loaded in full, the next one's full-size copy starts
+  // downloading, so stepping forward shows it sharp right away (just the
+  // next one, to go easy on phone data).
+  const preloadNext = () => {
+    const next = several && photos[(index + 1) % photos.length]
+    if (next?.full) new Image().src = photoUrl(next.full)
+  }
+
   // On open: focus the ×, stop the page from scrolling. On close: undo both.
   useEffect(() => {
     const before = document.activeElement
@@ -68,12 +76,14 @@ export default function Lightbox({ photos, index, onIndex, onClose }) {
       <figure className="lightbox-figure" onClick={(e) => e.target === e.currentTarget && onClose()}>
         {photo.src ? (
           // The full-size copy if there is one (e.g. Memories photos), shown
-          // over the smaller one the guest already has, so it's never blank.
+          // over a small copy (quick to load, or already loaded) while it
+          // downloads, so it's never blank.
           <img
             key={photo.src}
             src={photoUrl(photo.full ?? photo.src)}
             alt={photo.alt || photo.label}
-            style={photo.full ? { backgroundImage: `url(${photoUrl(photo.src)})`, backgroundSize: 'contain', backgroundRepeat: 'no-repeat', backgroundPosition: 'center' } : undefined}
+            onLoad={preloadNext}
+            style={photo.full ? { backgroundImage: `url(${photoUrl(photo.thumb ?? photo.src)})`, backgroundSize: 'contain', backgroundRepeat: 'no-repeat', backgroundPosition: 'center' } : undefined}
           />
         ) : (
           <div key={photo.label} className="lightbox-placeholder">
