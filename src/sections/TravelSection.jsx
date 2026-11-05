@@ -3,7 +3,6 @@
 // fit its text.
 import { useState } from 'react'
 import Section from '../components/Section.jsx'
-import IllustrationSlot from '../components/IllustrationSlot.jsx'
 import SideDrawing from '../components/SideDrawing.jsx'
 
 // ----- The details. -----

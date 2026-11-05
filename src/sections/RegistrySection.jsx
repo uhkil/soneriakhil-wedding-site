@@ -1,6 +1,5 @@
 // The gift registry. For now, just a note that details are coming.
 import Section from '../components/Section.jsx'
-import IllustrationSlot from '../components/IllustrationSlot.jsx'
 import Art from '../components/Art.jsx'
 import SideDrawing from '../components/SideDrawing.jsx'
 

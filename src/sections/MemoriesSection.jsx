@@ -9,7 +9,6 @@
 import Section from '../components/Section.jsx'
 import { useEffect, useRef, useState } from 'react'
 import PhotoSlot from '../components/PhotoSlot.jsx'
-import IllustrationSlot from '../components/IllustrationSlot.jsx'
 import Lightbox from '../components/Lightbox.jsx'
 import Art from '../components/Art.jsx'
 import sizes from '../assets/memories/sizes.json'

@@ -5,7 +5,6 @@
 // Sheet after login, only for the events this party is invited to. They are
 // not stored in the website's code.
 import Section from '../components/Section.jsx'
-import IllustrationSlot from '../components/IllustrationSlot.jsx'
 import EventBlock from '../components/EventBlock.jsx'
 import Art from '../components/Art.jsx'
 import SideDrawing from '../components/SideDrawing.jsx'
