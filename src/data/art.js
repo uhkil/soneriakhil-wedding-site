@@ -56,7 +56,8 @@ const art = {
     note: 'The two of us at a museum, looking at a painting',
     nugget: {
       heading: 'museums we’ve enjoyed',
-      text: 'go check them out for yourself :-)',
+      // (the smiley never splits or starts a line on its own)
+      text: 'go check them out for yourself\u00a0:\u2011)',
       links: [
         { label: 'Guggenheim Museum', href: 'https://maps.app.goo.gl/9N26RML1zH1MLGu69' },
         { label: 'Frida Kahlo Museum', href: 'https://maps.app.goo.gl/5jcZPBLdUXwp6aUq5' },

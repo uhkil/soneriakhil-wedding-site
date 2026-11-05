@@ -1012,7 +1012,8 @@ h2:hover .title-berry.mirrored {
 }
 
 /* "NY → SF → NY → SF → ??": the site's thin arrow between the cities. */
-.city-trail {
+/* The trail can wrap, but only right after an arrow (see CityTrail). */
+.city-trail > span {
   white-space: nowrap;
 }
 .city-arrow {

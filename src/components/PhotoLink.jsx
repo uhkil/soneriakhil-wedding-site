@@ -15,9 +15,24 @@ export default function PhotoLink({ children, photo, alt }) {
 
   return (
     <>
-      <button type="button" className="photo-link" aria-haspopup="dialog" onClick={() => setOpen(true)}>
+      {/* Plain inline text that acts as a button (not a <button>: Safari keeps
+          a <button> in one piece, so a line could break between it and the
+          "(" before it or the "," after it). Tap, click, Enter or Space opens it. */}
+      <span
+        role="button"
+        tabIndex={0}
+        className="photo-link"
+        aria-haspopup="dialog"
+        onClick={() => setOpen(true)}
+        onKeyDown={(e) => {
+          if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault()
+            setOpen(true)
+          }
+        }}
+      >
         {children}
-      </button>
+      </span>
       {open && <Lightbox photos={[{ src: photo, alt: label, label: `${label} — photo coming soon` }]} index={0} onIndex={() => {}} onClose={() => setOpen(false)} />}
     </>
   )

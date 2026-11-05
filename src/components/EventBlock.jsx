@@ -6,6 +6,7 @@
 import { useRef } from 'react'
 import IllustrationSlot from './IllustrationSlot.jsx'
 import { showToast } from './Toast.jsx'
+import EventName from './EventName.jsx'
 
 export default function EventBlock({ event, flipped }) {
   const facts = [
@@ -22,7 +23,9 @@ export default function EventBlock({ event, flipped }) {
           {event.date} · {event.timeOfDay}
         </p>
         {/* The "|" stays at the end of the first line if the name wraps. */}
-        <h3>{event.name.replaceAll(' | ', '\u00a0| ')}</h3>
+        <h3>
+          <EventName name={event.name} />
+        </h3>
         {/* A "definition list": pairs of labels (dt) and values (dd).
             Rows left blank are skipped. */}
         <dl className="event-facts">

@@ -8,7 +8,7 @@ import PhotoLink from '../components/PhotoLink.jsx'
 import ScrollReveal from '../components/ScrollReveal.jsx'
 import Art from '../components/Art.jsx'
 import Lightbox from '../components/Lightbox.jsx'
-import { useState } from 'react'
+import { Fragment, useState } from 'react'
 
 // Edit this list to change the story. Each row: its paragraphs, and "photo"
 // (an image file in public/, e.g. 'assets/story/story-1.jpg'; empty = a
@@ -23,7 +23,7 @@ const rows = [
       <>
         Soneri and Akhil should have met earlier. They went to the same middle, junior high, and senior high schools,
         spent years just 1 block away from another (Soneri practically lived at Diyaanka’s house in the same
-        neighborhood as Akhil), attended the same university (<PhotoLink photo="assets/story/links/hook-em.jpg" alt="Hook ’em Horns">Hook ’em Horns</PhotoLink>), and both moved to San Francisco to start
+        neighborhood as Akhil), attended the same university (<PhotoLink photo="assets/story/links/hook-em.jpg" alt="Hook ’em Horns">Hook{'\u00a0'}’em Horns</PhotoLink>), and both moved to San Francisco to start
         their careers.
       </>,
       <>
@@ -58,8 +58,10 @@ const rows = [
     alt: 'Soneri and Akhil',
     paragraphs: [
       <>
-        Since then, their two paths have fused together, through the cities they’ve called home (
+        Since then, their two paths have fused together, through the cities they’ve called home{' '}
         <CityTrail
+          before="("
+          after="),"
           stops={[
             <PhotoLink key="ny-first" photo="assets/story/links/ny-first.jpg" alt="New York">NY</PhotoLink>,
             <PhotoLink key="sf" photo="assets/story/links/sf.jpg" alt="San Francisco">SF</PhotoLink>,
@@ -67,7 +69,7 @@ const rows = [
             'SF',
             '??',
           ]}
-        />),
+        />{' '}
         huge life transitions, moped joyrides, bad haircuts, <PhotoLink photo="assets/story/links/hiking.jpg" alt="One of their hikes">hikes</PhotoLink> that
         terrify their mothers, begrudgingly shared <PhotoLink photo="assets/story/links/affogato.jpg" alt="A shared affogato">affogatos</PhotoLink>, and many,
         many thai massages.
@@ -137,22 +139,34 @@ export default function OurStorySection() {
 
 // "NY → SF → NY → SF → ??", with the site's own thin arrow (the one on the
 // login page's button) between the cities. Screen readers hear "to".
-function CityTrail({ stops }) {
+// "before" / "after" (the brackets and comma around it) stay attached to the
+// first / last city. It may wrap only right after an arrow (never before
+// one), and the last two cities ("SF → ??),") always stay together.
+function CityTrail({ stops, before = '', after = '' }) {
   return (
     <span className="city-trail">
-      {stops.map((stop, i) => (
-        <span key={i}>
-          {i > 0 && (
-            <>
-              <svg className="city-arrow" viewBox="0 0 24 24" aria-hidden="true">
-                <path d="M5 12h13M13 6l6 6-6 6" />
-              </svg>
-              <span className="visually-hidden"> to </span>
-            </>
-          )}
-          {stop}
-        </span>
-      ))}
+      {stops.map((stop, i) => {
+        const last = i === stops.length - 1
+        return (
+          <Fragment key={i}>
+            <span>
+              {i === 0 && before}
+              {stop}
+              {!last && (
+                <>
+                  <svg className="city-arrow" viewBox="0 0 24 24" aria-hidden="true">
+                    <path d="M5 12h13M13 6l6 6-6 6" />
+                  </svg>
+                  <span className="visually-hidden"> to </span>
+                </>
+              )}
+              {last && after}
+            </span>
+            {/* a place the line may break (not before the last city) */}
+            {i < stops.length - 2 && <wbr />}
+          </Fragment>
+        )
+      })}
     </span>
   )
 }

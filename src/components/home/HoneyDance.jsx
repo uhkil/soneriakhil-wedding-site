@@ -95,7 +95,7 @@ function Dance({ onReplay }) {
             the left, Akhil on the right. On phones, each "bubble-line" starts
             a second line, so the bubble can hug the words (see index.css). */}
         <p className="honey-bubble honey-bubble-her">
-          we’re excited to <span className="bubble-line">celebrate with you :-)</span>
+          we’re excited to <span className="bubble-line">celebrate with you{'\u00a0:\u2011)'}</span>
         </p>
         <p className="honey-bubble honey-bubble-him">
           welcome to our <span className="bubble-line">wedding website!</span>
