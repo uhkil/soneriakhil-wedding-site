@@ -32,7 +32,7 @@ const rows = [
     ],
   },
   {
-    photo: 'assets/story/story-2.jpg',
+    photo: 'assets/story/story-2-v2.jpg',
     alt: 'Soneri and Akhil',
     paragraphs: [
       <>
@@ -70,7 +70,7 @@ const rows = [
     ],
   },
   {
-    photo: 'assets/story/story-4.jpg',
+    photo: 'assets/story/story-4-v2.jpg',
     alt: 'Soneri and Akhil',
     paragraphs: [<>The many adventures of the Blueberry Babes continue…</>],
   },
