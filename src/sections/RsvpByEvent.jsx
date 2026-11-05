@@ -86,7 +86,7 @@ export default function RsvpByEvent() {
     // Each event: answered for everyone invited to it.
     party.events.forEach((ev) => {
       if (invitedTo(ev).some((g) => !answers[g.guestId].attending[ev.id])) {
-        const message = solo ? 'Please choose Accept or Decline.' : 'Please check everyone who’s coming, or “None of us.”'
+        const message = solo ? 'Please choose Accept or Decline.' : 'Please switch on everyone who’s coming, or “None of us can make it.”'
         list.push({ id: `event-${ev.id}`, card: `event-${ev.id}`, message })
       }
     })
@@ -170,58 +170,70 @@ export default function RsvpByEvent() {
             {ev.date} · {ev.timeOfDay}
           </span>
         </p>
-        <div className="rsvp-chips">
-          {solo
-            ? // Just one person: Accept or Decline.
-              [
+        {solo ? (
+          // Just one person: their name, and Accept / Decline beside it.
+          <div className="rsvp-toggle-row rsvp-solo-row">
+            <span className="rsvp-toggle-name">{displayName(invited[0])}</span>
+            <span className="rsvp-choices" role="radiogroup" aria-label={`${displayName(invited[0])}, ${ev.name}`}>
+              {[
                 ['yes', 'Accept'],
                 ['no', 'Decline'],
               ].map(([value, label]) => {
                 const g = invited[0]
-                const picked = answers[g.guestId].attending[ev.id] === value
+                const group = `${g.guestId}-${ev.id}`
                 return (
-                  <button
-                    key={value}
-                    type="button"
-                    className={`rsvp-chip${picked ? ' on' : ''}`}
-                    aria-pressed={picked}
-                    aria-label={`${label} ${ev.name}`}
-                    onClick={() => updateGuest(g.guestId, (c) => (c.attending[ev.id] = value))}
-                  >
-                    <CheckBox />
-                    {label}
-                  </button>
-                )
-              })
-            : // A family: a box to check for each person who's coming.
-              invited.map((g) => {
-                const coming = answers[g.guestId].attending[ev.id] === 'yes'
-                return (
-                  <button
-                    key={g.guestId}
-                    type="button"
-                    className={`rsvp-chip${coming ? ' on' : ''}`}
-                    aria-pressed={coming}
-                    aria-label={`${displayName(g)} is coming to ${ev.name}`}
-                    onClick={() => tapPerson(ev, g)}
-                  >
-                    <CheckBox />
-                    {chipName(g)}
-                  </button>
+                  <span key={value} className="rsvp-choice">
+                    <input
+                      type="radio"
+                      id={`${group}-${value}`}
+                      name={group}
+                      value={value}
+                      checked={answers[g.guestId].attending[ev.id] === value}
+                      onChange={() => updateGuest(g.guestId, (c) => (c.attending[ev.id] = value))}
+                    />
+                    <label htmlFor={`${group}-${value}`}>{label}</label>
+                  </span>
                 )
               })}
-          {!solo && (
+            </span>
+          </div>
+        ) : (
+          // A family: each person on their own line, with an on/off switch
+          // (on = coming, with the word "Coming" beside it), then a last line
+          // for "None of us can make it". The whole line is the button.
+          <div className="rsvp-toggle-list">
+            {invited.map((g) => {
+              const state = answers[g.guestId].attending[ev.id]
+              return (
+                <button
+                  key={g.guestId}
+                  type="button"
+                  role="switch"
+                  aria-checked={state === 'yes'}
+                  className={`rsvp-toggle-row${state === 'yes' ? ' on' : ''}`}
+                  onClick={() => tapPerson(ev, g)}
+                >
+                  <span className="rsvp-toggle-name">{displayName(g)}</span>
+                  <span className="rsvp-toggle-state" aria-hidden="true">
+                    {state === 'yes' ? 'Coming' : state === 'no' ? 'Not coming' : ''}
+                  </span>
+                  <Switch />
+                </button>
+              )
+            })}
             <button
               type="button"
-              className={`rsvp-chip rsvp-chip-none${nobody ? ' on' : ''}`}
-              aria-pressed={nobody}
-              onClick={() => noneOfUs(ev)}
+              role="switch"
+              aria-checked={nobody}
+              className={`rsvp-toggle-row rsvp-none-row${nobody ? ' on' : ''}`}
+              onClick={() => (nobody ? null : noneOfUs(ev))}
             >
-              <CheckBox />
-              None of us
+              <span className="rsvp-toggle-name">None of us can make it</span>
+              <span className="rsvp-toggle-state" aria-hidden="true" />
+              <Switch />
             </button>
-          )}
-        </div>
+          </div>
+        )}
         {problem && (
           <p id={`event-${ev.id}-note`} className="field-note rsvp-chip-note">
             {problem.message}
@@ -313,7 +325,7 @@ export default function RsvpByEvent() {
         {tab === 'coming' && (
         <Card id="coming" title="Who’s coming?">
           <p className="rsvp-chip-hint">
-            {solo ? 'Let us know if you can make it to each event.' : 'Check everyone who’s coming to each event.'}
+            {solo ? 'Let us know if you can make it to each event.' : 'Switch on everyone who’s coming to each event.'}
           </p>
           {party.events.map((ev) => eventChips(ev))}
         </Card>
@@ -519,23 +531,23 @@ function FieldNote({ problem, id }) {
   )
 }
 
-// The box inside each pill: empty until picked, then checked. It's always
-// there, so a pill doesn't change size when it's picked.
-function CheckBox() {
+// An on/off switch: a rounded track with a circle that slides right when on.
+function Switch() {
   return (
-    <span className="rsvp-chip-box" aria-hidden="true">
-      <svg viewBox="0 0 24 24">
-        <path d="M5 12.5l4.5 4.5L19 7.5" />
-      </svg>
+    <span className="rsvp-switch" aria-hidden="true">
+      <span className="rsvp-switch-knob" />
     </span>
   )
 }
 
-// A small "i" next to a label: tap (or point at) it for a short tip.
-// Tapping anywhere else, or Escape, closes it.
+// A small "i" next to a label. On iPads and laptops: point at it or tap it
+// for a little bubble (tapping anywhere else, or Escape, closes it). On
+// phones: tapping it shows the tip as a message over a light overlay, with
+// "Got it" to close.
 function InfoTip({ id, label, children }) {
   const [open, setOpen] = useState(false)
   const ref = useRef(null)
+  const dialog = useRef(null)
   useEffect(() => {
     if (!open) return
     const close = (e) => {
@@ -548,14 +560,38 @@ function InfoTip({ id, label, children }) {
       document.removeEventListener('keydown', close)
     }
   }, [open])
+  const onPhone = () => window.matchMedia('(max-width: 699px)').matches
   return (
     <span className={`info-tip${open ? ' open' : ''}`} ref={ref}>
-      <button type="button" className="info-tip-button" aria-label={label} aria-expanded={open} aria-describedby={id} onClick={() => setOpen((o) => !o)}>
-        i
+      <button
+        type="button"
+        className="info-tip-button"
+        aria-label={label}
+        aria-describedby={id}
+        onClick={() => (onPhone() ? dialog.current?.showModal() : setOpen((o) => !o))}
+      >
+        <svg viewBox="0 0 20 20" aria-hidden="true">
+          <circle cx="10" cy="10" r="8.25" />
+          <path d="M10 9v5" />
+          <circle className="info-dot" cx="10" cy="6.1" r="0.6" />
+        </svg>
       </button>
       <span className="info-tip-bubble" role="tooltip" id={id}>
         {children}
       </span>
+      <dialog
+        ref={dialog}
+        className="info-dialog"
+        aria-label={label}
+        onClick={(e) => e.target === e.currentTarget && dialog.current.close()}
+      >
+        <div className="info-dialog-card">
+          <p>{children}</p>
+          <button type="button" className="button info-dialog-close" onClick={() => dialog.current.close()}>
+            Got it
+          </button>
+        </div>
+      </dialog>
     </span>
   )
 }
