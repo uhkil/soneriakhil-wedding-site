@@ -200,14 +200,13 @@ function Grid({ onOpen }) {
   const ref = useRef(null)
   const [page, setPage] = useState(0)
 
+  // One page's width plus the gap between pages.
+  const step = () => ref.current.clientWidth + (parseFloat(getComputedStyle(ref.current).columnGap) || 0)
   // Keep the dots in step with swiping.
-  const onScroll = () => {
-    const pager = ref.current
-    setPage(Math.round(pager.scrollLeft / pager.clientWidth))
-  }
+  const onScroll = () => setPage(Math.round(ref.current.scrollLeft / step()))
   const goTo = (p) => {
     const smooth = !window.matchMedia('(prefers-reduced-motion: reduce)').matches
-    ref.current.scrollTo({ left: p * ref.current.clientWidth, behavior: smooth ? 'smooth' : 'auto' })
+    ref.current.scrollTo({ left: p * step(), behavior: smooth ? 'smooth' : 'auto' })
   }
 
   return (

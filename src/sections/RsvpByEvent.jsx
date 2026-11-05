@@ -7,8 +7,8 @@
 //     tapped (or "None of us").
 //   - Your details: for each person, their email, phone, and dietary needs
 //     (and a plus-one's name); then the mailing address and one note for the
-//     whole invitation. The invitation needs at least one email and one
-//     phone number; the rest are optional.
+//     whole invitation. The invitation needs at least one email or phone
+//     number; the rest are optional.
 //
 // The answers are the same as before (each person's yes/no for each event,
 // their contact details and dietary needs), so they save to the Sheet the
@@ -86,7 +86,7 @@ export default function RsvpByEvent() {
       }
     })
     // Details: a plus-one who's coming needs a name; every email and phone
-    // typed must look right; and the invitation needs one of each.
+    // typed must look right; and the invitation needs at least one of either.
     people.forEach((g) => {
       const a = answers[g.guestId]
       if (g.isPlusOne && Object.values(a.attending).includes('yes') && !a.name.trim()) {
@@ -110,8 +110,9 @@ export default function RsvpByEvent() {
     const first = people.find((g) => !g.isPlusOne) || people[0]
     const anyEmail = people.some((g) => answers[g.guestId].email.trim() || onFile(g).email)
     const anyPhone = people.some((g) => answers[g.guestId].phone.trim() || onFile(g).phone)
-    if (!anyEmail) list.push({ id: `email-${first.guestId}`, card: 'details', message: 'Please add at least one email for your invitation.' })
-    if (!anyPhone) list.push({ id: `phone-${first.guestId}`, card: 'details', message: 'Please add at least one phone number for your invitation.' })
+    if (!anyEmail && !anyPhone) {
+      list.push({ id: `email-${first.guestId}`, card: 'details', message: 'Please add at least one email or phone number for your invitation.' })
+    }
     // The address is needed unless one is saved (then only checked if changed).
     if (!party.addressOnFile || isStarted(address) || (livesAbroad(party.addressOnFile) && address.country === 'US')) {
       addressProblems(address, party.addressMasked).forEach((p) => list.push({ id: `addr-${p.field}`, card: 'address', field: p.field, message: p.message }))
@@ -281,7 +282,7 @@ export default function RsvpByEvent() {
         {tab === 'details' && (
         <Card id="details" title="Your details">
           <p className="field-hint rsvp-details-intro">
-            We need at least one email and one phone number for your invitation. Add them for everyone if you’d like.
+            We need at least one email or phone number for your invitation. Add them for everyone if you’d like.
           </p>
           {people.map((g) => {
             const a = answers[g.guestId]

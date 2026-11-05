@@ -2196,10 +2196,14 @@ img.nugget-photo {
 /* Pages of photos side by side; the row scrolls sideways a whole page at a
    time (snapping into place), and its scroll bar is hidden: the dots below
    do that job. */
+.memory-grid-wrap {
+  --gap: 14px; /* between photos, and between pages while swiping */
+}
 .memory-pages {
   display: grid;
   grid-auto-flow: column;
   grid-auto-columns: 100%;
+  column-gap: var(--gap);
   overflow-x: auto;
   scroll-snap-type: x mandatory;
   overscroll-behavior-x: contain;
@@ -2217,7 +2221,6 @@ img.nugget-photo {
    same size and the dots don't jump. */
 .memory-grid {
   --cols: 3;
-  --gap: 14px;
   display: grid;
   grid-template-columns: repeat(var(--cols), minmax(0, 1fr));
   grid-template-rows: repeat(2, calc((100cqw - (var(--cols) - 1) * var(--gap)) / var(--cols) * 0.75));
@@ -2296,6 +2299,8 @@ img.nugget-photo {
 @media (max-width: 699px) {
   .memory-grid {
     --cols: 2;
+  }
+  .memory-grid-wrap {
     --gap: 8px;
   }
 }
