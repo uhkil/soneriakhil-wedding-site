@@ -22,10 +22,16 @@ export default function Lightbox({ photos, index, onIndex, onClose }) {
     const before = document.activeElement
     const root = document.documentElement
     const overflow = root.style.overflow
+    const padding = root.style.paddingRight
+    // Older browsers without "scrollbar-gutter" (see index.css): make up
+    // for the scrollbar disappearing, so the page doesn't shift sideways.
+    const bar = window.innerWidth - root.clientWidth
+    if (bar > 0 && !CSS.supports?.('scrollbar-gutter', 'stable')) root.style.paddingRight = `${bar}px`
     root.style.overflow = 'hidden'
     closeRef.current?.focus()
     return () => {
       root.style.overflow = overflow
+      root.style.paddingRight = padding
       before?.focus?.({ preventScroll: true })
     }
   }, [])

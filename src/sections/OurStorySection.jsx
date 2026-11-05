@@ -23,7 +23,7 @@ const rows = [
       <>
         Soneri and Akhil should have met earlier. They went to the same middle, junior high, and senior high schools,
         spent years just 1 block away from another (Soneri practically lived at Diyaanka’s house in the same
-        neighborhood as Akhil), attended the same university (<PhotoLink photo="assets/story/links/hook-em.jpg" alt="Hook ’Em">Hook ‘Em</PhotoLink>), and both moved to San Francisco to start
+        neighborhood as Akhil), attended the same university (<PhotoLink photo="assets/story/links/hook-em.jpg" alt="Hook ’em Horns">Hook ’em Horns</PhotoLink>), and both moved to San Francisco to start
         their careers.
       </>,
       <>
@@ -61,7 +61,7 @@ const rows = [
         Since then, their two paths have fused together, through the cities they’ve called home (
         <CityTrail
           stops={[
-            'NY',
+            <PhotoLink key="ny-first" photo="assets/story/links/ny-first.jpg" alt="New York">NY</PhotoLink>,
             <PhotoLink key="sf" photo="assets/story/links/sf.jpg" alt="San Francisco">SF</PhotoLink>,
             <PhotoLink key="ny" photo="assets/story/links/ny.jpg" alt="New York">NY</PhotoLink>,
             'SF',

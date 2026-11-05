@@ -42,6 +42,10 @@
 /* Makes nav-link jumps glide instead of snapping. */
 html {
   scroll-behavior: smooth;
+  /* Keep the scrollbar's space even while a full-screen photo has the page
+     locked (Lightbox.jsx), so the page doesn't shift sideways when one
+     opens or closes (on computers that always show scrollbars). */
+  scrollbar-gutter: stable;
 }
 
 body {

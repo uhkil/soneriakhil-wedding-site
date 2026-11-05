@@ -34,7 +34,7 @@ const art = {
     nugget: {
       heading: 'games we luv',
       links: [
-        { before: 'NYT ', label: 'Crossword', href: 'https://www.nytimes.com/crosswords' },
+        { label: 'NYT Crossword', href: 'https://www.nytimes.com/crosswords' },
         {
           label: 'Overcooked2',
           href: 'https://www.nintendo.com/au/games/nintendo-switch/overcooked-2/?srsltid=AYCX9vIhG5JQEgwUudRMf7g765dCAPRvgemQCakkltnwtautu24y6BYe',
