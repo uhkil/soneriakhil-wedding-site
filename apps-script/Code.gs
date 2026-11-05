@@ -7,8 +7,9 @@
  * This code lives inside the wedding Google Sheet (Extensions → Apps Script).
  * The website sends it requests; it reads the guest list from the Sheet and
  * writes RSVPs back. Guests log in with their name plus the wedding passcode
- * (one passcode for everyone, set in the Settings tab). Each person gives
- * their own email and phone (both required) and can leave a note. Saved
+ * (one passcode for everyone, set in the Settings tab). Each person can give
+ * an email and phone (the invitation needs at least one of either), and the
+ * invitation can leave one note. Saved
  * emails and phones are only ever sent back partly hidden (p•••h@gmail.com,
  * •••-•••-1234), and saved notes not at all.
  *
@@ -487,8 +488,9 @@ function saveRsvp(req, list) {
         throw new UserError("Please add your guest's name.")
       }
     }
-    // Everyone gives an email and a phone number (an unnamed plus-one who
-    // isn't coming is skipped). A blank box keeps what's already saved.
+    // Emails and phone numbers are optional per person (the invitation needs
+    // at least one of either; checked below), but any that's typed must look
+    // right. A blank box keeps what's already saved.
     const saved = savedRows[guest.guestId] || {}
     const email = (limit(g.email, 200) || saved.email || '').toLowerCase()
     // Phones are saved as 214-555-1234 in the US, or with + and the country
@@ -496,12 +498,8 @@ function saveRsvp(req, list) {
     const phone = sheetPhone(limit(g.phone, 40) || saved.phone || '')
     const note = limit(g.note, 1000) || saved.note || ''
     const who = name || 'your guest'
-    if (name) {
-      if (!email) throw new UserError(`Please add an email for ${who}.`)
-      if (!EMAIL.test(email) || COM_TYPO.test(email)) throw new UserError(`Please check the email for ${who}.`)
-      if (!phone) throw new UserError(`Please add a phone number for ${who}.`)
-      if (!isValidPhone(phone)) throw new UserError(`Please check the phone number for ${who}.`)
-    }
+    if (email && (!EMAIL.test(email) || COM_TYPO.test(email))) throw new UserError(`Please check the email for ${who}.`)
+    if (phone && !isValidPhone(phone)) throw new UserError(`Please check the phone number for ${who}.`)
     guestRows.push({
       updated_at: now,
       party_id: details.partyId,
@@ -521,6 +519,12 @@ function saveRsvp(req, list) {
         .join(' · '),
     })
   })
+
+  // The invitation needs at least one email or phone number (from anyone on
+  // it, typed now or already saved).
+  if (!guestRows.some((r) => r.email || r.phone)) {
+    throw new UserError('Please add at least one email or phone number for your invitation.')
+  }
 
   // When this party last saved (any older party-wide contact info is kept as it was).
   const savedResponse = readTab(TAB.responses).find((r) => r.party_id === details.partyId) || {}

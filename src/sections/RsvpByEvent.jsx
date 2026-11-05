@@ -1,10 +1,8 @@
-// The RSVP form, organized by event (the new design; for now only in
-// practice mode — see RsvpSection.jsx). Two cards, always open:
-//   - Who's coming?: one short row per event, with a name button ("chip")
-//     for each person invited to it. Tap the people who are coming; tapping
-//     anyone marks everyone else as not coming, and "None of us" marks the
-//     whole group as not coming. An event counts as answered once someone's
-//     tapped (or "None of us").
+// The RSVP form, organized by event, in two tabs (one card showing at a time):
+//   - Who's coming?: each event (its name in heading style, then its date),
+//     with a line per person invited to it and Yes / No beside their name
+//     (Accept / Decline when the invitation is just for one person). Long
+//     names shorten to first name + last initial when they don't fit.
 //   - Your details: for each person, their email, phone, and dietary needs
 //     (and a plus-one's name); then the mailing address and one note for the
 //     whole invitation. The invitation needs at least one email or phone
