@@ -896,9 +896,39 @@ h2:hover .title-berry.mirrored {
   rotate: 4deg;
 }
 
+/* A quick shake every 4.1 seconds: still most of the time, then a short
+   wiggle (about half a second) at the end of each round. It's a separate
+   "transform" on top of the tilt above, so the hover tilt still works. */
+.title-berry {
+  animation: berry-shake 4.1s ease-in-out infinite;
+}
+@keyframes berry-shake {
+  0%,
+  86% {
+    transform: rotate(0deg);
+  }
+  88.5% {
+    transform: rotate(-12deg);
+  }
+  91% {
+    transform: rotate(10deg);
+  }
+  93.5% {
+    transform: rotate(-7deg);
+  }
+  96% {
+    transform: rotate(4deg);
+  }
+  98.5%,
+  100% {
+    transform: rotate(0deg);
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .title-berry {
     transition: none;
+    animation: none;
   }
 }
 
