@@ -5660,15 +5660,19 @@ img.nugget-photo {
    the card's width (cqi = 1% of it), up to a comfortable maximum. */
 .celebration-card p.celebration-line {
   font-family: var(--font-body);
-  font-size: min(1.15rem, 5.3cqi);
+  /* Sized to fit on one line: the line is about 21 times as wide as the
+     font size in Archivo, so 4.6% of the card's width at most. */
+  font-size: max(14px, min(1.15rem, 4.6cqi));
   line-height: 1.35;
-  white-space: nowrap;
+  /* One line wherever it fits at 14px or more; on the narrowest phones it
+     wraps onto two even lines instead of getting too small. */
+  text-wrap: balance;
 }
 .celebration-card p.celebration-small {
   margin-top: 8px;
   font-family: var(--font-body);
-  font-size: min(0.95rem, 4cqi);
-  white-space: nowrap;
+  font-size: max(11px, min(0.9rem, 3.4cqi)); /* about 28 times as wide as its size */
+  text-wrap: balance;
   opacity: 0.75;
 }
 
