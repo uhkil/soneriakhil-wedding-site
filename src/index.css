@@ -927,10 +927,10 @@ h2:hover .title-berry.mirrored {
   width: 100%;
   box-shadow: none;
   /* Like the Memories grid photos' frame, but finer: 2.5px of dark blue,
-     then a 1.25px light-blue line just around the photo. The photo's
+     then a 2px light-blue line just around the photo. The photo's
      corners follow the frame's 12px curve. */
   box-sizing: border-box;
-  padding: 3.75px; /* 2.5px dark blue + the 1.25px line */
+  padding: 4.5px; /* 2.5px dark blue + the 2px line */
   border-radius: 12px;
   background: var(--ink);
 }
@@ -938,8 +938,8 @@ h2:hover .title-berry.mirrored {
 .story-photo img,
 .story-photo .photo-placeholder {
   aspect-ratio: 4 / 3;
-  border-radius: 8.25px;
-  box-shadow: 0 0 0 1.25px var(--paper); /* the light-blue line */
+  border-radius: 7.5px;
+  box-shadow: 0 0 0 2px var(--paper); /* the light-blue line */
 }
 /* A real photo: its own shape, uncropped. */
 .story-photo img.photo-main {
