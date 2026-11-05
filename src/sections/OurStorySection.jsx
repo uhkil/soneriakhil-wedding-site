@@ -22,7 +22,7 @@ const rows = [
     paragraphs: [
       <>
         Soneri and Akhil should have met earlier. They went to the same middle, junior high, and senior high schools,
-        spent years just 1 block away from another (Soneri practically lived at Diyaanka’s house in the same
+        spent years just one block away from another (Soneri practically lived at Diyaanka’s house in the same
         neighborhood as Akhil), attended the same university (<PhotoLink photo="assets/story/links/hook-em.jpg" alt="Hook ’em Horns">Hook{'\u00a0'}’em Horns</PhotoLink>), and both moved to San Francisco to start
         their careers.
       </>,
@@ -41,7 +41,7 @@ const rows = [
       <>
         They spent the next many weeks sending each other Spotify links until Akhil finally mustered the courage to
         ask Soneri out. He wanted to hang out with her so bad, he presented{' '}
-        <PhotoLink photo="assets/story/links/5-options.jpg" alt="Akhil’s 5 options">5 options</PhotoLink>, surely she’d be enticed by at least one.
+        <PhotoLink photo="assets/story/links/5-options.jpg" alt="Akhil’s five options">five options</PhotoLink>, surely she’d be enticed by at least one.
       </>,
       <>
         It was a crush for the ages, one that would make David Archuleta{' '}
@@ -66,7 +66,7 @@ const rows = [
             <PhotoLink key="ny-first" photo="assets/story/links/ny-first.jpg" alt="New York">NY</PhotoLink>,
             <PhotoLink key="sf" photo="assets/story/links/sf.jpg" alt="San Francisco">SF</PhotoLink>,
             <PhotoLink key="ny" photo="assets/story/links/ny.jpg" alt="New York">NY</PhotoLink>,
-            'SF',
+            <PhotoLink key="sf-second" photo="assets/story/links/sf-second.jpg" alt="San Francisco">SF</PhotoLink>,
             '??',
           ]}
         />{' '}
