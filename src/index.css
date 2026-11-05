@@ -1417,14 +1417,14 @@ h2:hover .title-berry.mirrored {
    the space below its strip match the space above (measured, in pixels, to
    the nearest thing you can see). */
 @media (min-width: 1200px) {
-  #memories .side-drawing { --below-fix: -2px; }
+  #memories .side-drawing { --below-fix: 0px; }
   #events .side-drawing { --below-fix: -3px; }
   #travel .side-drawing { --below-fix: -6px; }
   #registry .side-drawing { --below-fix: -10px; }
   #rsvp .side-drawing { --below-fix: -8px; }
   /* FAQ: the two of us beside its title reach well above the letters, and
      Registry above it ends with a little extra space. */
-  #faq .side-drawing { --above-fix: -26px; --below-fix: 67px; }
+  #faq .side-drawing { --above-fix: -23px; --below-fix: 67px; }
 }
 @media (min-width: 700px) and (max-width: 1199px) {
   #memories .side-drawing { --below-fix: -1px; }
@@ -1433,14 +1433,14 @@ h2:hover .title-berry.mirrored {
   #registry .side-drawing { --below-fix: -5px; }
   #rsvp .side-drawing { --below-fix: -5px; }
   /* (the drawings beside the FAQ title grow with the screen, so this does too) */
-  #faq .side-drawing { --above-fix: -26px; --below-fix: calc(5.39vw + 4.8px); }
+  #faq .side-drawing { --above-fix: -22px; --below-fix: calc(5.39vw + 4.8px); }
 }
 @media (max-width: 699px) {
   #memories .side-drawing { --below-fix: 19px; }
   #events .side-drawing { --below-fix: 14px; }
   #travel .side-drawing { --below-fix: -1px; }
   #rsvp .side-drawing { --below-fix: -2px; }
-  #faq .side-drawing { --above-fix: -25px; --below-fix: 23px; }
+  #faq .side-drawing { --above-fix: -23px; --below-fix: 23px; }
   #memories .side-drawing { --above-fix: -5px; }
 }
 
@@ -3650,6 +3650,8 @@ img.nugget-photo {
   --font-display: 'Archivo', 'Arial Black', Helvetica, sans-serif;
   --font-script: 'Pinyon Script', 'Snell Roundhand', cursive;
   --font-ui: 'Archivo', Helvetica, Arial, sans-serif;
+  /* Reading text: the same sans-serif as everything else (no serif). */
+  --font-body: 'Archivo', Helvetica, Arial, sans-serif;
   --nav-height: 46px;      /* a slimmer nav, so the names and photo sit higher */
 }
 
@@ -3663,6 +3665,10 @@ img.nugget-photo {
 /* Flat blush: no paper grain in this design. */
 :root[data-design='honey'] body {
   background-image: none;
+  /* The sans-serif reads larger than the old serif did at 18px, so 16px,
+     like the words beside the drawings. */
+  font-size: 16px;
+  line-height: 1.6;
 }
 
 /* Headings: heavy and wide. */
@@ -3697,7 +3703,7 @@ img.nugget-photo {
   --title-hang: 0.065em;
 }
 
-/* Reading text and smaller titles stay in the serif. */
+/* Smaller titles: the reading font, a little heavier. */
 [data-design='honey'] h3,
 [data-design='honey'] .faq-item summary,
 [data-design='honey'] .rsvp-event-name {
