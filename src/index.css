@@ -5846,3 +5846,437 @@ img.nugget-photo {
 .rsvp-tabs {
   scroll-margin-top: calc(var(--nav-height) + 24px);
 }
+
+/* ----- Practice only: other "Who's coming?" layouts (RsvpComingStyles.jsx) ----- */
+
+/* The layout switcher: small dashed pills, so it reads as a practice tool. */
+.rsvp-design-picker {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  align-items: center;
+  gap: 6px;
+  font: 500 0.75rem/1 var(--font-ui);
+  color: var(--ink);
+}
+.rsvp-design-picker span {
+  margin-right: 4px;
+  opacity: 0.7;
+}
+.rsvp-design-picker button {
+  padding: 6px 11px;
+  border: 1px dashed var(--ink);
+  border-radius: 999px;
+  background: transparent;
+  color: var(--ink);
+  font: inherit;
+  cursor: pointer;
+}
+.rsvp-design-picker button.on {
+  border-style: solid;
+  background: var(--ink);
+  color: var(--paper);
+}
+
+/* Plain words that act as buttons ("← Back", "Edit", "None of us…"). */
+[data-design='honey'] .rsvp-text-button {
+  padding: 6px 0;
+  border: none;
+  background: none;
+  color: var(--paper);
+  font: 500 0.8rem/1.2 var(--font-ui);
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  cursor: pointer;
+}
+[data-design='honey'] .rsvp-text-button.strong {
+  font-weight: 700;
+}
+[data-design='honey'] .rsvp-text-button.small {
+  justify-self: start;
+  font-size: 0.7rem;
+  opacity: 0.8;
+  text-decoration: underline;
+  text-underline-offset: 4px;
+}
+[data-design='honey'] .rsvp-text-button:hover {
+  opacity: 1;
+  text-decoration: underline;
+  text-underline-offset: 4px;
+}
+
+/* --- One event at a time --- */
+.rsvp-steps {
+  display: grid;
+  gap: 22px;
+}
+.rsvp-step-dots {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+[data-design='honey'] .rsvp-step-dot {
+  width: 10px;
+  height: 10px;
+  padding: 0;
+  border: 1.5px solid rgba(202, 233, 255, 0.7);
+  border-radius: 50%;
+  background: transparent;
+  cursor: pointer;
+}
+[data-design='honey'] .rsvp-step-dot.done {
+  background: rgba(202, 233, 255, 0.55);
+  border-color: transparent;
+}
+[data-design='honey'] .rsvp-step-dot.on {
+  background: var(--paper);
+  border-color: var(--paper);
+  transform: scale(1.25);
+}
+[data-design='honey'] .rsvp-step-dot.missing {
+  border-color: #ffb4a9;
+}
+.rsvp-step-count {
+  margin-left: 8px;
+  font: 500 0.7rem/1 var(--font-ui);
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: rgba(202, 233, 255, 0.85);
+}
+.rsvp-steps .rsvp-chip-event {
+  padding-top: 0;
+  border-top: none;
+}
+.rsvp-steps .rsvp-event-head {
+  font-size: 1.3rem;
+}
+.rsvp-step-nav {
+  display: flex;
+  justify-content: space-between;
+  padding-top: 14px;
+  border-top: 1px solid rgba(202, 233, 255, 0.25);
+}
+.rsvp-recap {
+  display: grid;
+}
+.rsvp-recap .rsvp-subhead {
+  margin-bottom: 6px !important;
+}
+[data-design='honey'] .rsvp-recap-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) auto;
+  align-items: baseline;
+  gap: 12px;
+  padding: 12px 0;
+  border-top: 1px solid rgba(202, 233, 255, 0.2);
+  font-family: var(--font-ui);
+  color: var(--paper);
+}
+.rsvp-recap-event {
+  font-weight: 600;
+}
+.rsvp-recap-who {
+  opacity: 0.9;
+}
+[data-design='honey'] .rsvp-recap-row.missing .rsvp-recap-who {
+  color: #ffb4a9;
+}
+[data-design='honey'] .rsvp-recap-edit {
+  padding: 0;
+  border: none;
+  background: none;
+  color: var(--paper);
+  font: 500 0.7rem/1 var(--font-ui);
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  text-decoration: underline;
+  text-underline-offset: 4px;
+  cursor: pointer;
+}
+@media (max-width: 699px) {
+  [data-design='honey'] .rsvp-recap-row {
+    grid-template-columns: minmax(0, 1fr) auto;
+  }
+  .rsvp-recap-who {
+    grid-column: 1;
+    grid-row: 2;
+  }
+  .rsvp-recap-edit {
+    grid-row: 1 / 3;
+    align-self: center;
+  }
+}
+
+/* --- Rows + pop-up --- */
+.rsvp-rows {
+  display: grid;
+}
+[data-design='honey'] .rsvp-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) 20px;
+  align-items: center;
+  gap: 16px;
+  padding: 18px 0;
+  border: none;
+  border-top: 1px solid rgba(202, 233, 255, 0.25);
+  background: none;
+  color: var(--paper);
+  text-align: left;
+  font: inherit;
+  cursor: pointer;
+}
+[data-design='honey'] .rsvp-row:first-child {
+  border-top: none;
+  padding-top: 4px;
+}
+.rsvp-row-who {
+  font: 500 0.95rem/1.3 var(--font-ui);
+  text-align: right;
+  opacity: 0.6;
+}
+.rsvp-row.answered .rsvp-row-who {
+  opacity: 1;
+  font-weight: 600;
+}
+[data-design='honey'] .rsvp-row.missing .rsvp-row-who,
+[data-design='honey'] .rsvp-row.missing .rsvp-event-head {
+  color: #ffb4a9;
+  opacity: 1;
+}
+.rsvp-row-arrow,
+.rsvp-tile-who svg {
+  width: 18px;
+  height: 18px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2.4;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.rsvp-row:hover .rsvp-row-arrow {
+  transform: translateX(3px);
+}
+.rsvp-row-arrow {
+  transition: transform 0.2s ease;
+}
+
+/* The pop-up: a small dark card over the light blue page. */
+.rsvp-event-dialog {
+  width: min(480px, calc(100vw - 32px));
+  padding: 0;
+  border: none;
+  border-radius: 24px;
+  background: transparent;
+  overflow: visible;
+}
+.rsvp-event-dialog::backdrop {
+  background: rgba(202, 233, 255, 0.7);
+  backdrop-filter: blur(3px);
+  -webkit-backdrop-filter: blur(3px);
+}
+.rsvp-event-dialog[open] {
+  animation: modal-in 0.25s ease;
+}
+.rsvp-event-dialog-card {
+  display: grid;
+  gap: 24px;
+  padding: 28px 28px 24px;
+  border-radius: 24px;
+  background: var(--ink);
+  color: var(--paper);
+  box-shadow: 0 16px 40px rgba(0, 52, 89, 0.25);
+}
+.rsvp-event-dialog-card:focus {
+  outline: none;
+}
+.rsvp-event-dialog .rsvp-chip-event {
+  padding-top: 0;
+  border-top: none;
+}
+.rsvp-event-dialog .rsvp-event-head {
+  font-size: 1.2rem;
+}
+[data-design='honey'] .rsvp-dialog-done {
+  justify-self: end;
+  background: var(--paper);
+  color: var(--ink);
+}
+
+/* --- Two days, four tiles --- */
+.rsvp-tiles {
+  display: grid;
+  grid-template-columns: repeat(var(--days), minmax(0, 1fr));
+  gap: 16px;
+}
+.rsvp-day {
+  display: grid;
+  gap: 12px;
+  align-content: start;
+}
+[data-design='honey'] .rsvp-day-name {
+  margin: 0;
+  font: 600 0.72rem/1 var(--font-ui);
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: rgba(202, 233, 255, 0.85);
+}
+[data-design='honey'] .rsvp-tile {
+  display: grid;
+  align-content: start;
+  gap: 6px;
+  min-height: 132px;
+  padding: 16px 18px;
+  border: 1.5px solid rgba(202, 233, 255, 0.55);
+  border-radius: 18px;
+  background: transparent;
+  color: var(--paper);
+  text-align: left;
+  font: inherit;
+  cursor: pointer;
+  transition: background-color 0.15s ease;
+}
+[data-design='honey'] .rsvp-tile:hover {
+  background: rgba(202, 233, 255, 0.08);
+}
+[data-design='honey'] .rsvp-tile.answered {
+  background: rgba(202, 233, 255, 0.12);
+  border-color: transparent;
+}
+[data-design='honey'] .rsvp-tile.missing {
+  border-color: #ffb4a9;
+}
+[data-design='honey'] .rsvp-tile.empty {
+  border: 1.5px dashed rgba(202, 233, 255, 0.18);
+  cursor: default;
+}
+.rsvp-tile-time {
+  font: 500 0.65rem/1 var(--font-ui);
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  opacity: 0.8;
+}
+.rsvp-tile-name {
+  font: 600 1.05rem/1.25 var(--font-ui);
+}
+.rsvp-tile-who {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: auto;
+  padding-top: 10px;
+  font: 500 0.88rem/1.3 var(--font-ui);
+  opacity: 0.75;
+}
+.rsvp-tile.answered .rsvp-tile-who {
+  opacity: 1;
+  font-weight: 600;
+}
+[data-design='honey'] .rsvp-tile.missing .rsvp-tile-who {
+  color: #ffb4a9;
+  opacity: 1;
+}
+/* Phones: the days one under the other, morning and evening side by side. */
+@media (max-width: 699px) {
+  .rsvp-tiles {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 22px;
+  }
+  .rsvp-day {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px;
+  }
+  .rsvp-day-name {
+    grid-column: 1 / -1;
+  }
+  [data-design='honey'] .rsvp-tile {
+    min-height: 120px;
+    padding: 14px;
+  }
+  .rsvp-tile-name {
+    font-size: 0.95rem;
+  }
+}
+
+/* --- The RSVP card: a sentence per event --- */
+.rsvp-sentences {
+  display: grid;
+  gap: 22px;
+}
+.rsvp-sentence {
+  display: grid;
+  gap: 10px;
+  padding-top: 20px;
+  border-top: 1px solid rgba(202, 233, 255, 0.25);
+}
+.rsvp-sentence:focus {
+  outline: none;
+}
+[data-design='honey'] .rsvp-sentence.missing .rsvp-event-head {
+  color: #ffb4a9;
+}
+[data-design='honey'] .rsvp-sentence-text {
+  margin: 0;
+  font-family: var(--font-body);
+  font-size: 1.6rem;
+  line-height: 1.45;
+  color: var(--paper);
+}
+/* A name: dotted underline until answered; coming = bold with a solid
+   light underline; not coming = crossed out and faded. */
+[data-design='honey'] .rsvp-name-word {
+  padding: 0 2px;
+  border: none;
+  background: none;
+  color: var(--paper);
+  font: inherit;
+  cursor: pointer;
+  text-decoration: underline dotted rgba(202, 233, 255, 0.6);
+  text-decoration-thickness: 2px;
+  text-underline-offset: 6px;
+  transition: opacity 0.15s ease;
+}
+[data-design='honey'] .rsvp-name-word.yes {
+  font-weight: 600;
+  text-decoration: underline solid var(--paper);
+  text-decoration-thickness: 2px;
+}
+[data-design='honey'] .rsvp-name-word.no {
+  opacity: 0.45;
+  text-decoration: line-through;
+  text-decoration-thickness: 2px;
+}
+[data-design='honey'] .rsvp-sentence.missing .rsvp-name-word {
+  text-decoration-color: #ffb4a9;
+}
+.rsvp-sentence-end {
+  opacity: 0.9;
+}
+@media (max-width: 699px) {
+  [data-design='honey'] .rsvp-sentence-text {
+    font-size: 1.35rem;
+  }
+}
+[data-design='honey'] .rsvp-dialog-done {
+  border-radius: 999px;
+  padding-left: 32px;
+  padding-right: 32px;
+}
+@media (max-width: 699px) {
+  [data-design='honey'] .rsvp-recap-row {
+    row-gap: 4px;
+  }
+  /* Rows on phones: who's coming goes under the event's name. */
+  [data-design='honey'] .rsvp-row {
+    grid-template-columns: minmax(0, 1fr) 20px;
+    row-gap: 8px;
+  }
+  .rsvp-row-who {
+    grid-column: 1;
+    grid-row: 2;
+    text-align: left;
+  }
+  .rsvp-row-arrow {
+    grid-column: 2;
+    grid-row: 1 / 3;
+  }
+}

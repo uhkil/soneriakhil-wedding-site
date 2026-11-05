@@ -25,6 +25,7 @@ import RsvpCelebration from '../components/RsvpCelebration.jsx'
 import RsvpAddress from '../components/RsvpAddress.jsx'
 import { ABROAD, addressProblems, isStarted, livesAbroad, startingAddress } from '../guest/address.js'
 import { EMAIL, COM_TYPO, formatPhone, isValidPhone } from '../guest/contact.js'
+import { STYLES, StepsView, RowsView, TilesView, SentenceView } from './RsvpComingStyles.jsx'
 
 const LOGGED_OUT = 'Please find your invitation again.'
 
@@ -57,6 +58,21 @@ export default function RsvpByEvent() {
   const [celebrate, setCelebrate] = useState(null)
   // Which tab is showing: 'coming' (who's coming to each event) or 'details'.
   const [tab, setTab] = useState('coming')
+  // Practice only: which layout the "Who's coming?" tab uses (see
+  // RsvpComingStyles.jsx), kept in the address as ?style=…
+  const [style, setStyleState] = useState(() => {
+    const s = new URLSearchParams(window.location.search).get('style')
+    return STYLES.some(([id]) => id === s) ? s : 'chips'
+  })
+  function setStyle(s) {
+    const url = new URL(window.location.href)
+    url.searchParams.set('style', s)
+    window.history.replaceState(null, '', url)
+    setStyleState(s)
+    setStep(0)
+  }
+  const [step, setStep] = useState(0) // "One at a time": which event (the last step is the recap)
+  const [openEv, setOpenEv] = useState(null) // "Rows" and "Two days": the event in the pop-up
 
   const displayName = (g) => (g.isPlusOne ? 'Your guest' : `${g.firstName} ${g.lastName}`)
   const onFile = (g) => party.onFile?.[g.guestId] || {}
@@ -205,15 +221,30 @@ export default function RsvpByEvent() {
     )
   }
 
+  // What the other layouts need from here.
+  const helpers = {
+    events: party.events,
+    answers,
+    invitedTo,
+    chipName,
+    displayName,
+    tapPerson,
+    noneOfUs,
+    eventChips,
+    problemFor,
+  }
+
   async function save() {
     setChecked(true)
     const found = findProblems()
     if (found.length) {
       setError('')
       // Go to the tab with the first thing missing, then to that spot.
-      setTab(found[0].card.startsWith('event-') ? 'coming' : 'details')
+      const onEvents = found[0].card.startsWith('event-')
+      setTab(onEvents ? 'coming' : 'details')
+      if (onEvents && style === 'steps') setStep(party.events.findIndex((ev) => `event-${ev.id}` === found[0].card))
       requestAnimationFrame(() => requestAnimationFrame(() => {
-        const spot = document.getElementById(found[0].id)
+        const spot = document.getElementById(found[0].id.replace(/^event-/, 'spot-')) ?? document.getElementById(found[0].id)
         const smooth = !window.matchMedia('(prefers-reduced-motion: reduce)').matches
         spot?.scrollIntoView({ behavior: smooth ? 'smooth' : 'auto', block: 'center' })
         ;(spot?.querySelector('input') ?? spot)?.focus({ preventScroll: true })
@@ -255,6 +286,16 @@ export default function RsvpByEvent() {
       <div className="rsvp-form rsvp-v2" role="form" aria-label="RSVP">
         {/* Two tabs (the same pill toggle as Travel's): who's coming, and your
             details. A coral dot marks a tab with something still missing. */}
+        {/* Practice only: switch the "Who's coming?" layout. */}
+        <div className="rsvp-design-picker" role="group" aria-label="Try a layout">
+          <span>Try a layout:</span>
+          {STYLES.map(([id, label]) => (
+            <button key={id} type="button" className={style === id ? 'on' : ''} aria-pressed={style === id} onClick={() => { setStyle(id); setTab('coming') }}>
+              {label}
+            </button>
+          ))}
+        </div>
+
         <div
           className="view-toggle travel-toggle rsvp-tabs"
           role="tablist"
@@ -283,8 +324,20 @@ export default function RsvpByEvent() {
 
         {tab === 'coming' && (
         <Card id="coming" title="Who’s coming?">
-          <p className="rsvp-chip-hint">Tap everyone who’s coming.</p>
-          {party.events.map(eventChips)}
+          {style === 'steps' ? (
+            <StepsView h={helpers} step={step} setStep={setStep} />
+          ) : style === 'rows' ? (
+            <RowsView h={helpers} openEv={openEv} setOpenEv={setOpenEv} />
+          ) : style === 'tiles' ? (
+            <TilesView h={helpers} openEv={openEv} setOpenEv={setOpenEv} />
+          ) : style === 'sentence' ? (
+            <SentenceView h={helpers} />
+          ) : (
+            <>
+              <p className="rsvp-chip-hint">Tap everyone who’s coming.</p>
+              {party.events.map((ev) => eventChips(ev))}
+            </>
+          )}
         </Card>
 
         )}
@@ -417,7 +470,7 @@ export default function RsvpByEvent() {
         )}
 
         {/* First tab: on to the details. Second tab: send. */}
-        {tab === 'coming' ? (
+        {tab === 'coming' && style === 'steps' && step < party.events.length ? null : tab === 'coming' ? (
           <button
             className="button rsvp-submit"
             type="button"
