@@ -78,6 +78,7 @@ const art = {
     note: 'The two of us at a pottery class',
     nugget: {
       heading: 'some pieces we’ve made',
+      text: 'we love taking on creative hobbies together!',
       // Shown one at a time, in this order (web-sized copies in
       // public/assets/pottery/, 1600px, for full screen; and 600px copies in
       // public/assets/pottery/small/, which the card shows).
