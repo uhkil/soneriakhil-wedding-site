@@ -913,7 +913,9 @@ h2:hover .title-berry.mirrored {
   margin: 0;
   font-size: 1rem; /* 16px */
   line-height: 1.6;
-  text-wrap: pretty;
+  /* Normal wrapping, so every line fills up. ("pretty" made Safari pull
+     words down early to even out all the lines, leaving the right side
+     ragged.) The last two words are kept together in OurStorySection.jsx. */
 }
 .story-text p + p {
   margin-top: 1em;

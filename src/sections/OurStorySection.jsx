@@ -9,7 +9,7 @@ import ScrollReveal from '../components/ScrollReveal.jsx'
 import Art from '../components/Art.jsx'
 import Lightbox from '../components/Lightbox.jsx'
 import { srcSetFor } from '../components/photoUrl.js'
-import { Fragment, useState } from 'react'
+import { Children, Fragment, cloneElement, isValidElement, useState } from 'react'
 
 // Edit this list to change the story. Each row: its paragraphs, and "photo"
 // (an image file in public/, e.g. 'assets/story/story-1.jpg'; empty = a
@@ -110,6 +110,28 @@ const fullScreen = rows.filter((row) => row.photo).map((row) => ({ src: small(ro
 const storySizes = '(max-width: 699px) 84vw, 450px'
 const storySrcSet = (row) => srcSetFor([[small(row.photo), 1000], [row.photo, row.width]])
 
+// Joins a paragraph's last two words with a space that never breaks, so the
+// last line always has at least two words (never "massages." or "smile :-)"
+// alone). The rest of the paragraph wraps normally, filling each line.
+// (Only ordinary spaces count: a non-breaking one already holds its words
+// together, e.g. the smiley to the word before it.)
+function keepLastTwoWords(node) {
+  if (typeof node === 'string') return node.replace(/[ \t\n\r]+(\S+)[ \t\n\r]*$/, '\u00a0$1')
+  if (isValidElement(node) && node.type === Fragment) {
+    const kids = Children.toArray(node.props.children)
+    // From the end: skip text that can't break (like the smiley); stop at
+    // a link or other piece.
+    for (let i = kids.length - 1; i >= 0; i--) {
+      if (typeof kids[i] !== 'string') break
+      if (/\S[ \t\n\r]+\S/.test(kids[i])) {
+        kids[i] = keepLastTwoWords(kids[i])
+        return cloneElement(node, {}, ...kids)
+      }
+    }
+  }
+  return node
+}
+
 export default function OurStorySection() {
   // The photo open full screen (its number), or null.
   const [open, setOpen] = useState(null)
@@ -142,7 +164,7 @@ export default function OurStorySection() {
             )}
             <div className="story-text">
               {row.paragraphs.map((paragraph, i) => (
-                <p key={i}>{paragraph}</p>
+                <p key={i}>{keepLastTwoWords(paragraph)}</p>
               ))}
             </div>
           </ScrollReveal>
