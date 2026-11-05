@@ -1,8 +1,9 @@
 // A pretend back end with fake guests, used when the address has ?practice.
 // It behaves like the real Google Sheet script, without touching the Sheet.
 //
-// Try: "Jordan Lee", "Priya Shah" (two matches), or "Sam Rivera" (invited
-// only to April 10's events), with the passcode CELEBRATE.
+// Try: "Jordan Lee" (4 people, all 4 events), "Priya Shah" (two matches: her
+// family of 4 at all 4 events, or just her with a plus-one), or "Sam Rivera"
+// (invited only to April 10's events), with the passcode CELEBRATE.
 import { maskEmail, maskPhone } from '../guest/contact.js'
 
 // "1600 E Randol Mill Rd" → "16•• • •••••• •••• Rd"
@@ -27,7 +28,7 @@ const PASSCODE = 'CELEBRATE'
 const parties = {
   P001: { name: 'The Shah Family', events: ['ceremony', 'sangeet', 'indian-wedding', 'reception'] },
   P002: { name: 'Priya Shah', events: ['sangeet', 'reception'] },
-  P003: { name: 'The Lee Family', events: ['sangeet', 'indian-wedding', 'reception'] },
+  P003: { name: 'The Lee Family', events: ['ceremony', 'sangeet', 'indian-wedding', 'reception'] },
   P004: { name: 'Sam Rivera', events: ['indian-wedding', 'reception'] }, // April 10 only
 }
 
@@ -40,7 +41,8 @@ const guests = [
   { guestId: 'G007', partyId: 'P002', firstName: '', lastName: '', isPlusOne: true },
   { guestId: 'G004', partyId: 'P003', firstName: 'Jordan', lastName: 'Lee' },
   { guestId: 'G005', partyId: 'P003', firstName: 'Sam', lastName: 'Lee' },
-  { guestId: 'G006', partyId: 'P003', firstName: 'Max', lastName: 'Lee', events: ['sangeet', 'indian-wedding'] },
+  { guestId: 'G006', partyId: 'P003', firstName: 'Max', lastName: 'Lee' },
+  { guestId: 'G011', partyId: 'P003', firstName: 'Maya', lastName: 'Lee' },
   { guestId: 'G008', partyId: 'P004', firstName: 'Sam', lastName: 'Rivera' },
 ]
 

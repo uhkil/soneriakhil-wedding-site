@@ -70,9 +70,6 @@ export default function RsvpByEvent() {
     window.history.replaceState(null, '', url)
     setStyleState(s)
   }
-  // Your details: which part is showing (a person's guestId, 'address', or
-  // 'note'), picked with the chips at the top of the card.
-  const [part, setPart] = useState(() => party.guests[0].guestId)
 
   const displayName = (g) => (g.isPlusOne ? 'Your guest' : `${g.firstName} ${g.lastName}`)
   const onFile = (g) => party.onFile?.[g.guestId] || {}
@@ -233,13 +230,6 @@ export default function RsvpByEvent() {
   // What the "Two days" layout needs from here.
   const helpers = { events: party.events, answers, invitedTo, eventChips, problemFor }
 
-  // Your details: which part each problem is in.
-  const partOf = (problemId) => (problemId.startsWith('addr-') ? 'address' : problemId.replace(/^(name|email|phone)-/, ''))
-  const parts = [
-    ...people.map((g) => [g.guestId, chipName(g)]),
-    ['address', 'Address'],
-    ['note', 'Note'],
-  ]
 
   async function save() {
     setChecked(true)
@@ -249,7 +239,6 @@ export default function RsvpByEvent() {
       // Go to the tab with the first thing missing, then to that spot.
       const onEvents = found[0].card.startsWith('event-')
       setTab(onEvents ? 'coming' : 'details')
-      if (!onEvents) setPart(partOf(found[0].id))
       requestAnimationFrame(() => requestAnimationFrame(() => {
         const spot = document.getElementById(found[0].id)
         const smooth = !window.matchMedia('(prefers-reduced-motion: reduce)').matches
@@ -345,39 +334,16 @@ export default function RsvpByEvent() {
 
         {tab === 'details' && (
         <Card id="details" title="Your details">
-          {/* A chip for each person, then the address and the note: tap one to
-              see just that part. A coral edge marks a part with something
-              still missing. */}
-          <div className="rsvp-chips rsvp-part-chips" role="tablist" aria-label="Whose details">
-            {parts.map(([id, label]) => {
-              const flagged = problems.some((p) => partOf(p.id) === id && !p.card.startsWith('event-'))
-              return (
-                <button
-                  key={id}
-                  type="button"
-                  role="tab"
-                  aria-selected={part === id}
-                  className={`rsvp-chip${part === id ? ' on' : ''}${flagged ? ' flagged' : ''}${id === 'address' ? ' rsvp-chip-gap' : ''}`}
-                  onClick={() => setPart(id)}
-                >
-                  {label}
-                  {flagged && <span className="rsvp-tab-dot" aria-label="(needs attention)" />}
-                </button>
-              )
-            })}
-          </div>
-
-          {people.some((g) => g.guestId === part) && (
-            <p className="field-hint rsvp-details-intro">
-              We need at least one email and one phone number for your invitation. Add them for everyone if you’d like.
-            </p>
-          )}
-          {people.filter((g) => g.guestId === part).map((g) => {
+          <p className="field-hint rsvp-details-intro">
+            We need at least one email and one phone number for your invitation. Add them for everyone if you’d like.
+          </p>
+          {people.map((g) => {
             const a = answers[g.guestId]
             const saved = onFile(g)
             const id = (field) => `${field}-${g.guestId}`
             return (
               <div key={g.guestId} className="rsvp-details-person">
+                <p className="rsvp-person-name">{displayName(g)}</p>
                 {g.isPlusOne && (
                   <div className="rsvp-field">
                     <label htmlFor={id('name')}>Your guest’s name</label>
@@ -436,11 +402,8 @@ export default function RsvpByEvent() {
               </div>
             )
           })}
-          {people.some((g) => g.guestId === part) && (
-            <p className="field-hint">Outside the US? Start phone numbers with + and the country code (like +91 or +44).</p>
-          )}
+          <p className="field-hint">Outside the US? Start phone numbers with + and the country code (like +91 or +44).</p>
 
-          {part === 'address' && (
           <div className="rsvp-details-part">
             <RsvpAddress
               bare
@@ -454,9 +417,7 @@ export default function RsvpByEvent() {
               problemFor={(field) => problemFor(`addr-${field}`)}
             />
           </div>
-          )}
 
-          {part === 'note' && (
           <div className="rsvp-details-part rsvp-field">
             <label htmlFor="rsvp-note" className="rsvp-subhead">
               A note for Soneri &amp; Akhil
@@ -472,18 +433,6 @@ export default function RsvpByEvent() {
               }}
             />
           </div>
-          )}
-
-          {/* On to the next part (the last one has none: Send is below). */}
-          {parts.findIndex(([id]) => id === part) < parts.length - 1 && (
-            <button
-              type="button"
-              className="rsvp-next-part"
-              onClick={() => setPart(parts[parts.findIndex(([id]) => id === part) + 1][0])}
-            >
-              Next: {parts[parts.findIndex(([id]) => id === part) + 1][1]} →
-            </button>
-          )}
         </Card>
 
         )}
