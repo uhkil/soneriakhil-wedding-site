@@ -1,6 +1,7 @@
 // Our story, in four rows: some text beside a photo. The first row has the
 // text on the left and the photo on the right; each row after that swaps
-// sides. Some words open a photo in a pop-up window (see PhotoLink.jsx).
+// sides. Some words open a photo over an overlay (see PhotoLink.jsx), and
+// each of the four main photos opens full screen, one at a time.
 import Section from '../components/Section.jsx'
 import PhotoSlot from '../components/PhotoSlot.jsx'
 import PhotoLink from '../components/PhotoLink.jsx'
@@ -13,7 +14,7 @@ import { useState } from 'react'
 // (an image file in public/, e.g. 'assets/story/story-1.jpg'; empty = a
 // placeholder). Each photo shows in its own shape, uncropped (crop the file
 // itself to change its shape).
-// For the pop-up photos, add photo="assets/story/…" to a <PhotoLink>.
+// The underlined words' photos are in public/assets/story/links/.
 const rows = [
   {
     photo: 'assets/story/story-1.jpg',
@@ -22,12 +23,12 @@ const rows = [
       <>
         Soneri and Akhil should have met earlier. They went to the same middle, junior high, and senior high schools,
         spent years just 1 block away from another (Soneri practically lived at Diyaanka’s house in the same
-        neighborhood as Akhil), attended the same university (Hook ‘Em), and both moved to San Francisco to start
+        neighborhood as Akhil), attended the same university (<PhotoLink photo="assets/story/links/hook-em.jpg" alt="Hook ’Em">Hook ‘Em</PhotoLink>), and both moved to San Francisco to start
         their careers.
       </>,
       <>
         But it wasn’t until the fateful sunny Texas pandemic day, when Soneri parked her Jeep in the gravel lot of the{' '}
-        <PhotoLink alt="The blueberry farm">blueberry farm</PhotoLink>, that their parallel lines converged. She was
+        <PhotoLink photo="assets/story/links/blueberry-farm.jpg" alt="The blueberry farm">blueberry farm</PhotoLink>, that their parallel lines converged. She was
         going to meet her friend Karan, who invited his cute SF roommate, Akhil. “You would get along,” he told them
         both.
       </>,
@@ -40,10 +41,10 @@ const rows = [
       <>
         They spent the next many weeks sending each other Spotify links until Akhil finally mustered the courage to
         ask Soneri out. He wanted to hang out with her so bad, he presented{' '}
-        <PhotoLink alt="Akhil’s 5 options">5 options</PhotoLink>, surely she’d be enticed by at least one.
+        <PhotoLink photo="assets/story/links/5-options.jpg" alt="Akhil’s 5 options">5 options</PhotoLink>, surely she’d be enticed by at least one.
       </>,
       <>
-        It was a crush for the ages, one that would make <PhotoLink alt="David Archuleta">David Archuleta</PhotoLink>{' '}
+        It was a crush for the ages, one that would make David Archuleta{' '}
         proud. Akhil read Soneri’s favorite books and watched her favorite TV shows, Soneri asked her brother to give
         her a crash course on the NBA. They spent many cozy pandemic days embroidering sweatshirts, biking, painting
         leaves, and having picnics. Soneri fell in love with Akhil’s giving nature, shared creativity, and ability to
@@ -58,14 +59,23 @@ const rows = [
     paragraphs: [
       <>
         Since then, their two paths have fused together, through the cities they’ve called home (
-        <CityTrail stops={['NY', 'SF', 'NY', 'SF', '??']} />),
-        huge life transitions, moped joyrides, bad haircuts, <PhotoLink alt="One of their hikes">hikes</PhotoLink> that
-        terrify their mothers, begrudgingly shared <PhotoLink alt="A shared affogato">affogatos</PhotoLink>, and many,
+        <CityTrail
+          stops={[
+            'NY',
+            <PhotoLink key="sf" photo="assets/story/links/sf.jpg" alt="San Francisco">SF</PhotoLink>,
+            <PhotoLink key="ny" photo="assets/story/links/ny.jpg" alt="New York">NY</PhotoLink>,
+            'SF',
+            '??',
+          ]}
+        />),
+        huge life transitions, moped joyrides, bad haircuts, <PhotoLink photo="assets/story/links/hiking.jpg" alt="One of their hikes">hikes</PhotoLink> that
+        terrify their mothers, begrudgingly shared <PhotoLink photo="assets/story/links/affogato.jpg" alt="A shared affogato">affogatos</PhotoLink>, and many,
         many thai massages.
       </>,
       <>
-        Last spring, Akhil got down on one knee in <PhotoLink alt="The proposal in Central Park">Central Park</PhotoLink>{' '}
-        and asked Soneri to marry him (Soneri would like you to know that she too proposed to Akhil). While they could
+        Last spring, Akhil got down on one knee in <PhotoLink photo="assets/story/links/central-park.jpg" alt="The proposal in Central Park">Central Park</PhotoLink>{' '}
+        and asked Soneri to marry him (Soneri would like you to know that she too{' '}
+        <PhotoLink photo="assets/story/links/soneri-proposed.jpg" alt="Soneri’s proposal">proposed</PhotoLink> to Akhil). While they could
         have met earlier, they will happily accept the lifetime ahead! And now, these two cannot wait to get married
         and celebrate their love for each other and the community that supports them.
       </>,
@@ -78,8 +88,8 @@ const rows = [
   },
 ]
 
-// The four photos, for the full-screen view (clicking one opens it there,
-// with arrows to the others).
+// The four photos, for the full-screen view (clicking one opens just that
+// one; no arrows to the others).
 const fullScreen = rows.filter((row) => row.photo).map((row) => ({ src: row.photo, alt: row.alt, label: row.alt }))
 
 export default function OurStorySection() {
@@ -120,7 +130,7 @@ export default function OurStorySection() {
           </ScrollReveal>
         ))}
       </div>
-      {open !== null && <Lightbox photos={fullScreen} index={open} onIndex={setOpen} onClose={() => setOpen(null)} />}
+      {open !== null && <Lightbox photos={[fullScreen[open]]} index={0} onIndex={() => {}} onClose={() => setOpen(null)} />}
     </Section>
   )
 }

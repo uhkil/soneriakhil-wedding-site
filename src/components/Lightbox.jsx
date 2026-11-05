@@ -4,6 +4,7 @@
 //   Step: the arrows on either side, the left/right arrow keys, or a swipe.
 // While it's open, the page behind it can't scroll, and the keyboard stays
 // inside it. Closing it puts the keyboard focus back where it was.
+// With just one photo: no arrows, no count, no swiping (only that photo).
 // Usage: <Lightbox photos={photos} index={2} onIndex={setIndex} onClose={...} />
 import { photoUrl } from './photoUrl.js'
 import { useEffect, useRef } from 'react'
@@ -13,7 +14,8 @@ export default function Lightbox({ photos, index, onIndex, onClose }) {
   const closeRef = useRef(null)
   const touch = useRef(null)
   const photo = photos[index]
-  const step = (by) => onIndex((index + by + photos.length) % photos.length)
+  const several = photos.length > 1
+  const step = (by) => several && onIndex((index + by + photos.length) % photos.length)
 
   // On open: focus the ×, stop the page from scrolling. On close: undo both.
   useEffect(() => {
@@ -47,7 +49,7 @@ export default function Lightbox({ photos, index, onIndex, onClose }) {
       className="lightbox"
       role="dialog"
       aria-modal="true"
-      aria-label={`Photo ${index + 1} of ${photos.length}`}
+      aria-label={several ? `Photo ${index + 1} of ${photos.length}` : photo.alt || 'Photo'}
       onKeyDown={onKeyDown}
       // A click on the dark area (not the photo or a button) closes it.
       onClick={(e) => e.target === e.currentTarget && onClose()}
@@ -72,9 +74,11 @@ export default function Lightbox({ photos, index, onIndex, onClose }) {
             {photo.label}
           </div>
         )}
-        <figcaption>
-          {index + 1} / {photos.length}
-        </figcaption>
+        {several && (
+          <figcaption>
+            {index + 1} / {photos.length}
+          </figcaption>
+        )}
       </figure>
 
       <button ref={closeRef} type="button" className="lightbox-close" aria-label="Close" onClick={onClose}>
@@ -82,6 +86,8 @@ export default function Lightbox({ photos, index, onIndex, onClose }) {
           <path d="M6 6l12 12M18 6 6 18" />
         </svg>
       </button>
+      {several && (
+        <>
       <button type="button" className="lightbox-arrow lightbox-prev" aria-label="Previous photo" onClick={() => step(-1)}>
         <svg viewBox="0 0 24 24" aria-hidden="true">
           <path d="M15 5l-7 7 7 7" />
@@ -92,6 +98,8 @@ export default function Lightbox({ photos, index, onIndex, onClose }) {
           <path d="M9 5l7 7-7 7" />
         </svg>
       </button>
+        </>
+      )}
     </div>,
     document.body
   )
