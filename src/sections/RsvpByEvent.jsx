@@ -141,8 +141,8 @@ export default function RsvpByEvent() {
         {...invalid(problem, `event-${ev.id}-note`)}
       >
         <p className="rsvp-event-head" id={`event-${ev.id}-name`}>
-          {ev.name}
-          <span>
+          <EventName name={ev.name} />
+          <span className="rsvp-event-when">
             {ev.date} · {ev.timeOfDay}
           </span>
         </p>
@@ -569,4 +569,18 @@ function NameFit({ full, short }) {
       )}
     </span>
   )
+}
+
+// An event's name. "Welcome Night | Sangeet": on phones, where it wraps,
+// each part goes on its own line and the bar is left out (so it never
+// dangles at the end of a line); wider screens show it as written.
+function EventName({ name }) {
+  const parts = name.split(/\s*\|\s*/)
+  if (parts.length < 2) return <span className="event-name-part">{name}</span>
+  return parts.map((part, i) => (
+    <span key={i} className="event-name-part">
+      {i > 0 && <span className="event-name-bar"> | </span>}
+      {part}
+    </span>
+  ))
 }

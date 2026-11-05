@@ -5258,23 +5258,42 @@ img.nugget-photo {
 }
 
 /* An event's name, with its date and time of day in small capitals under it. */
+/* An event's name in the site's heading style (heavy, wide capitals, like
+   "GAMES WE LUV"), clearly above the names under it; its date and time of
+   day in small capitals underneath. */
 [data-design='honey'] .rsvp-event-head {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-  margin: 0;
-  font-family: var(--font-ui);
-  font-weight: 600;
-  font-size: 0.95rem;
-  line-height: 1.25;
+  display: block;
+  margin: 0 0 6px;
+  font-family: var(--font-display);
+  font-weight: 900;
+  font-stretch: 125%;
+  font-size: 1.3rem;
+  line-height: 1.1;
+  text-transform: uppercase;
   color: var(--paper);
 }
-[data-design='honey'] .rsvp-event-head span {
-  font-size: 0.62rem;
+[data-design='honey'] .rsvp-event-head .rsvp-event-when {
+  display: block;
+  margin-top: 8px;
+  font-family: var(--font-ui);
+  font-stretch: 100%;
+  font-size: 0.66rem;
   font-weight: 500;
   letter-spacing: 0.18em;
-  text-transform: uppercase;
   opacity: 0.85;
+}
+/* The name's parts (see EventName in RsvpByEvent.jsx) sit on one line... */
+@media (max-width: 699px) {
+  [data-design='honey'] .rsvp-event-head {
+    font-size: 1.08rem;
+  }
+  /* ...on phones, one part per line, without the bar. */
+  .event-name-part {
+    display: block;
+  }
+  .event-name-bar {
+    display: none;
+  }
 }
 
 /* Who's coming: one block per event (its name and date, then a line per
@@ -5288,7 +5307,7 @@ img.nugget-photo {
 .rsvp-chip-event {
   display: grid;
   row-gap: 8px;
-  padding-top: 20px;
+  padding-top: 28px;
   border-top: 1px solid rgba(202, 233, 255, 0.25);
   border-radius: 0;
 }
@@ -5971,7 +5990,7 @@ img.nugget-photo {
   border-top: 1px solid rgba(202, 233, 255, 0.14);
 }
 .rsvp-toggle-name {
-  font: 600 1rem/1.3 var(--font-ui);
+  font: 500 1rem/1.3 var(--font-ui);
 }
 [data-design='honey'] .rsvp-toggle-row .rsvp-choice label {
   min-width: 4.6em;
