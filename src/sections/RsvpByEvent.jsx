@@ -66,11 +66,6 @@ export default function RsvpByEvent() {
   const solo = people.length === 1
   const noteOnFile = people.some((g) => onFile(g).note)
 
-  // The chips show first names (full names if two people share one).
-  const firstNames = people.map((g) => g.firstName)
-  const chipName = (g) =>
-    g.isPlusOne ? 'Your guest' : firstNames.filter((n) => n === g.firstName).length > 1 ? displayName(g) : g.firstName
-
   function updateGuest(guestId, change) {
     setAnswers((all) => {
       const copy = { ...all[guestId], attending: { ...all[guestId].attending } }
@@ -86,7 +81,7 @@ export default function RsvpByEvent() {
     // Each event: answered for everyone invited to it.
     party.events.forEach((ev) => {
       if (invitedTo(ev).some((g) => !answers[g.guestId].attending[ev.id])) {
-        const message = solo ? 'Please choose Accept or Decline.' : 'Please switch on everyone who’s coming, or “None of us can make it.”'
+        const message = solo ? 'Please choose Accept or Decline.' : invitedTo(ev).length > 1 ? 'Please choose Yes or No for everyone.' : 'Please choose Yes or No.'
         list.push({ id: `event-${ev.id}`, card: `event-${ev.id}`, message })
       }
     })
@@ -129,31 +124,11 @@ export default function RsvpByEvent() {
   const problemFor = (id) => problems.find((p) => p.id === id)
   const cardFlagged = (card) => problems.some((p) => p.card === card)
 
-  // Tap a person: they switch between coming and not, and anyone not yet
-  // answered for this event is marked not coming. "None of us": no one is.
-  function tapPerson(ev, g) {
-    setAnswers((all) => {
-      const copy = { ...all }
-      invitedTo(ev).forEach((p) => {
-        const a = { ...copy[p.guestId], attending: { ...copy[p.guestId].attending } }
-        if (p.guestId === g.guestId) a.attending[ev.id] = a.attending[ev.id] === 'yes' ? 'no' : 'yes'
-        else if (!a.attending[ev.id]) a.attending[ev.id] = 'no'
-        copy[p.guestId] = a
-      })
-      return copy
-    })
-    setStatus('editing')
-  }
-  function noneOfUs(ev) {
-    invitedTo(ev).forEach((g) => updateGuest(g.guestId, (c) => (c.attending[ev.id] = 'no')))
-  }
-
-  // One event: its name and date, then a chip for each person invited.
+  // One event: its name and date, then a line per person with Yes / No
+  // (Accept / Decline when the invitation is just for one person).
   function eventChips(ev) {
     const invited = invitedTo(ev)
     const problem = problemFor(`event-${ev.id}`)
-    const answered = invited.every((g) => answers[g.guestId].attending[ev.id])
-    const nobody = answered && invited.every((g) => answers[g.guestId].attending[ev.id] === 'no')
     return (
       <div
         key={ev.id}
@@ -170,70 +145,41 @@ export default function RsvpByEvent() {
             {ev.date} · {ev.timeOfDay}
           </span>
         </p>
-        {solo ? (
-          // Just one person: their name, and Accept / Decline beside it.
-          <div className="rsvp-toggle-row rsvp-solo-row">
-            <span className="rsvp-toggle-name">{displayName(invited[0])}</span>
-            <span className="rsvp-choices" role="radiogroup" aria-label={`${displayName(invited[0])}, ${ev.name}`}>
-              {[
-                ['yes', 'Accept'],
-                ['no', 'Decline'],
-              ].map(([value, label]) => {
-                const g = invited[0]
-                const group = `${g.guestId}-${ev.id}`
-                return (
-                  <span key={value} className="rsvp-choice">
-                    <input
-                      type="radio"
-                      id={`${group}-${value}`}
-                      name={group}
-                      value={value}
-                      checked={answers[g.guestId].attending[ev.id] === value}
-                      onChange={() => updateGuest(g.guestId, (c) => (c.attending[ev.id] = value))}
-                    />
-                    <label htmlFor={`${group}-${value}`}>{label}</label>
-                  </span>
-                )
-              })}
-            </span>
-          </div>
-        ) : (
-          // A family: each person on their own line, with an on/off switch
-          // (on = coming, with the word "Coming" beside it), then a last line
-          // for "None of us can make it". The whole line is the button.
-          <div className="rsvp-toggle-list">
-            {invited.map((g) => {
-              const state = answers[g.guestId].attending[ev.id]
-              return (
-                <button
-                  key={g.guestId}
-                  type="button"
-                  role="switch"
-                  aria-checked={state === 'yes'}
-                  className={`rsvp-toggle-row${state === 'yes' ? ' on' : ''}`}
-                  onClick={() => tapPerson(ev, g)}
-                >
-                  <span className="rsvp-toggle-name">{displayName(g)}</span>
-                  <span className="rsvp-toggle-state" aria-hidden="true">
-                    {state === 'yes' ? 'Coming' : state === 'no' ? 'Not coming' : ''}
-                  </span>
-                  <Switch />
-                </button>
-              )
-            })}
-            <button
-              type="button"
-              role="switch"
-              aria-checked={nobody}
-              className={`rsvp-toggle-row rsvp-none-row${nobody ? ' on' : ''}`}
-              onClick={() => (nobody ? null : noneOfUs(ev))}
-            >
-              <span className="rsvp-toggle-name">None of us can make it</span>
-              <span className="rsvp-toggle-state" aria-hidden="true" />
-              <Switch />
-            </button>
-          </div>
-        )}
+        <div className="rsvp-toggle-list">
+          {invited.map((g) => {
+            const group = `${g.guestId}-${ev.id}`
+            const state = answers[g.guestId].attending[ev.id]
+            return (
+              <div key={g.guestId} className={`rsvp-toggle-row${problem && !state ? ' unanswered' : ''}`}>
+                <span className="rsvp-toggle-name">{displayName(g)}</span>
+                <span className="rsvp-choices" role="radiogroup" aria-label={`${displayName(g)}, ${ev.name}`}>
+                  {(solo
+                    ? [
+                        ['yes', 'Accept'],
+                        ['no', 'Decline'],
+                      ]
+                    : [
+                        ['yes', 'Yes'],
+                        ['no', 'No'],
+                      ]
+                  ).map(([value, label]) => (
+                    <span key={value} className="rsvp-choice">
+                      <input
+                        type="radio"
+                        id={`${group}-${value}`}
+                        name={group}
+                        value={value}
+                        checked={state === value}
+                        onChange={() => updateGuest(g.guestId, (c) => (c.attending[ev.id] = value))}
+                      />
+                      <label htmlFor={`${group}-${value}`}>{label}</label>
+                    </span>
+                  ))}
+                </span>
+              </div>
+            )
+          })}
+        </div>
         {problem && (
           <p id={`event-${ev.id}-note`} className="field-note rsvp-chip-note">
             {problem.message}
@@ -325,7 +271,7 @@ export default function RsvpByEvent() {
         {tab === 'coming' && (
         <Card id="coming" title="Who’s coming?">
           <p className="rsvp-chip-hint">
-            {solo ? 'Let us know if you can make it to each event.' : 'Switch on everyone who’s coming to each event.'}
+            Will you be able to join us?
           </p>
           {party.events.map((ev) => eventChips(ev))}
         </Card>
@@ -531,14 +477,6 @@ function FieldNote({ problem, id }) {
   )
 }
 
-// An on/off switch: a rounded track with a circle that slides right when on.
-function Switch() {
-  return (
-    <span className="rsvp-switch" aria-hidden="true">
-      <span className="rsvp-switch-knob" />
-    </span>
-  )
-}
 
 // A small "i" next to a label. On iPads and laptops: point at it or tap it
 // for a little bubble (tapping anywhere else, or Escape, closes it). On

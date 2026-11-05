@@ -103,12 +103,12 @@ export default function RsvpAddress({ address, onChange, onFile, saved, open, on
               ? 'Here’s the address we have on file (partly hidden). Leave a box blank to keep what’s in it, or type in it to change it.'
               : onFile
                 ? `On file: an address in ${onFile}. Leave these blank to keep it, or fill them in to change it.`
-                : 'One address for everyone on your invitation, for anything we mail you.'}
+                : 'One address for everyone on your invitation.'}
         </p>
 
         <div className={`address-fields${abroad ? ' locked' : ''}`}>
           {box('street', 'Street address', { autoComplete: 'address-line1' })}
-          {box('apt', 'Apartment, suite, etc. (optional)', { autoComplete: 'address-line2' })}
+          {box('apt', 'Apt/Suite', { autoComplete: 'address-line2' })}
           <div className="address-row address-row-us">
             {box('city', 'City', { autoComplete: 'address-level2' })}
             <div className="rsvp-field address-state">
@@ -126,7 +126,7 @@ export default function RsvpAddress({ address, onChange, onFile, saved, open, on
                 }}
                 {...(stateProblem ? { 'aria-invalid': true, 'aria-describedby': 'addr-state-note' } : {})}
               >
-                <option value="">{saved?.state ? stateName(saved.state) : 'Choose…'}</option>
+                <option value="">{saved?.state ? stateName(saved.state) : 'Select'}</option>
                 {US_STATES.map(([code, name]) => (
                   <option key={code} value={code}>
                     {name}
