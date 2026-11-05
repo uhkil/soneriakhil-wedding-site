@@ -119,10 +119,10 @@ export default function OurStorySection() {
                 aria-label={`${row.alt}: view full screen`}
                 onClick={() => setOpen(fullScreen.findIndex((p) => p.src === row.photo))}
               >
-                <PhotoSlot src={row.photo} label="Photo" alt={row.alt} className="story-photo" />
+                <PhotoSlot src={row.photo} label="Photo" alt={row.alt} className="story-photo" eager />
               </button>
             ) : (
-              <PhotoSlot src={row.photo} label="Photo" alt={row.alt} className="story-photo" />
+              <PhotoSlot src={row.photo} label="Photo" alt={row.alt} className="story-photo" eager />
             )}
             <div className="story-text">
               {row.paragraphs.map((paragraph, i) => (

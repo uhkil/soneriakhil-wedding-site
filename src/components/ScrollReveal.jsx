@@ -18,7 +18,9 @@ export default function ScrollReveal({ children, className = '', as: Tag = 'div'
           observer.disconnect() // only needs to happen once
         }
       },
-      { threshold: 0.2 } // when 20% of it is visible
+      // as soon as any of it is within 150px of the bottom of the screen, so
+      // it's already fading in by the time it scrolls into view
+      { threshold: 0, rootMargin: '0px 0px 150px 0px' }
     )
     observer.observe(ref.current)
     return () => observer.disconnect()

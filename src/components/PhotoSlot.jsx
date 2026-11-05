@@ -14,15 +14,18 @@ import { photoUrl } from './photoUrl.js'
 // of cropped: 1.35 = the photo would lose more than about a quarter.
 const SHOW_WHOLE_PAST = 1.35
 
-export default function PhotoSlot({ src, alt = '', label = 'Photo', tilt = 0, className = '', width, height, frame }) {
+export default function PhotoSlot({ src, alt = '', label = 'Photo', tilt = 0, className = '', width, height, frame, eager = false }) {
+  // eager: download right away instead of waiting until it's scrolled near
+  // (iPhone Safari can hold lazy photos back until a finger leaves the screen).
+  const loading = eager ? 'eager' : 'lazy'
   const mismatch = width && height && frame ? Math.max(frame / (width / height), width / height / frame) : 1
   const whole = src && mismatch > SHOW_WHOLE_PAST
   return (
     <div className={`photo-slot ${className}${whole ? ' whole' : ''}`} style={{ rotate: `${tilt}deg` }}>
       {src ? (
         <>
-          {whole && <img className="photo-backdrop" src={photoUrl(src)} alt="" aria-hidden="true" loading="lazy" decoding="async" />}
-          <img className="photo-main" src={photoUrl(src)} alt={alt} loading="lazy" decoding="async" />
+          {whole && <img className="photo-backdrop" src={photoUrl(src)} alt="" aria-hidden="true" loading={loading} decoding="async" />}
+          <img className="photo-main" src={photoUrl(src)} alt={alt} loading={loading} decoding="async" />
         </>
       ) : (
         <div className="photo-placeholder">{label}</div>
