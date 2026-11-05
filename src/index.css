@@ -6027,3 +6027,26 @@ img.nugget-photo {
     padding: 8px 13px;
   }
 }
+
+/* Your details (new form): each person's name, "Mailing address" and the
+   note's title in the same heading style as the event names in Who's
+   coming (heavy, wide capitals). */
+[data-design='honey'] .rsvp-v2 .rsvp-person-name,
+[data-design='honey'] .rsvp-v2 .rsvp-subhead,
+[data-design='honey'] .rsvp-v2 .rsvp-field label.rsvp-subhead {
+  font-family: var(--font-display);
+  font-weight: 900;
+  font-stretch: 125%;
+  font-size: 1.3rem;
+  line-height: 1.1;
+  letter-spacing: 0;
+  text-transform: uppercase;
+  color: var(--paper);
+}
+@media (max-width: 699px) {
+  [data-design='honey'] .rsvp-v2 .rsvp-person-name,
+  [data-design='honey'] .rsvp-v2 .rsvp-subhead,
+  [data-design='honey'] .rsvp-v2 .rsvp-field label.rsvp-subhead {
+    font-size: 1.08rem;
+  }
+}
