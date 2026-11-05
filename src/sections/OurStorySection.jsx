@@ -143,30 +143,40 @@ export default function OurStorySection() {
 // first / last city. It may wrap only right after an arrow (never before
 // one), and the last two cities ("SF → ??),") always stay together.
 function CityTrail({ stops, before = '', after = '' }) {
+  const arrow = (
+    <>
+      <svg className="city-arrow" viewBox="0 0 24 24" aria-hidden="true">
+        <path d="M5 12h13M13 6l6 6-6 6" />
+      </svg>
+      <span className="visually-hidden"> to </span>
+    </>
+  )
+  // Pieces that never split: "(NY →", "SF →", "NY →", and the last two
+  // together, "SF → ??),". A line may break only between pieces.
+  const pieces = stops.slice(0, -2).map((stop, i) => (
+    <>
+      {i === 0 && before}
+      {stop}
+      {arrow}
+    </>
+  ))
+  pieces.push(
+    <>
+      {stops.length === 2 && before}
+      {stops[stops.length - 2]}
+      {arrow}
+      {stops[stops.length - 1]}
+      {after}
+    </>
+  )
   return (
     <span className="city-trail">
-      {stops.map((stop, i) => {
-        const last = i === stops.length - 1
-        return (
-          <Fragment key={i}>
-            <span>
-              {i === 0 && before}
-              {stop}
-              {!last && (
-                <>
-                  <svg className="city-arrow" viewBox="0 0 24 24" aria-hidden="true">
-                    <path d="M5 12h13M13 6l6 6-6 6" />
-                  </svg>
-                  <span className="visually-hidden"> to </span>
-                </>
-              )}
-              {last && after}
-            </span>
-            {/* a place the line may break (not before the last city) */}
-            {i < stops.length - 2 && <wbr />}
-          </Fragment>
-        )
-      })}
+      {pieces.map((piece, i) => (
+        <Fragment key={i}>
+          {i > 0 && <wbr />}
+          <span>{piece}</span>
+        </Fragment>
+      ))}
     </span>
   )
 }
