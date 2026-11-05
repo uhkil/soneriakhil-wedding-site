@@ -3,7 +3,8 @@
 //
 // Try: "Jordan Lee" (4 people, all 4 events), "Priya Shah" (two matches: her
 // family of 4 at all 4 events, or just her with a plus-one), or "Sam Rivera"
-// (invited only to April 10's events), with the passcode CELEBRATE.
+// (invited only to April 10's events), or "Bartholomew Venkataraman-Christensen"
+// (a family with long names), with the passcode CELEBRATE.
 import { maskEmail, maskPhone } from '../guest/contact.js'
 
 // "1600 E Randol Mill Rd" → "16•• • •••••• •••• Rd"
@@ -30,6 +31,7 @@ const parties = {
   P002: { name: 'Priya Shah', events: ['sangeet', 'reception'] },
   P003: { name: 'The Lee Family', events: ['ceremony', 'sangeet', 'indian-wedding', 'reception'] },
   P004: { name: 'Sam Rivera', events: ['indian-wedding', 'reception'] }, // April 10 only
+  P005: { name: 'The Venkataraman-Christensen Family', events: ['ceremony', 'sangeet', 'indian-wedding', 'reception'] }, // long names
 }
 
 const guests = [
@@ -43,6 +45,10 @@ const guests = [
   { guestId: 'G005', partyId: 'P003', firstName: 'Sam', lastName: 'Lee' },
   { guestId: 'G006', partyId: 'P003', firstName: 'Max', lastName: 'Lee' },
   { guestId: 'G011', partyId: 'P003', firstName: 'Maya', lastName: 'Lee' },
+  { guestId: 'G012', partyId: 'P005', firstName: 'Alexandria', lastName: 'Venkataraman-Christensen' },
+  { guestId: 'G013', partyId: 'P005', firstName: 'Bartholomew', lastName: 'Venkataraman-Christensen' },
+  { guestId: 'G014', partyId: 'P005', firstName: 'Maximiliano', lastName: 'Venkataraman-Christensen' },
+  { guestId: 'G015', partyId: 'P005', firstName: 'Jo', lastName: 'Venkataraman-Christensen' },
   { guestId: 'G008', partyId: 'P004', firstName: 'Sam', lastName: 'Rivera' },
 ]
 

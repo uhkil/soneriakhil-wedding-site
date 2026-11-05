@@ -17,7 +17,7 @@
 // If something's missing when they press Send, the spots are outlined with
 // a short note, the page scrolls to the first one, and a message by the
 // button says what to do.
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useLayoutEffect, useRef, useState } from 'react'
 import { useGuest } from '../guest/GuestProvider.jsx'
 import { submitRsvp } from '../api/rsvpApi.js'
 import FormMessage from '../components/FormMessage.jsx'
@@ -151,7 +151,7 @@ export default function RsvpByEvent() {
             const state = answers[g.guestId].attending[ev.id]
             return (
               <div key={g.guestId} className={`rsvp-toggle-row${problem && !state ? ' unanswered' : ''}`}>
-                <span className="rsvp-toggle-name">{displayName(g)}</span>
+                <NameFit full={displayName(g)} short={g.isPlusOne ? displayName(g) : `${g.firstName} ${g.lastName.charAt(0)}.`} />
                 <span className="rsvp-choices" role="radiogroup" aria-label={`${displayName(g)}, ${ev.name}`}>
                   {(solo
                     ? [
@@ -530,6 +530,42 @@ function InfoTip({ id, label, children }) {
           </button>
         </div>
       </dialog>
+    </span>
+  )
+}
+
+// A person's name on one line: in full when it fits; otherwise first name
+// and last initial ("Bartholomew V."); and if even that's too long, it
+// wraps. Checked again whenever the space changes (e.g. turning a phone)
+// and once the site's fonts have loaded.
+let measurer
+function textWidth(text, el) {
+  measurer ??= document.createElement('canvas').getContext('2d')
+  const style = getComputedStyle(el)
+  measurer.font = `${style.fontWeight} ${style.fontSize} ${style.fontFamily}`
+  return measurer.measureText(text).width
+}
+function NameFit({ full, short }) {
+  const box = useRef(null)
+  const [useShort, setUseShort] = useState(false)
+  useLayoutEffect(() => {
+    const check = () => box.current && setUseShort(textWidth(full, box.current) > box.current.clientWidth)
+    check()
+    document.fonts?.ready.then(check)
+    const watch = new ResizeObserver(check)
+    watch.observe(box.current)
+    return () => watch.disconnect()
+  }, [full])
+  return (
+    <span className="rsvp-toggle-name" ref={box} title={useShort ? full : undefined}>
+      {useShort ? (
+        <>
+          <span aria-hidden="true">{short}</span>
+          <span className="visually-hidden">{full}</span>
+        </>
+      ) : (
+        full
+      )}
     </span>
   )
 }

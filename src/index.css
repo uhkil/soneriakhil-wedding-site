@@ -935,10 +935,16 @@ h2:hover .title-berry.mirrored {
   aspect-ratio: 4 / 3;
   border-radius: 20px;
 }
-/* A real photo: its own shape, uncropped (tall photos stay tall). */
+/* A real photo: its own shape, uncropped... */
 .story-photo img.photo-main {
   aspect-ratio: auto;
   height: auto;
+}
+/* ...except a tall one: 4:5, trimmed only from the bottom. */
+.story-photo.tall img.photo-main {
+  aspect-ratio: 4 / 5;
+  object-fit: cover;
+  object-position: 50% 0%;
 }
 
 /* The first row has the text on the left and the photo on the right; every
@@ -5928,4 +5934,18 @@ img.nugget-photo {
 /* Not answered (after Send): a coral edge. */
 [data-design='honey'] .rsvp-toggle-row.unanswered .rsvp-choices {
   border-color: #ffb4a9;
+}
+
+/* Long names (see NameFit in RsvpByEvent.jsx): the name's column can
+   shrink, and a very long single word still wraps instead of spilling. */
+.rsvp-toggle-name {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+/* Phones: a slimmer Yes / No, leaving more room for names. */
+@media (max-width: 699px) {
+  [data-design='honey'] .rsvp-toggle-row .rsvp-choice label {
+    min-width: 0;
+    padding: 8px 13px;
+  }
 }
