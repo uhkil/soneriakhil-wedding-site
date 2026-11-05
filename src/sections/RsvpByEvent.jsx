@@ -25,7 +25,7 @@ import RsvpCelebration from '../components/RsvpCelebration.jsx'
 import RsvpAddress from '../components/RsvpAddress.jsx'
 import { ABROAD, addressProblems, isStarted, livesAbroad, startingAddress } from '../guest/address.js'
 import { EMAIL, COM_TYPO, formatPhone, isValidPhone } from '../guest/contact.js'
-import { STYLES, StepsView, RowsView, TilesView, SentenceView } from './RsvpComingStyles.jsx'
+import { STYLES, TilesView } from './RsvpComingStyles.jsx'
 
 const LOGGED_OUT = 'Please find your invitation again.'
 
@@ -69,10 +69,10 @@ export default function RsvpByEvent() {
     url.searchParams.set('style', s)
     window.history.replaceState(null, '', url)
     setStyleState(s)
-    setStep(0)
   }
-  const [step, setStep] = useState(0) // "One at a time": which event (the last step is the recap)
-  const [openEv, setOpenEv] = useState(null) // "Rows" and "Two days": the event in the pop-up
+  // Your details: which part is showing (a person's guestId, 'address', or
+  // 'note'), picked with the chips at the top of the card.
+  const [part, setPart] = useState(() => party.guests[0].guestId)
 
   const displayName = (g) => (g.isPlusOne ? 'Your guest' : `${g.firstName} ${g.lastName}`)
   const onFile = (g) => party.onFile?.[g.guestId] || {}
@@ -163,7 +163,7 @@ export default function RsvpByEvent() {
   }
 
   // One event: its name and date, then a chip for each person invited.
-  function eventChips(ev) {
+  function eventChips(ev, { tile = false } = {}) {
     const invited = invitedTo(ev)
     const problem = problemFor(`event-${ev.id}`)
     const answered = invited.every((g) => answers[g.guestId].attending[ev.id])
@@ -178,12 +178,21 @@ export default function RsvpByEvent() {
         aria-labelledby={`event-${ev.id}-name`}
         {...invalid(problem, `event-${ev.id}-note`)}
       >
-        <p className="rsvp-event-head" id={`event-${ev.id}-name`}>
-          {ev.name}
-          <span>
-            {ev.date} · {ev.timeOfDay}
-          </span>
-        </p>
+        {tile ? (
+          // In a "Two days" tile the day is already above, so: the time of
+          // day, then the event's name.
+          <p className="rsvp-event-head rsvp-tile-head" id={`event-${ev.id}-name`}>
+            <span>{ev.timeOfDay}</span>
+            {ev.name}
+          </p>
+        ) : (
+          <p className="rsvp-event-head" id={`event-${ev.id}-name`}>
+            {ev.name}
+            <span>
+              {ev.date} · {ev.timeOfDay}
+            </span>
+          </p>
+        )}
         <div className="rsvp-chips">
           {invited.map((g) => {
             const coming = answers[g.guestId].attending[ev.id] === 'yes'
@@ -221,18 +230,16 @@ export default function RsvpByEvent() {
     )
   }
 
-  // What the other layouts need from here.
-  const helpers = {
-    events: party.events,
-    answers,
-    invitedTo,
-    chipName,
-    displayName,
-    tapPerson,
-    noneOfUs,
-    eventChips,
-    problemFor,
-  }
+  // What the "Two days" layout needs from here.
+  const helpers = { events: party.events, answers, invitedTo, eventChips, problemFor }
+
+  // Your details: which part each problem is in.
+  const partOf = (problemId) => (problemId.startsWith('addr-') ? 'address' : problemId.replace(/^(name|email|phone)-/, ''))
+  const parts = [
+    ...people.map((g) => [g.guestId, chipName(g)]),
+    ['address', 'Address'],
+    ['note', 'Note'],
+  ]
 
   async function save() {
     setChecked(true)
@@ -242,9 +249,9 @@ export default function RsvpByEvent() {
       // Go to the tab with the first thing missing, then to that spot.
       const onEvents = found[0].card.startsWith('event-')
       setTab(onEvents ? 'coming' : 'details')
-      if (onEvents && style === 'steps') setStep(party.events.findIndex((ev) => `event-${ev.id}` === found[0].card))
+      if (!onEvents) setPart(partOf(found[0].id))
       requestAnimationFrame(() => requestAnimationFrame(() => {
-        const spot = document.getElementById(found[0].id.replace(/^event-/, 'spot-')) ?? document.getElementById(found[0].id)
+        const spot = document.getElementById(found[0].id)
         const smooth = !window.matchMedia('(prefers-reduced-motion: reduce)').matches
         spot?.scrollIntoView({ behavior: smooth ? 'smooth' : 'auto', block: 'center' })
         ;(spot?.querySelector('input') ?? spot)?.focus({ preventScroll: true })
@@ -324,14 +331,8 @@ export default function RsvpByEvent() {
 
         {tab === 'coming' && (
         <Card id="coming" title="Who’s coming?">
-          {style === 'steps' ? (
-            <StepsView h={helpers} step={step} setStep={setStep} />
-          ) : style === 'rows' ? (
-            <RowsView h={helpers} openEv={openEv} setOpenEv={setOpenEv} />
-          ) : style === 'tiles' ? (
-            <TilesView h={helpers} openEv={openEv} setOpenEv={setOpenEv} />
-          ) : style === 'sentence' ? (
-            <SentenceView h={helpers} />
+          {style === 'tiles' ? (
+            <TilesView h={helpers} />
           ) : (
             <>
               <p className="rsvp-chip-hint">Tap everyone who’s coming.</p>
@@ -344,16 +345,39 @@ export default function RsvpByEvent() {
 
         {tab === 'details' && (
         <Card id="details" title="Your details">
-          <p className="field-hint rsvp-details-intro">
-            We need at least one email and one phone number for your invitation. Add them for everyone if you’d like.
-          </p>
-          {people.map((g) => {
+          {/* A chip for each person, then the address and the note: tap one to
+              see just that part. A coral edge marks a part with something
+              still missing. */}
+          <div className="rsvp-chips rsvp-part-chips" role="tablist" aria-label="Whose details">
+            {parts.map(([id, label]) => {
+              const flagged = problems.some((p) => partOf(p.id) === id && !p.card.startsWith('event-'))
+              return (
+                <button
+                  key={id}
+                  type="button"
+                  role="tab"
+                  aria-selected={part === id}
+                  className={`rsvp-chip${part === id ? ' on' : ''}${flagged ? ' flagged' : ''}${id === 'address' ? ' rsvp-chip-gap' : ''}`}
+                  onClick={() => setPart(id)}
+                >
+                  {label}
+                  {flagged && <span className="rsvp-tab-dot" aria-label="(needs attention)" />}
+                </button>
+              )
+            })}
+          </div>
+
+          {people.some((g) => g.guestId === part) && (
+            <p className="field-hint rsvp-details-intro">
+              We need at least one email and one phone number for your invitation. Add them for everyone if you’d like.
+            </p>
+          )}
+          {people.filter((g) => g.guestId === part).map((g) => {
             const a = answers[g.guestId]
             const saved = onFile(g)
             const id = (field) => `${field}-${g.guestId}`
             return (
               <div key={g.guestId} className="rsvp-details-person">
-                <p className="rsvp-person-name">{displayName(g)}</p>
                 {g.isPlusOne && (
                   <div className="rsvp-field">
                     <label htmlFor={id('name')}>Your guest’s name</label>
@@ -412,8 +436,11 @@ export default function RsvpByEvent() {
               </div>
             )
           })}
-          <p className="field-hint">Outside the US? Start phone numbers with + and the country code (like +91 or +44).</p>
+          {people.some((g) => g.guestId === part) && (
+            <p className="field-hint">Outside the US? Start phone numbers with + and the country code (like +91 or +44).</p>
+          )}
 
+          {part === 'address' && (
           <div className="rsvp-details-part">
             <RsvpAddress
               bare
@@ -427,7 +454,9 @@ export default function RsvpByEvent() {
               problemFor={(field) => problemFor(`addr-${field}`)}
             />
           </div>
+          )}
 
+          {part === 'note' && (
           <div className="rsvp-details-part rsvp-field">
             <label htmlFor="rsvp-note" className="rsvp-subhead">
               A note for Soneri &amp; Akhil
@@ -443,6 +472,18 @@ export default function RsvpByEvent() {
               }}
             />
           </div>
+          )}
+
+          {/* On to the next part (the last one has none: Send is below). */}
+          {parts.findIndex(([id]) => id === part) < parts.length - 1 && (
+            <button
+              type="button"
+              className="rsvp-next-part"
+              onClick={() => setPart(parts[parts.findIndex(([id]) => id === part) + 1][0])}
+            >
+              Next: {parts[parts.findIndex(([id]) => id === part) + 1][1]} →
+            </button>
+          )}
         </Card>
 
         )}
@@ -470,7 +511,7 @@ export default function RsvpByEvent() {
         )}
 
         {/* First tab: on to the details. Second tab: send. */}
-        {tab === 'coming' && style === 'steps' && step < party.events.length ? null : tab === 'coming' ? (
+        {tab === 'coming' ? (
           <button
             className="button rsvp-submit"
             type="button"
