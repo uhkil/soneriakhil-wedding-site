@@ -34,16 +34,14 @@ const art = {
     nugget: {
       heading: 'games we luv',
       links: [
-        { before: 'NYT Daily ', label: 'Crossword', href: 'https://www.nytimes.com/crosswords' },
+        { before: 'NYT ', label: 'Crossword', href: 'https://www.nytimes.com/crosswords' },
         {
           label: 'Overcooked2',
-          note: 'for Nintendo',
           href: 'https://www.nintendo.com/au/games/nintendo-switch/overcooked-2/?srsltid=AYCX9vIhG5JQEgwUudRMf7g765dCAPRvgemQCakkltnwtautu24y6BYe',
         },
         { label: 'Phase 10', href: 'https://www.amazon.com/dp/B01N3489RH?plpRedirect=mhFallback&ref=clp_hp_h_pc&th=1' },
         {
           label: 'Tailspin',
-          note: '– only available in India',
           href: 'https://www.amazon.in/Tailspin-Word-Game-Intelligent-Building/dp/B09HSL5W4W',
         },
         { label: 'Anthropeum', href: 'https://anthropeum.com/' },
