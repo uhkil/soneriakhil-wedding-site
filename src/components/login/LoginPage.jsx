@@ -30,7 +30,7 @@ export default function LoginPage() {
           </span>{' '}
           Akhil
         </p>
-        <p className="invitation-details">April 9–10, 2027 · Arlington, TX</p>
+        <p className="invitation-details">April 2027 · Arlington, TX</p>
         {/* The two hands making a heart (the same drawing as beside the Registry title). */}
         <Art file="heart-hands.webp" className="invitation-hands" />
 
