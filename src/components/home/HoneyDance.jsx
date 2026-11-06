@@ -32,20 +32,22 @@ function frameFiles(folder, count, version) {
 // browsers fetch the new ones instead of reusing old saved copies.
 const SOURCES = frameFiles('hero', 7, 6)
 
+// All together it takes 4.2 seconds: the last pose starts at 4.029s and has
+// faded in by 4.2s. (The bubbles appear with the second wave, at about 3.7s.)
 // The dissolves are fairly long (see .honey-frames in index.css): the new
 // pose fades in over the first half, the old one fades out over the second,
 // so moving limbs blend instead of jumping.
 const SEQUENCE = [
-  ['frame-1', 640, 280], // dancing
-  ['frame-2', 620, 280], // stepping out
-  ['frame-3', 700, 280], // the big step
-  ['frame-2', 620, 280], // stepping back
-  ['frame-1', 680, 280],
-  ['frame-4', 880, 300, 1.2], // a close moment, eyes closed
-  ['frame-5', 760, 360, 2], // turning toward you, hand coming up (the biggest change)
-  ['frame-6', 620, 220], // waving (only his arm moves in these)
-  ['frame-5', 520, 220],
-  ['frame-7', 0, 260], // arm down, settled, and stopping here
+  ['frame-1', 427, 187], // dancing
+  ['frame-2', 413, 187], // stepping out
+  ['frame-3', 466, 187], // the big step
+  ['frame-2', 413, 187], // stepping back
+  ['frame-1', 455, 187],
+  ['frame-4', 588, 198, 1.2], // a close moment, eyes closed
+  ['frame-5', 508, 240, 2], // turning toward you, hand coming up (the biggest change)
+  ['frame-6', 413, 145], // waving (only his arm moves in these)
+  ['frame-5', 346, 145],
+  ['frame-7', 0, 171], // arm down, settled, and stopping here
 ]
 
 // bubbles: what each of them says (see src/guest/bubbles.js; this guest's own
