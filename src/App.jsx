@@ -27,7 +27,7 @@ export default function App() {
       <Toaster />
       {isPractice && (
         <p className="practice-banner">
-          Practice mode: fake guests. Try “Jordan Lee” with passcode CELEBRATE.
+          Practice mode: fake guests. Try “Jordan Lee” with CELEBRATE (all four events), “Sam Rivera” with TOAST, “Lena Park” with BLESSED (Wedding only).
         </p>
       )}
       {!loggedIn ? (

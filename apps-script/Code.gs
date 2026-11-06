@@ -6,15 +6,15 @@
  *
  * This code lives inside the wedding Google Sheet (Extensions → Apps Script).
  * The website sends it requests; it reads the guest list from the Sheet and
- * writes RSVPs back. Guests log in with their name plus the wedding passcode
- * (one passcode for everyone, set in the Settings tab). Each person can give
+ * writes RSVPs back. Guests log in with their name plus their passcode (one
+ * per set of events: see "Passcodes" below). Each person can give
  * an email and phone (the invitation needs at least one of either), and the
  * invitation can leave one note. Saved
  * emails and phones are only ever sent back partly hidden (p•••h@gmail.com,
  * •••-•••-1234), and saved notes not at all.
  *
  * Tabs (setup() creates them; see apps-script/SETUP.md for the full guide):
- *   You fill in:  Settings (the passcode), Guests (one row per person), Events
+ *   You fill in:  Guests (one row per person), Passcodes (your words), Events
  *   It fills in:  Summary (headcounts + copy-ready email and phone lists),
  *                 All Guests (everyone, with their answers), RSVPs (saved
  *                 answers), Party Responses (when each invitation last saved),
@@ -31,6 +31,10 @@
  *                          checkbox: checked = invited to that event
  *   plus_one               checked = may bring a guest
  *   guest_id               filled in automatically; don't change it
+ *   passcode               (far right) filled in on its own, in grey, from the
+ *                          Passcodes tab: the passcode for the events this
+ *                          household is invited to. Type over it to give them
+ *                          their own (it turns black); clear it to go back.
  *   soneri_bubble,         optional: what Soneri and Akhil say in the speech
  *   akhil_bubble           bubbles on the Home page to whoever logs in with
  *                          this row (blank = the usual words). Added on their
@@ -38,7 +42,7 @@
  *
  * The website can ask for four things ("actions"):
  *   search   — find guests by first + last name
- *   verify   — check the wedding passcode; returns the guest's invitation + a login token
+ *   verify   — check the guest's passcode (the one on their row); returns their invitation + a login token
  *   party    — reload an invitation's details using a saved login token
  *   submit   — save the invitation's RSVP
  *
@@ -59,6 +63,7 @@ const TAB = {
   log: 'Change Log',
   summary: 'Summary',
   allGuests: 'All Guests',
+  passcodes: 'Passcodes',
 }
 
 // The Guests tab's columns: these, then one checkbox column per event (named
@@ -158,6 +163,7 @@ function loadGuestList(fresh) {
     if (remembered) return remembered
   }
   ensureGuestIds()
+  syncPasscodes()
   const events = readTab(TAB.events).filter((ev) => ev.event_id)
   const people = []
   readGuestRows().forEach((row) => {
@@ -175,6 +181,7 @@ function loadGuestList(fresh) {
       household,
       side: row.side || '',
       group: row.group || '',
+      passcode: row.passcode || '',
       soneriBubble: row.soneri_bubble || '',
       akhilBubble: row.akhil_bubble || '',
       subGroup: row['sub-group'] || row.sub_group || row.subgroup || '',
@@ -272,6 +279,174 @@ function ensureGuestIds() {
   }
 }
 
+// ---------------------------------------------------------------------------
+// Passcodes: one per set of events
+// ---------------------------------------------------------------------------
+// Everyone invited to exactly the same events shares a passcode, so a guest
+// who opens someone else's invitation with theirs can only see invitations
+// with the very same events (nothing new to them). The Passcodes tab has one
+// row per set of events found in the Guests tab, with its passcode (yours to
+// type; a word is suggested), how many households, and their names (to copy
+// for the group text).
+//
+// Each guest's own passcode is copied into the passcode column at the far
+// right of the Guests tab, in grey. Typing over it gives that household their
+// own passcode (it turns black and is left alone); clearing it puts the
+// automatic one back. A cell holding another group's passcode is put back
+// too, since it would open invitations with other events.
+
+const PASSCODE_WORDS = ['MANGO', 'SUNSET', 'DISCO', 'MARIGOLD', 'LANTERN', 'JASMINE', 'CONFETTI', 'SPARKLER', 'HONEYBEE', 'DAHLIA', 'TWIRL', 'BLUEBERRY']
+const PASSCODE_HEADER = ['events', 'passcode', 'households', 'guests', 'event_ids']
+const AUTO_GREY = '#9aa0a6'
+
+/** Brings the Passcodes tab and every row's passcode up to date. */
+function syncPasscodes() {
+  const ss = SpreadsheetApp.getActive()
+  const guests = getTab(TAB.guests)
+  ensureBubbleColumns(guests) // first, so passcode is always the last column
+  const events = readTab(TAB.events).filter((ev) => ev.event_id)
+  let header = guestHeader(guests)
+  while (header.length && !header[header.length - 1]) header.pop()
+
+  // The passcode column, at the far right (added the first time).
+  if (!header.includes('passcode')) {
+    header.push('passcode')
+    const col = header.length
+    guests
+      .getRange(1, col)
+      .setValue('passcode')
+      .setFontWeight('bold')
+      .setNote(
+        'Filled in automatically (grey) from the Passcodes tab: the passcode for the events this guest’s household is invited to.\n\n' +
+          '• To give someone their own passcode, type over it. It turns black and stays.\n' +
+          '• Clear the cell to go back to the automatic one.\n' +
+          '• It can’t be another group’s passcode (that would let them see other events), so the script puts the right one back.\n\n' +
+          'Guests log in with the passcode on their own row.'
+      )
+    guests.getRange(2, col, Math.max(guests.getMaxRows() - 1, 1), 1).setNumberFormat('@')
+  }
+  const pcCol = header.indexOf('passcode')
+
+  // Each household's set of events (everyone's checked boxes put together).
+  const last = lastGuestRow(guests, header)
+  const rows = last < 2 ? [] : guests.getRange(2, 1, last - 1, header.length).getDisplayValues()
+  const at = (name) => header.indexOf(name)
+  const household = (r) => {
+    const h = (r[at('household')] || '').trim()
+    return h ? 'H:' + h.toLowerCase().replace(/\s+/g, ' ') : r[at('guest_id')] || r[at('first_name')] + ' ' + r[at('last_name')]
+  }
+  const named = (r) => (r[at('first_name')] || '').trim() || (r[at('last_name')] || '').trim()
+  const homes = {}
+  rows.forEach((r) => {
+    if (!named(r)) return
+    const key = household(r)
+    homes[key] = homes[key] || { ids: new Set(), rows: [] }
+    events.forEach((ev) => at(ev.event_id) >= 0 && isYes(r[at(ev.event_id)]) && homes[key].ids.add(ev.event_id))
+    homes[key].rows.push(r)
+  })
+  const comboOf = (home) => events.filter((ev) => home.ids.has(ev.event_id)).map((ev) => ev.event_id).join(' + ')
+
+  // The Passcodes tab: keep the passcodes already chosen, add new sets of events.
+  const tab = ss.getSheetByName(TAB.passcodes) || ss.insertSheet(TAB.passcodes)
+  const saved = {}
+  if (tab.getLastRow() > 1) {
+    tab
+      .getRange(2, 1, tab.getLastRow() - 1, PASSCODE_HEADER.length)
+      .getDisplayValues()
+      .forEach((r) => r[4] && (saved[r[4]] = r[1]))
+  }
+  const combos = {}
+  Object.values(homes).forEach((home) => {
+    const key = comboOf(home)
+    if (!key) return // invited to nothing yet
+    combos[key] = combos[key] || { households: 0, rows: [] }
+    combos[key].households += 1
+    combos[key].rows.push(...home.rows)
+  })
+  Object.keys(saved).forEach((key) => (combos[key] = combos[key] || { households: 0, rows: [] }))
+  // Words already taken: the groups' passcodes, and any typed over a row (so a
+  // new suggestion never matches someone's own passcode).
+  const props = PropertiesService.getScriptProperties()
+  const autos = new Set(JSON.parse(props.getProperty('AUTO_PASSCODES') || '[]'))
+  Object.values(saved).forEach((code) => autos.add(cleanCode(code)))
+  const used = new Set(Object.values(saved).map(cleanCode))
+  rows.forEach((r) => cleanCode(r[pcCol]) && !autos.has(cleanCode(r[pcCol])) && used.add(cleanCode(r[pcCol])))
+  const order = (key) => events.findIndex((ev) => ev.event_id === key.split(' + ')[0]) * 100 - key.split(' + ').length
+  const keys = Object.keys(combos).sort((a, b) => order(a) - order(b))
+  keys.forEach((key) => {
+    if (cleanCode(saved[key])) return
+    saved[key] = PASSCODE_WORDS.find((w) => !used.has(w)) || 'PASSCODE' + (used.size + 1)
+    used.add(cleanCode(saved[key]))
+  })
+  // Every row's passcode: the automatic one, unless it's been typed over
+  // with something that isn't any group's passcode (theirs to keep). The
+  // passcodes ever filled in automatically are remembered, so renaming a
+  // group's passcode updates the rows that had the old one.
+  keys.forEach((key) => autos.add(cleanCode(saved[key])))
+  const values = []
+  const colors = []
+  let changed = false
+  rows.forEach((r) => {
+    const now = r[pcCol] || ''
+    const key = named(r) ? comboOf(homes[household(r)]) : ''
+    const auto = key ? saved[key] : ''
+    const own = cleanCode(now) && !autos.has(cleanCode(now))
+    const value = own ? now : auto
+    if (value !== now) changed = true
+    values.push([value])
+    colors.push([own ? '#000000' : AUTO_GREY])
+  })
+  if (rows.length) {
+    const range = guests.getRange(2, pcCol + 1, rows.length, 1)
+    if (changed) range.setValues(values)
+    range.setFontColors(colors)
+  }
+  props.setProperty('AUTO_PASSCODES', JSON.stringify([...autos]))
+
+  // The Passcodes tab itself.
+  const nameOf = (id) => (events.find((ev) => ev.event_id === id) || {}).name || id
+  const table = [PASSCODE_HEADER].concat(
+    keys.map((key) => [
+      key.split(' + ').map(nameOf).join(' · '),
+      saved[key],
+      combos[key].households,
+      combos[key].rows
+        .map((r) => {
+          const name = `${r[at('first_name')]} ${r[at('last_name')]}`.trim()
+          const code = cleanCode(r[pcCol])
+          return code && !autos.has(code) ? `${name} (own passcode: ${r[pcCol]})` : name
+        })
+        .join(', '),
+      key,
+    ])
+  )
+  tab.clearContents()
+  tab.getRange(1, 1, table.length, PASSCODE_HEADER.length).setNumberFormat('@').setValues(table)
+  tab.getRange(1, 1, 1, PASSCODE_HEADER.length).setFontWeight('bold')
+  tab.setFrozenRows(1)
+  tab.getRange(1, 2).setNote(
+    'The passcode for everyone invited to exactly these events. A word is suggested: type your own over it.\n\n' +
+      'Each passcode must be different (a red cell means two are the same). Changing one updates the Guests tab and logs those households out.'
+  )
+  tab.getRange(1, 4).setNote('Everyone with this passcode: copy it to see who to text it to.')
+  tab.getRange(1, 5).setNote('How the script recognizes this set of events. Don’t change it.')
+  tab.getRange(2, 5, Math.max(keys.length, 1), 1).setFontColor(AUTO_GREY)
+  const passCells = tab.getRange(2, 2, Math.max(tab.getMaxRows() - 1, 1), 1)
+  tab.setConditionalFormatRules([
+    SpreadsheetApp.newConditionalFormatRule()
+      .whenFormulaSatisfied('=AND(B2<>"",COUNTIF(B:B,B2)>1)')
+      .setBackground('#fbe0de')
+      .setFontColor('#8a2a22')
+      .setRanges([passCells])
+      .build(),
+  ])
+  tab.setColumnWidth(1, 320)
+  tab.setColumnWidth(4, 420)
+
+
+  if (changed) CacheService.getScriptCache().remove('guestList')
+}
+
 /**
  * Adds the speech-bubble columns (soneri_bubble, akhil_bubble) to the end of
  * the Guests tab if they aren't there yet: bold titles with tips on hover, and
@@ -308,8 +483,11 @@ function ensureBubbleColumns(sheet, header) {
 function onEdit(e) {
   try {
     const name = e && e.range ? e.range.getSheet().getName() : ''
-    if ([TAB.guests, TAB.events, TAB.settings].includes(name)) forgetRemembered()
+    if ([TAB.guests, TAB.events, TAB.settings, TAB.passcodes].includes(name)) forgetRemembered()
     if (name === TAB.guests) ensureGuestIds()
+    // Checking an event box, editing a passcode cell, or changing a group's
+    // passcode: every row's passcode is brought up to date.
+    if ([TAB.guests, TAB.events, TAB.passcodes].includes(name)) syncPasscodes()
   } catch (err) {
     console.error(err) // the ids are filled in on the next request instead
   }
@@ -390,7 +568,7 @@ function searchGuests(name) {
   }
 }
 
-/** Checks the wedding passcode, then opens the guest's invitation. */
+/** Checks the guest's passcode, then opens their invitation. */
 function verifyCode(guestId, code) {
   const cache = CacheService.getScriptCache()
   const triesKey = 'tries:' + guestId
@@ -399,26 +577,20 @@ function verifyCode(guestId, code) {
     throw new UserError('Too many tries. Please wait an hour, or reach out to us.')
   }
 
-  const passcode = sitePasscode()
   const list = loadGuestList()
   const guest = list.people.find((g) => g.guestId === String(guestId) && !g.isPlusOne)
-  if (!guest || cleanCode(code) !== cleanCode(passcode)) {
+  // Each guest's passcode is the one on their own row of the Guests tab (see
+  // syncPasscodes): it only opens invitations it was given to.
+  if (guest && !cleanCode(guest.passcode)) {
+    throw new UserError("Your invitation isn't ready yet. Please reach out to us.")
+  }
+  if (!guest || cleanCode(code) !== cleanCode(guest.passcode)) {
     cache.put(triesKey, String(tries + 1), 60 * 60)
-    throw new UserError("That passcode doesn't match. Check your invitation and try again.")
+    throw new UserError("That passcode doesn't match. Check the passcode we sent you and try again.")
   }
 
   cache.remove(triesKey)
-  return { token: makeToken(guest.partyId), party: partyDetails(guest.partyId, list) }
-}
-
-/** The wedding passcode from the Settings tab (row "site_passcode"). */
-function sitePasscode() {
-  const remembered = cacheGet('passcode')
-  if (remembered) return remembered
-  const row = readTab(TAB.settings).find((r) => r.setting === 'site_passcode')
-  if (!row || !row.value) throw new UserError("RSVPs aren't open yet. Please check back soon.")
-  cachePut('passcode', row.value)
-  return row.value
+  return { token: makeToken(guest.partyId, list), party: partyDetails(guest.partyId, list) }
 }
 
 /** Everything the website needs about one invitation (and nothing private). */
@@ -661,18 +833,23 @@ function saveRsvp(req, list) {
 // Login tokens
 // ---------------------------------------------------------------------------
 // After the right passcode, the website gets a token: a signature of the
-// party's id + the passcode, made with a secret only this script knows. The
-// website saves it so guests stay logged in. Changing the passcode logs
-// everyone out.
+// party's id + its passcode(s), made with a secret only this script knows.
+// The website saves it so guests stay logged in. Changing a household's
+// passcode logs that household out.
 
-function makeToken(partyId) {
-  const sig = Utilities.computeHmacSha256Signature(`${partyId}|${cleanCode(sitePasscode())}`, secret())
+function makeToken(partyId, list) {
+  const codes = (list || loadGuestList()).people
+    .filter((g) => g.partyId === partyId && !g.isPlusOne)
+    .map((g) => cleanCode(g.passcode))
+  const key = [...new Set(codes)].sort().join(',')
+  const sig = Utilities.computeHmacSha256Signature(`${partyId}|${key}`, secret())
   return Utilities.base64EncodeWebSafe(sig)
 }
 
 function requireToken(partyId, token, list) {
-  const exists = (list || loadGuestList()).people.some((g) => g.partyId === partyId)
-  if (!exists || !token || token !== makeToken(partyId)) {
+  list = list || loadGuestList()
+  const exists = list.people.some((g) => g.partyId === partyId)
+  if (!exists || !token || token !== makeToken(partyId, list)) {
     throw new UserError('Please find your invitation again.')
   }
 }
@@ -1131,6 +1308,7 @@ function onOpen() {
   // (So the speech-bubble columns appear as soon as the Sheet is opened.)
   try {
     ensureBubbleColumns()
+    syncPasscodes()
   } catch (err) {
     console.error(err)
   }
@@ -1174,7 +1352,7 @@ const SAMPLE_GUESTS = [
  */
 function setup() {
   const ss = SpreadsheetApp.getActive()
-  const samples = { Settings: [['site_passcode', 'CELEBRATE']], Events: SAMPLE_EVENTS } // CHANGE the passcode!
+  const samples = { Events: SAMPLE_EVENTS } // (passcodes: see the Passcodes tab, made by syncPasscodes)
 
   Object.keys(HEADERS).forEach((name) => {
     if (ss.getSheetByName(name)) return
@@ -1284,7 +1462,8 @@ function switchToNewGuestList() {
 function tryItOut() {
   const found = searchGuests('priya shah')
   console.log('Search "priya shah" →', JSON.stringify(found.matches))
-  const result = verifyCode(found.matches[0].guestId, sitePasscode())
+  const guest = loadGuestList().people.find((g) => g.guestId === found.matches[0].guestId)
+  const result = verifyCode(guest.guestId, guest.passcode)
   console.log('Right passcode → invitation:', result.party.partyName,
     '| guests:', result.party.guests.map((g) => g.firstName || '(plus-one)').join(', '),
     '| events:', result.party.events.map((e) => e.name).join(', '))

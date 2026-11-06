@@ -2,7 +2,8 @@
 //   Step 1: type your first and last name, then press Enter (or the arrow
 //   button inside the box).
 //   (If several guests share that name, a popup asks which one you are.)
-//   Step 2: type the wedding passcode (the same for everyone, printed on the invitation).
+//   Step 2: type their passcode (the one we texted them: one per set of
+//   events, so it only opens invitations with the same events as theirs).
 // If something's wrong (a blank box, a name that isn't on the list, the wrong
 // passcode, no internet), a message appears under the box, the box is outlined
 // in red, and the cursor goes back into it so the guest can fix it.
@@ -71,7 +72,7 @@ export default function FindInvitation() {
   // Step 2: check the passcode. On success the whole site opens, so this form goes away.
   async function openInvitation(event) {
     event.preventDefault()
-    if (!code.trim()) return fail('Please enter the passcode from your invitation.', codeBox)
+    if (!code.trim()) return fail('Please enter the passcode we sent you.', codeBox)
     setError('')
     setBusy(true)
     try {
@@ -120,7 +121,7 @@ export default function FindInvitation() {
           {/* Two lines: the hello on its own, then what to do. */}
           <label htmlFor="invite-code" className="passcode-prompt">
             <span className="passcode-hello">Hi, {guest.name.split(' ')[0]}!</span>
-            <span>Enter the passcode from your invitation.</span>
+            <span>Enter the passcode we sent you.</span>
           </label>
           <div className="field-row">
             <input

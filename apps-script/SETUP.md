@@ -2,7 +2,7 @@
 
 The guest list and RSVPs live in a private Google Sheet. A small script inside
 that Sheet (`Code.gs`) answers the website's questions: "does this name match a
-guest?", "is this the wedding passcode?", "save this RSVP." This takes about
+guest?", "is this their passcode?", "save this RSVP." This takes about
 15 minutes, once.
 
 ## 1. Create the Sheet
@@ -49,13 +49,25 @@ guest?", "is this the wedding passcode?", "save this RSVP." This takes about
 5. Paste that URL somewhere and send it to me (Claude); the website needs it.
    Opening it in your browser should show `"RSVP service is running."`
 
-**Set your own passcode** in the Settings tab (the sample is CELEBRATE). Every
-guest uses the same passcode, printed on the invitations.
+**Passcodes: one per set of events.** The **Passcodes** tab (made by the
+script) has a row for each different set of events in your Guests tab, e.g.
+"all four events", "the last three", "Reception only", with a suggested word
+in the `passcode` column. Type your own word over each. Everyone invited to
+exactly those events uses that passcode; the `guests` column lists them, to
+copy for your group text. Each must be different (a red cell means two match).
+
+Each guest's passcode is also copied, in grey, into the `passcode` column at
+the far right of the Guests tab. To give a household its own passcode (e.g. a
+group chat of college friends), type over it there: it turns black and stays.
+Clear it to go back to the automatic one. It can't be another group's passcode
+(that would let them see other events), so the script puts the right one back.
+Changing a household's passcode logs that household out.
 
 "Anyone" means the website can reach the script, not that anyone can see your
 Sheet. The script only hands out one party's details at a time, and only with
-the right name and passcode. Anyone with the passcode can look up any guest
-by name (like Zola). Saved emails and phones are only sent back partly hidden
+the right name and passcode. A passcode only opens invitations it was given to,
+so a guest can look up someone else only if they were invited to the very same
+events. Saved emails and phones are only sent back partly hidden
 (p•••h@gmail.com, •••-•••-1234), and saved notes never are.
 
 ## The tabs
@@ -64,7 +76,8 @@ by name (like Zola). Saved emails and phones are only sent back partly hidden
 
 | Tab | One row per… | What goes in it |
 |---|---|---|
-| **Settings** | setting | `site_passcode`: the wedding passcode guests type. Changing it logs everyone out. |
+| **Settings** | setting | Nothing needed now (the old `site_passcode` row isn't used any more; delete it). |
+| **Passcodes** | set of events | Made by the script: one passcode per set of events (see above). Type your own words in `passcode`; leave `event_ids` alone. |
 | **Guests** | person | See below. |
 | **Events** | event | `event_id` (short, no spaces), `name`, `date` (like `April 10`), `time_of_day`. Their order is the order guests see. Times, places, and attire shown on the website come from `src/data/events.js`. |
 
@@ -78,6 +91,8 @@ by name (like Zola). Saved emails and phones are only sent back partly hidden
 | one checkbox per event (`ceremony`, `sangeet`, `indian-wedding`, `reception`) | Check each event they're invited to. They'll only see and RSVP for those, and the dates at the top of the site match (e.g. just "April 10, 2027"). Typing `x` or `yes` works too. |
 | `plus_one` | Check if they may bring a guest: their RSVP gets a "Your guest" spot. |
 | `guest_id` | Filled in automatically (G001, G002, …). Don't change it. |
+| `soneri_bubble`, `akhil_bubble` | Optional: what Soneri and Akhil say in the speech bubbles on the Home page to whoever logs in with this row. Two short lines, about 20 characters each; `/` picks the line break. Blank = the usual words. Hover over the title for tips. |
+| `passcode` | Far right. Filled in automatically (grey) from the Passcodes tab. Type over it to give this household its own passcode (black). |
 
 Any column you add yourself (address, table number, "save the date sent", …)
 is private too: the script only sends names and events to the website.
@@ -103,7 +118,7 @@ Older versions of this Sheet had a Parties tab and party ids. After pasting
 the new script, reload the Sheet and use **Wedding RSVP → Switch to the new
 guest list (one time)**. Your old Guests, Parties, RSVPs, and Party Responses
 tabs are renamed "Old …" (nothing is deleted), and a new Guests tab with
-sample guests is created. The passcode and events stay as they are.
+sample guests is created. The events stay as they are.
 
 ## Changing the script later
 

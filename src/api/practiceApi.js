@@ -4,7 +4,9 @@
 // Try: "Jordan Lee" (4 people, all 4 events), "Priya Shah" (two matches: her
 // family of 4 at all 4 events, or just her with a plus-one), or "Sam Rivera"
 // (invited only to April 10's events), or "Bartholomew Venkataraman-Christensen"
-// (a family with long names), with the passcode CELEBRATE.
+// (a family with long names), with the passcode CELEBRATE (all four events).
+// Each set of events has its own passcode, like the real Sheet: Priya Shah
+// with a plus-one → DANCE, Sam Rivera → TOAST, Lena Park (Wedding only) → BLESSED.
 import { maskEmail, maskPhone } from '../guest/contact.js'
 
 // "1600 E Randol Mill Rd" → "16•• • •••••• •••• Rd"
@@ -24,7 +26,14 @@ const events = [
   { id: 'reception', name: 'Cocktail Hour + Reception', date: 'April 10', timeOfDay: 'Evening', time: '6:00 PM', location: 'Practice Venue', address: '123 Example St, Dallas, TX', attire: 'Black tie optional', description: 'Practice-mode details.' },
 ]
 
-const PASSCODE = 'CELEBRATE'
+// Like the real Sheet: one passcode per set of events.
+const PASSCODES = {
+  'ceremony,sangeet,indian-wedding,reception': 'CELEBRATE', // all four (Jordan Lee, Priya's family, …)
+  'sangeet,reception': 'DANCE', // Priya Shah with a plus-one
+  'indian-wedding,reception': 'TOAST', // Sam Rivera
+  'indian-wedding': 'BLESSED', // Lena Park (the Wedding only)
+}
+const passcodeFor = (partyId) => PASSCODES[parties[partyId].events.join(',')] || ''
 
 const parties = {
   P001: { name: 'The Shah Family', events: ['ceremony', 'sangeet', 'indian-wedding', 'reception'] },
@@ -32,6 +41,7 @@ const parties = {
   P003: { name: 'The Lee Family', events: ['ceremony', 'sangeet', 'indian-wedding', 'reception'] },
   P004: { name: 'Sam Rivera', events: ['indian-wedding', 'reception'] }, // April 10 only
   P005: { name: 'The Venkataraman-Christensen Family', events: ['ceremony', 'sangeet', 'indian-wedding', 'reception'] }, // long names
+  P006: { name: 'Lena Park', events: ['indian-wedding'] }, // the Wedding only
 }
 
 const guests = [
@@ -50,6 +60,7 @@ const guests = [
   { guestId: 'G014', partyId: 'P005', firstName: 'Maximiliano', lastName: 'Venkataraman-Christensen' },
   { guestId: 'G015', partyId: 'P005', firstName: 'Jo', lastName: 'Venkataraman-Christensen' },
   { guestId: 'G008', partyId: 'P004', firstName: 'Sam', lastName: 'Rivera' },
+  { guestId: 'G016', partyId: 'P006', firstName: 'Lena', lastName: 'Park' },
 ]
 
 // Practice speech bubbles (like the Sheet's soneri_bubble / akhil_bubble):
@@ -127,8 +138,8 @@ export async function handlePractice(req) {
 
   if (req.action === 'verify') {
     const guest = guests.find((g) => g.guestId === req.guestId)
-    if (!guest || cleanCode(req.code) !== PASSCODE) {
-      fail("That passcode doesn't match. Check your invitation and try again.")
+    if (!guest || cleanCode(req.code) !== passcodeFor(guest.partyId)) {
+      fail("That passcode doesn't match. Check the passcode we sent you and try again.")
     }
     return { ok: true, token: 'practice-' + guest.partyId, party: partyDetails(guest.partyId) }
   }
