@@ -60,8 +60,8 @@ const rows = [
         </a>{' '}
         proud. Akhil read Soneri’s favorite books and watched her favorite TV shows, Soneri asked her brother to give
         her a crash course on the NBA. They spent many cozy pandemic days embroidering sweatshirts, biking, painting
-        leaves, and having picnics. Soneri fell in love with Akhil’s giving nature, thoughtfulness, and ability to
-        make her laugh like no one else ever had, and Akhil fell in love with her warmth, curiosity, passion for
+        leaves, and having picnics. Soneri fell in love with Akhil’s giving nature, thoughtfulness, and his ability
+        to make her laugh like no other, and Akhil fell in love with her warmth, curiosity, passion for
         living, and infectious smile{' :‑)'}
       </>,
     ],
