@@ -3,18 +3,23 @@
 //     with a line per person invited to it and Yes / No beside their name
 //     (Accept / Decline when the invitation is just for one person). Long
 //     names shorten to first name + last initial when they don't fit.
-//   - Your details: for each person, their email, phone, and dietary needs
+//   - Your details: for each person, their email, phone, and dietary restrictions
 //     (and a plus-one's name); then the mailing address and one note for the
 //     whole invitation. The invitation needs at least one email or phone
 //     number; the rest are optional.
 //
 // The answers are the same as before (each person's yes/no for each event,
-// their contact details and dietary needs), so they save to the Sheet the
+// their contact details and dietary restrictions), so they save to the Sheet the
 // same way.
 //
 // If something's missing when they press Send, the spots are outlined with
 // a short note, the page scrolls to the first one, and a message by the
 // button says what to do.
+//
+// Once they've RSVP'd, they see a short summary instead (RsvpSummary below:
+// "Thanks for RSVPing!", who's coming to what, and their details, with
+// emails, phones and the address partly hidden), and an "Edit RSVP" button
+// that brings back the form. After January 15, 2027, just the summary.
 import { useEffect, useLayoutEffect, useRef, useState } from 'react'
 import { useGuest } from '../guest/GuestProvider.jsx'
 import { submitRsvp } from '../api/rsvpApi.js'
@@ -27,6 +32,14 @@ import { ABROAD, addressProblems, isStarted, livesAbroad, startingAddress } from
 import { EMAIL, COM_TYPO, formatPhone, isValidPhone } from '../guest/contact.js'
 
 const LOGGED_OUT = 'Please find your invitation again.'
+
+// The invitation's note, in full ('' if none). (A Sheet script from before
+// notes were sent back says only true, that there is one: then text is ''
+// and saved is true.)
+function savedNote(party) {
+  const notes = party.guests.map((g) => party.onFile?.[g.guestId]?.note).filter(Boolean)
+  return { text: notes.find((n) => typeof n === 'string') || '', saved: notes.length > 0 }
+}
 
 function savedAnswers(party) {
   return Object.fromEntries(
@@ -47,18 +60,180 @@ function savedAnswers(party) {
 }
 
 export default function RsvpByEvent() {
+  const { party } = useGuest()
+  // After January 15, 2027 (see rsvpClosed in schedule.js): no changes.
+  const closed = rsvpClosed(party)
+  const [editing, setEditing] = useState(false)
+  const [celebrate, setCelebrate] = useState(null)
+  // Switching between the summary and the form changes the section's height
+  // a lot, so bring its title back to the top of the screen.
+  const switchTo = (edit) => {
+    setEditing(edit)
+    requestAnimationFrame(() => document.querySelector('#rsvp h2')?.scrollIntoView({ block: 'start' }))
+  }
+
+  let content
+  if (closed && !party.hasResponded) {
+    content = <p className="rsvp-intro">RSVPs closed on January 15. If you still need to RSVP, please reach out to us.</p>
+  } else if (party.hasResponded && (closed || !editing)) {
+    content = <RsvpSummary closed={closed} onEdit={() => switchTo(true)} />
+  } else {
+    content = (
+      <RsvpForm
+        onSaved={(attending) => {
+          setEditing(false)
+          setCelebrate({ attending })
+        }}
+        onCancel={party.hasResponded ? () => switchTo(false) : null}
+      />
+    )
+  }
+  return (
+    <>
+      {content}
+      <RsvpCelebration open={Boolean(celebrate)} attending={celebrate?.attending} onClose={() => setCelebrate(null)} />
+    </>
+  )
+}
+
+// The summary once they've RSVP'd: short, and easy to read at a glance.
+// Personal details (email, phone, address) are partly hidden, the same way
+// the Sheet's script sends them; notes are never sent back, only whether
+// there is one.
+function RsvpSummary({ closed, onEdit }) {
+  const { party } = useGuest()
+  const people = party.guests
+  const answer = (g) => party.answers[g.guestId] || {}
+  const first = (g) => (g.isPlusOne ? (answer(g).name || 'Your guest').split(' ')[0] : g.firstName)
+  const full = (g) => (g.isPlusOne ? answer(g).name || 'Your guest' : `${g.firstName} ${g.lastName}`)
+  const solo = people.length === 1
+
+  // Each person's details (whatever they gave): email and phone on one line,
+  // dietary restrictions on their own line below.
+  const details = people
+    .map((g) => {
+      const f = party.onFile?.[g.guestId] || {}
+      const contact = [typeof f.email === 'string' && f.email, typeof f.phone === 'string' && f.phone].filter(Boolean).join(' · ')
+      const dietary = answer(g).dietary ? `Dietary: ${answer(g).dietary}` : ''
+      return { g, lines: [contact, dietary].filter(Boolean) }
+    })
+    .filter((d) => d.lines.length)
+  const a = party.addressMasked
+  const address = a
+    ? [a.street, a.apt, a.city, [a.state, a.zip].filter(Boolean).join(' ')].filter(Boolean).join(', ')
+    : party.addressOnFile === 'outside the US'
+      ? 'Outside the US'
+      : party.addressOnFile
+  const note = savedNote(party)
+
+  return (
+    <>
+      <div className="rsvp-summary">
+        <p className="rsvp-summary-title">Thanks for RSVPing!</p>
+        <p className="rsvp-summary-sub">
+          {closed
+            ? 'RSVPs closed on January 15. If something has changed, please reach out to us.'
+            : 'Here’s what we have for you. You can make changes until January 15, 2027.'}
+        </p>
+
+        {/* One row per event, then one each for the details, the address and
+            the note: a title on the left (above, on phones), what we have on
+            the right, a thin line between rows. */}
+        <ul className="rsvp-summary-events">
+          {party.events.map((ev) => {
+            const invited = people.filter((g) => g.invitedEvents.includes(ev.id))
+            return (
+              <li key={ev.id}>
+                <p className="rsvp-summary-event">
+                  <EventName name={ev.name} />
+                  <span className="rsvp-summary-when">
+                    {ev.date} · {ev.timeOfDay}
+                  </span>
+                </p>
+                {/* Each person in a pill: ✓ coming, ✕ not coming. */}
+                <ul className="rsvp-summary-pills">
+                  {invited.map((g) => {
+                    const value = answer(g).attending?.[ev.id]
+                    const state = value === 'yes' ? 'yes' : value === 'no' ? 'no' : 'waiting'
+                    const word = { yes: 'coming', no: 'not coming', waiting: 'no answer yet' }[state]
+                    return (
+                      <li key={g.guestId} className={`rsvp-pill is-${state}`}>
+                        <PillIcon state={state} />
+                        {solo ? full(g) : first(g)}
+                        <span className="visually-hidden">: {word}</span>
+                      </li>
+                    )
+                  })}
+                </ul>
+              </li>
+            )
+          })}
+
+          {details.length > 0 && (
+            <li>
+              <p className="rsvp-summary-event">Details</p>
+              <dl className="rsvp-summary-details">
+                {details.map(({ g, lines }) => (
+                  <div key={g.guestId}>
+                    <dt>{full(g)}</dt>
+                    {lines.map((line) => (
+                      <dd key={line}>{line}</dd>
+                    ))}
+                  </div>
+                ))}
+              </dl>
+            </li>
+          )}
+          {address && (
+            <li>
+              <p className="rsvp-summary-event">Mailing address</p>
+              <p className="rsvp-summary-value">{address}</p>
+            </li>
+          )}
+          {note.saved && (
+            <li>
+              <p className="rsvp-summary-event">Note</p>
+              {/* Their note in full, line breaks and all. */}
+              <p className="rsvp-summary-value rsvp-summary-note">{note.text || 'Saved. Thank you!'}</p>
+            </li>
+          )}
+        </ul>
+      </div>
+
+      {!closed && (
+        <button type="button" className="button rsvp-submit rsvp-edit" onClick={onEdit}>
+          Edit RSVP
+        </button>
+      )}
+      <LastSaved when={party.lastRsvpAt} />
+    </>
+  )
+}
+
+// A small check (coming), cross (not coming) or dash (no answer yet).
+function PillIcon({ state }) {
+  const path = { yes: 'M5 12.5l4.5 4.5L19 7.5', no: 'M7 7l10 10M17 7 7 17', waiting: 'M7 12h10' }[state]
+  return (
+    <svg className="rsvp-pill-icon" viewBox="0 0 24 24" aria-hidden="true">
+      <path d={path} />
+    </svg>
+  )
+}
+
+// The form itself (guests who haven't RSVP'd yet, or who pressed Edit RSVP).
+//   onSaved(attending): called once it's saved (attending = anyone coming)
+//   onCancel: back to the summary without saving (when there is one)
+function RsvpForm({ onSaved, onCancel }) {
   const { party, token, setParty, logout } = useGuest()
   const [answers, setAnswers] = useState(() => savedAnswers(party))
-  const [note, setNote] = useState('')
+  // The saved note is filled in, ready to change.
+  const [note, setNote] = useState(() => savedNote(party).text)
   const [address, setAddress] = useState(() => startingAddress(party.addressOnFile))
   const [status, setStatus] = useState('editing') // 'editing' | 'saving' | 'saved'
   const [error, setError] = useState('')
   const [checked, setChecked] = useState(false) // after the first Send: flag what's missing
-  const [celebrate, setCelebrate] = useState(null)
   // Which tab is showing: 'coming' (who's coming to each event) or 'details'.
   const [tab, setTab] = useState('coming')
-  // After January 15, 2027 (see rsvpClosed in schedule.js): answers only, no changes.
-  const closed = rsvpClosed(party)
 
   const displayName = (g) => (g.isPlusOne ? 'Your guest' : `${g.firstName} ${g.lastName}`)
   const onFile = (g) => party.onFile?.[g.guestId] || {}
@@ -66,7 +241,8 @@ export default function RsvpByEvent() {
   const invitedTo = (ev) => people.filter((g) => g.invitedEvents.includes(ev.id))
   // An invitation for just one person: Accept / Decline instead of names.
   const solo = people.length === 1
-  const noteOnFile = people.some((g) => onFile(g).note)
+  // A note is saved but the Sheet didn't send its words (an older script).
+  const noteHidden = savedNote(party).saved && !savedNote(party).text
 
   function updateGuest(guestId, change) {
     setAnswers((all) => {
@@ -222,37 +398,17 @@ export default function RsvpByEvent() {
         guests: people.map((g) => ({ guestId: g.guestId, ...answers[g.guestId], note: g.guestId === firstId ? note : '' })),
         address: address.country !== 'US' ? (livesAbroad(party.addressOnFile) ? null : ABROAD) : isStarted(address) ? address : null,
       })
-      setParty(updated)
+      // When it saved: from the Sheet, or (if the Sheet's script doesn't send
+      // it yet) right now, since it just saved.
+      setParty({ ...updated, lastRsvpAt: updated.lastRsvpAt || new Date().toISOString() })
       setAnswers((all) => Object.fromEntries(Object.entries(all).map(([id, a]) => [id, { ...a, email: '', phone: '' }])))
-      setNote('')
       setAddress(startingAddress(updated.addressOnFile))
       setStatus('saved')
-      setCelebrate({ attending: Object.values(answers).some((a) => Object.values(a.attending).includes('yes')) })
+      onSaved(Object.values(answers).some((a) => Object.values(a.attending).includes('yes')))
     } catch (err) {
       setError(err.message)
       setStatus('editing')
     }
-  }
-
-  if (closed) {
-    return (
-      <>
-        <p className="rsvp-intro">
-          {party.hasResponded
-            ? 'RSVPs closed on January 15. Here’s what we have for you. If something has changed, please reach out to us.'
-            : 'RSVPs closed on January 15. If you still need to RSVP, please reach out to us.'}
-        </p>
-        {party.hasResponded && (
-          // Their answers, to look at but not change.
-          <fieldset className="rsvp-form rsvp-v2 rsvp-closed" disabled aria-label="Your RSVP">
-            <Card id="coming" title="Who’s coming?">
-              <p className="rsvp-chip-hint">Your answers:</p>
-              {party.events.map((ev) => eventChips(ev))}
-            </Card>
-          </fieldset>
-        )}
-      </>
-    )
   }
 
   return (
@@ -367,7 +523,7 @@ export default function RsvpByEvent() {
                   </div>
                 </div>
                 <div className="rsvp-field">
-                  <label htmlFor={id('diet')}>Dietary needs</label>
+                  <label htmlFor={id('diet')}>Dietary restrictions</label>
                   <input
                     id={id('diet')}
                     type="text"
@@ -401,7 +557,7 @@ export default function RsvpByEvent() {
             <textarea
               id="rsvp-note"
               rows="3"
-              placeholder={noteOnFile ? 'We have your note. Write a new one to replace it, or leave blank to keep it.' : 'Optional'}
+              placeholder={noteHidden ? 'We have your note. Write a new one to replace it, or leave blank to keep it.' : 'Optional'}
               value={note}
               onChange={(e) => {
                 setNote(e.target.value)
@@ -452,8 +608,13 @@ export default function RsvpByEvent() {
             {status === 'saving' ? 'Saving…' : party.hasResponded ? 'Update RSVP' : 'Send RSVP'}
           </button>
         )}
+        {onCancel && (
+          <button type="button" className="link-button rsvp-cancel" onClick={onCancel}>
+            Cancel and go back to your RSVP
+          </button>
+        )}
+        <LastSaved when={party.lastRsvpAt} />
       </div>
-      <RsvpCelebration open={Boolean(celebrate)} attending={celebrate?.attending} onClose={() => setCelebrate(null)} />
     </>
   )
 }
@@ -468,6 +629,22 @@ function Card({ id, title, children }) {
       </p>
       <div className="rsvp-card-body">{children}</div>
     </div>
+  )
+}
+
+// "You last successfully RSVP’d on November 5, 2026 at 2:03 PM CST": when
+// this invitation last saved its RSVP (from the Sheet), in the guest's own
+// time zone. Nothing until they've saved one.
+function LastSaved({ when }) {
+  const date = when ? new Date(when) : null
+  if (!date || isNaN(date)) return null
+  const day = date.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })
+  const time = date.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', timeZoneName: 'short' })
+  return (
+    <p className="rsvp-last-saved">
+      {/* (The time, "at" included, never splits across lines.) */}
+      You last successfully RSVP’d on {day}{'\u00a0at\u00a0'}{time.replace(/ /g, '\u00a0')}
+    </p>
   )
 }
 

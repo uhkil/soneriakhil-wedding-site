@@ -2873,16 +2873,175 @@ img.nugget-photo {
   gap: 20px;
 }
 
-/* After RSVPs close: the guest's answers, shown but not changeable. */
-.rsvp-closed {
-  min-width: 0;
+/* Once they've RSVP'd: the summary card (RsvpSummary in RsvpByEvent.jsx).
+   The same dark-blue card as the form, but short: a thank-you, each event
+   with who's coming, then their details in a compact list. */
+.rsvp-summary {
+  padding: 32px 32px 28px;
+  border-radius: 24px;
+  background: var(--ink);
+  color: var(--paper);
+}
+.rsvp-summary p {
   margin: 0;
-  padding: 0;
-  border: none;
+}
+.rsvp-summary-title {
+  font-family: var(--font-display);
+  font-weight: 900;
+  font-stretch: 125%;
+  font-size: clamp(1.35rem, 3vw, 1.75rem);
+  line-height: 1.1;
+  text-transform: uppercase;
+}
+.rsvp-summary-sub {
+  margin-top: 10px !important;
+  font-size: 0.95rem;
+  opacity: 0.85;
 }
 
-.rsvp-closed label {
-  cursor: default;
+/* Each event: its name and date on the left, the answers on the right
+   (stacked on phones), a thin line between events. */
+.rsvp-summary-events {
+  list-style: none;
+  margin: 24px 0 0;
+  padding: 0;
+}
+.rsvp-summary-events > li {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 6px 24px;
+  align-items: start;
+  padding: 16px 0;
+  border-top: 1px solid rgba(202, 233, 255, 0.22);
+}
+.rsvp-summary-event {
+  font-family: var(--font-display);
+  font-weight: 900;
+  font-stretch: 125%;
+  font-size: 0.95rem;
+  line-height: 1.2;
+  text-transform: uppercase;
+}
+.rsvp-summary-when {
+  display: block;
+  margin-top: 6px;
+  font-family: var(--font-ui);
+  font-stretch: 100%;
+  font-size: 0.66rem;
+  font-weight: 500;
+  letter-spacing: 0.18em;
+  opacity: 0.85;
+}
+.rsvp-summary-value {
+  font-size: 0.95rem;
+  line-height: 1.4;
+  overflow-wrap: anywhere;
+}
+.rsvp-summary-note {
+  white-space: pre-line; /* keeps the line breaks they typed */
+}
+
+/* Each person's answer: their name in a pill with a check (coming: filled
+   light blue, like a chosen Yes in the form), or a cross / dash (outlined
+   and dimmer). */
+.rsvp-summary-pills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.rsvp-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 12px 5px 9px;
+  border: 1.5px solid rgba(202, 233, 255, 0.55);
+  border-radius: 999px;
+  font-size: 0.9rem;
+  line-height: 1.2;
+}
+.rsvp-pill.is-yes {
+  border-color: var(--paper);
+  background: var(--paper);
+  color: var(--ink);
+}
+.rsvp-pill.is-no,
+.rsvp-pill.is-waiting {
+  opacity: 0.75;
+}
+.rsvp-pill-icon {
+  flex: none;
+  width: 14px;
+  height: 14px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2.6;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+/* The details: each person's name in a small label, then what they gave
+   (partly hidden). */
+.rsvp-summary-details {
+  display: grid;
+  gap: 12px;
+  margin: 0;
+}
+.rsvp-summary-details dt {
+  font-family: var(--font-ui);
+  font-size: 0.66rem;
+  font-weight: 500;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  opacity: 0.85;
+}
+.rsvp-summary-details dd {
+  margin: 4px 0 0;
+  font-size: 0.95rem;
+  line-height: 1.4;
+  overflow-wrap: anywhere; /* a long email never runs out of the card */
+}
+
+/* The Edit button sits centered under the card, like Send under the form. */
+[data-design='honey'] .rsvp .rsvp-edit {
+  display: block;
+  width: fit-content;
+  margin: 28px auto 0;
+}
+.rsvp-edit + .rsvp-last-saved,
+.rsvp-summary + .rsvp-last-saved {
+  margin-top: 16px;
+}
+
+/* "Cancel and go back to your RSVP", under Update RSVP while editing. */
+.rsvp-cancel {
+  justify-self: center;
+  font-size: 0.9rem;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+@media (max-width: 699px) {
+  .rsvp-summary {
+    padding: 26px 22px 22px;
+  }
+  .rsvp-summary-events > li {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+/* "You last successfully RSVP'd on …", under the button. */
+.rsvp-last-saved {
+  margin: 0;
+  text-align: center;
+  text-wrap: balance; /* two even lines when it wraps on phones */
+  font-size: 0.85rem;
+  opacity: 0.8;
+}
+.rsvp-closed + .rsvp-last-saved {
+  margin-top: 20px; /* after RSVPs close: under the answers instead */
 }
 
 /* RSVP is the last section, so on its own there isn't always enough page

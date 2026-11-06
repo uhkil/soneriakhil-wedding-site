@@ -20,6 +20,8 @@ import { Children, Fragment, cloneElement, isValidElement, useState } from 'reac
 // (1600px on its long side) is for phones with very sharp screens and the
 // full-screen view. "width" is the full-size file's width in pixels.
 // The underlined words' photos are in public/assets/story/links/.
+const DAVID_ARCHULETA = 'https://open.spotify.com/track/74moQhkQujMivoPognUchQ?si=c8b176b425bc4f70'
+
 const rows = [
   {
     photo: 'assets/story/story-1.jpg',
@@ -51,7 +53,11 @@ const rows = [
         <PhotoLink photo="assets/story/links/5-options.jpg" alt="Akhil’s five options">five options</PhotoLink>, surely she’d be enticed by at least one.
       </>,
       <>
-        It was a crush for the ages, one that would make David Archuleta{' '}
+        It was a crush for the ages, one that would make{' '}
+        {/* A song on Spotify, in a new tab (underlined like the photo links). */}
+        <a className="photo-link" href={DAVID_ARCHULETA} target="_blank" rel="noreferrer">
+          David Archuleta
+        </a>{' '}
         proud. Akhil read Soneri’s favorite books and watched her favorite TV shows, Soneri asked her brother to give
         her a crash course on the NBA. They spent many cozy pandemic days embroidering sweatshirts, biking, painting
         leaves, and having picnics. Soneri fell in love with Akhil’s giving nature, thoughtfulness, and ability to

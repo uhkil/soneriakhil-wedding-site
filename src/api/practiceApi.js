@@ -70,7 +70,7 @@ function partyDetails(partyId) {
   const onFile = Object.fromEntries(
     Object.entries(answers.contact).map(([id, c]) => [
       id,
-      { email: c.email ? maskEmail(c.email) : '', phone: c.phone ? maskPhone(c.phone) : '', note: Boolean(c.note) },
+      { email: c.email ? maskEmail(c.email) : '', phone: c.phone ? maskPhone(c.phone) : '', note: c.note || '' },
     ])
   )
   return {
@@ -81,6 +81,7 @@ function partyDetails(partyId) {
     answers: answers.answers,
     onFile,
     hasResponded: Boolean(saved[partyId]),
+    lastRsvpAt: saved[partyId]?.at || '',
     // Like the real back end: only the city a saved address is in.
     addressOnFile: answers.address ? addressPlace(answers.address) : '',
     // Each part partly hidden, like the real back end.
@@ -145,7 +146,7 @@ export async function handlePractice(req) {
     if (req.address?.country === 'US' && savedAddress?.country === 'US') {
       address = Object.fromEntries(Object.entries(req.address).map(([k, v]) => [k, (typeof v === 'string' && v.trim()) || savedAddress[k]]))
     }
-    saved[req.partyId] = { answers, contact, address }
+    saved[req.partyId] = { answers, contact, address, at: new Date().toISOString() }
     return { ok: true, party: partyDetails(req.partyId) }
   }
 

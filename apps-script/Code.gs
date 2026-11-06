@@ -25,7 +25,7 @@
  *   household              blank = invited on their own. Everyone with the
  *                          same household name is one invitation; any of
  *                          them can RSVP for all of them.
- *   side, group            private notes for you (never sent to the website;
+ *   side, group, sub-group private notes for you (never sent to the website;
  *                          neither is any column you add yourself)
  *   one column per event   (named by its event_id from the Events tab) — a
  *                          checkbox: checked = invited to that event
@@ -59,7 +59,7 @@ const TAB = {
 
 // The Guests tab's columns: these, then one checkbox column per event (named
 // by its event_id), then plus_one and guest_id.
-const GUEST_COLUMNS_BEFORE = ['first_name', 'last_name', 'household', 'side', 'group']
+const GUEST_COLUMNS_BEFORE = ['first_name', 'last_name', 'household', 'side', 'group', 'sub-group']
 const GUEST_COLUMNS_AFTER = ['plus_one', 'guest_id']
 
 const HEADERS = {
@@ -125,7 +125,7 @@ function doPost(e) {
  *   people — everyone who can be on an RSVP, including a "Your guest" spot
  *            right after anyone with plus_one checked. Each has: guestId,
  *            firstName, lastName, isPlusOne, invitedEvents (event ids),
- *            partyId, partyName, household, side, group, hostName (plus-ones)
+ *            partyId, partyName, household, side, group, subGroup, hostName (plus-ones)
  *
  * An invitation ("party") is a household: everyone with the same household
  * name (ignoring capitals and extra spaces). Someone with no household is
@@ -156,6 +156,7 @@ function loadGuestList(fresh) {
       household,
       side: row.side || '',
       group: row.group || '',
+      subGroup: row['sub-group'] || row.sub_group || row.subgroup || '',
     }
     people.push(person)
     if (isYes(row.plus_one)) {
@@ -433,7 +434,7 @@ function partyDetails(partyId, list) {
       onFile[r.guest_id] = {
         email: r.email ? maskEmail(r.email) : '',
         phone: r.phone ? maskPhone(r.phone) : '',
-        note: Boolean(r.note),
+        note: r.note || '', // their own note, in full (only ever sent to their own invitation)
       }
     })
   return {
@@ -442,13 +443,35 @@ function partyDetails(partyId, list) {
     guests,
     events,
     answers,
-    onFile, // by guest id: { email: 'p•••h@gmail.com', phone: '•••-•••-1234', note: true } ('' / false if not saved)
+    onFile, // by guest id: { email: 'p•••h@gmail.com', phone: '•••-•••-1234', note: 'So excited!' } ('' if not saved)
     // Answered = anyone on it has saved answers (worked out per person, so
     // renaming a household or moving someone between households keeps it right).
     hasResponded: Object.keys(answers).length > 0,
     addressOnFile,
     addressMasked,
+    lastRsvpAt: lastSaved(memberIds), // when this invitation last saved its RSVP ('' if never)
   }
+}
+
+/**
+ * When anyone on this invitation last saved an RSVP: the latest updated_at in
+ * the RSVPs tab, as an ISO date the website turns into the guest's own time.
+ * (Read as real dates, not as they're shown in the Sheet, so the Sheet's date
+ * format doesn't matter.)
+ */
+function lastSaved(memberIds) {
+  const sheet = getTab(TAB.rsvps)
+  if (sheet.getLastRow() < 2) return ''
+  const header = sheet.getRange(1, 1, 1, sheet.getLastColumn()).getValues()[0].map((h) => String(h).trim())
+  const idCol = header.indexOf('guest_id')
+  const whenCol = header.indexOf('updated_at')
+  if (idCol < 0 || whenCol < 0) return ''
+  let latest = null
+  sheet.getRange(2, 1, sheet.getLastRow() - 1, header.length).getValues().forEach((r) => {
+    const when = r[whenCol]
+    if (memberIds.has(String(r[idCol]).trim()) && when instanceof Date && (!latest || when > latest)) latest = when
+  })
+  return latest ? latest.toISOString() : ''
 }
 
 /**
@@ -923,8 +946,8 @@ function refreshSummary(list, answers) {
 
 /**
  * The All Guests tab: one row per guest (and per plus-one spot), with their
- * side and group, their answer for each event (yes / no / waiting, or "—"
- * if not invited), dietary needs, email, phone, and note. Filters you set on
+ * side, group and sub-group, their answer for each event (yes / no / waiting, or "—"
+ * if not invited), dietary restrictions, email, phone, and note. Filters you set on
  * it are kept when it refreshes.
  */
 function refreshAllGuests(list, answers) {
@@ -934,7 +957,8 @@ function refreshAllGuests(list, answers) {
   const ss = SpreadsheetApp.getActive()
   const sheet = ss.getSheetByName(TAB.allGuests) || ss.insertSheet(TAB.allGuests, 1)
 
-  const header = ['Name', 'Household', 'Side', 'Group']
+  const before = ['Name', 'Household', 'Side', 'Group', 'Sub-group'] // the columns before the events
+  const header = before
     .concat(events.map((ev) => ev.name))
     .concat(['Dietary', 'Email', 'Phone', 'Address', 'Note', 'Last updated'])
   const rows = people.map((g) => {
@@ -942,7 +966,7 @@ function refreshAllGuests(list, answers) {
     let name = `${g.firstName} ${g.lastName}`.trim()
     if (g.isPlusOne) name = a.guest_name ? `${a.guest_name} (guest of ${g.hostName})` : `Guest of ${g.hostName}`
     const perEvent = events.map((ev) => (g.invitedEvents.includes(ev.event_id) ? a[ev.event_id] || 'waiting' : '—'))
-    return [name, g.household, g.side, g.group]
+    return [name, g.household, g.side, g.group, g.subGroup || '']
       .concat(perEvent)
       .concat([a.dietary || '', a.email || '', a.phone || '', a.address || '', a.note || '', a.updated_at || ''])
   })
@@ -968,7 +992,7 @@ function refreshAllGuests(list, answers) {
   sheet.setFrozenColumns(1)
 
   // Colors for the answers: yes green, no red, waiting gray.
-  const answerCells = sheet.getRange(2, 5, Math.max(rows.length, 1), Math.max(events.length, 1))
+  const answerCells = sheet.getRange(2, before.length + 1, Math.max(rows.length, 1), Math.max(events.length, 1))
   const rule = (text, background, color) =>
     SpreadsheetApp.newConditionalFormatRule().whenTextEqualTo(text).setBackground(background).setFontColor(color).setRanges([answerCells]).build()
   sheet.setConditionalFormatRules([
@@ -1134,6 +1158,7 @@ function createGuestsTab(ss) {
       'Leave blank if they are invited on their own.\n\nFor a family or couple, give everyone the exact same household name (e.g. "Shah family"): they become one invitation, and any of them can RSVP for everyone.\n\nGuests only see this name if two guests share the same name, to pick the right invitation.',
     side: 'Private (never shown to guests): e.g. Bride, Groom, Both.',
     group: "Private (never shown to guests): e.g. Mom's side, College friends.",
+    'sub-group': 'Private (never shown to guests): a smaller group within the group.',
     plus_one: 'Check if this person may bring a guest. Their RSVP gets a "Your guest" spot.',
     guest_id: "Filled in automatically. Don't change it.",
   }
@@ -1141,7 +1166,7 @@ function createGuestsTab(ss) {
   Object.keys(notes).forEach((name) => sheet.getRange(1, col(name)).setNote(notes[name]))
 
   const rows = SAMPLE_GUESTS.map(([first, last, household, side, group, invitedTo, plusOne]) =>
-    [first, last, household, side, group].concat(eventIds.map((id) => invitedTo.includes(id)), [plusOne, ''])
+    [first, last, household, side, group, ''].concat(eventIds.map((id) => invitedTo.includes(id)), [plusOne, ''])
   )
   sheet.getRange(2, 1, rows.length, header.length).setValues(rows)
   sheet.autoResizeColumns(1, header.length)

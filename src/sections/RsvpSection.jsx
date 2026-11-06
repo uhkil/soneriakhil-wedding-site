@@ -1,7 +1,7 @@
 // The RSVP section: the pool date drawing in its strip, the title, and the
 // form (RsvpByEvent.jsx): two tabs, "Who's coming?" (Yes / No for each
 // person at each event, or Accept / Decline for an invitation of one) and
-// "Your details" (emails, phones, dietary needs, one mailing address, one
+// "Your details" (emails, phones, dietary restrictions, one mailing address, one
 // note). Answers save to the Google Sheet; guests can come back and change
 // them, and a pop-up celebrates each save (RsvpCelebration.jsx).
 import Section from '../components/Section.jsx'
