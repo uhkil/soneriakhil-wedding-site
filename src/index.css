@@ -4457,8 +4457,12 @@ img.nugget-photo {
   .honey {
     --home-gap: 72px;
   }
+  /* The four numbers and their labels take about 205px; the rest of the
+     width is the space between them. Taking 20% of that space away brings
+     them 20% closer together (e.g. 52px → 42px apart on an iPhone 15). */
   .countdown {
-    width: calc(100% - 32px);
+    width: calc((100% - 32px) * 0.8 + 41px);
+    min-width: 0;
   }
   .countdown-label {
     font-size: 0.56rem;

@@ -25,6 +25,18 @@ export default function Lightbox({ photos, index, onIndex, onClose }) {
     if (next?.full) new Image().src = photoUrl(next.full)
   }
 
+  // iPhones ignore the "no scrolling" below for a finger dragging on the
+  // overlay, so a one-finger drag there is stopped by hand (left/right swipes
+  // between photos still work: they're read when the finger lifts). Two
+  // fingers still pinch to zoom.
+  const overlay = useRef(null)
+  useEffect(() => {
+    const el = overlay.current
+    const stop = (e) => e.touches.length === 1 && e.cancelable && e.preventDefault()
+    el.addEventListener('touchmove', stop, { passive: false })
+    return () => el.removeEventListener('touchmove', stop)
+  }, [])
+
   // On open: focus the ×, stop the page from scrolling. On close: undo both.
   useEffect(() => {
     const before = document.activeElement
@@ -60,6 +72,7 @@ export default function Lightbox({ photos, index, onIndex, onClose }) {
 
   return createPortal(
     <div
+      ref={overlay}
       className="lightbox"
       role="dialog"
       aria-modal="true"
