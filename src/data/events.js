@@ -28,7 +28,7 @@ const LOEWS_MAP = 'https://maps.app.goo.gl/mwfHokVjNmsswHYw9'
 
 const eventDetails = {
   ceremony: {
-    name: 'Intimate Ceremony',
+    name: 'Civil Ceremony',
     time: '9:00 AM',
     calendarUrl: calendar('M2ZoOWZkYmMyNDBvMmhjaXRzaWIzZmY0ZnIgc29uZXJpYWtoaWxAbQ'),
     location: 'Weston Gardens',
@@ -36,7 +36,7 @@ const eventDetails = {
     mapUrl: 'https://maps.app.goo.gl/9ukmWUF7erqTjdSNA',
     attire: 'Garden party | Chic semi-formal western',
     moodboard: '',
-    description: 'Join the couple for an intimate gathering as they read their vows to each other.',
+    description: 'Join the couple for an intimate gathering.',
   },
   sangeet: {
     name: 'Welcome Night | Sangeet',
@@ -47,8 +47,7 @@ const eventDetails = {
     mapUrl: LOEWS_MAP,
     attire: 'Vibrant & festive colors | Traditional Indian or Indo-western',
     moodboard: '',
-    description:
-      'Join the couple for an evening of mingling, good food, and dancing as they kick off the wedding weekend.',
+    description: 'Join the couple for an evening filled with good food and dancing as they kick off the wedding weekend.',
   },
   'indian-wedding': {
     name: 'Wedding',

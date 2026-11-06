@@ -20,7 +20,7 @@ const addressPlace = (a) =>
   a.country === 'US' ? [a.city, a.state].filter(Boolean).join(', ') : 'outside the US'
 
 const events = [
-  { id: 'ceremony', name: 'Intimate Ceremony', date: 'April 9', timeOfDay: 'Morning', time: '10:00 AM', location: 'Practice Venue', address: '123 Example St, Dallas, TX', attire: 'Formal', description: 'Practice-mode details.' },
+  { id: 'ceremony', name: 'Civil Ceremony', date: 'April 9', timeOfDay: 'Morning', time: '10:00 AM', location: 'Practice Venue', address: '123 Example St, Dallas, TX', attire: 'Formal', description: 'Practice-mode details.' },
   { id: 'sangeet', name: 'Welcome Night / Sangeet', date: 'April 9', timeOfDay: 'Evening', time: '7:00 PM', location: 'Practice Venue', address: '123 Example St, Dallas, TX', attire: 'Festive', description: 'Practice-mode details.' },
   { id: 'indian-wedding', name: 'Indian Wedding', date: 'April 10', timeOfDay: 'Morning', time: '9:00 AM', location: 'Practice Venue', address: '123 Example St, Dallas, TX', attire: 'Indian formal', description: 'Practice-mode details.' },
   { id: 'reception', name: 'Cocktail Hour + Reception', date: 'April 10', timeOfDay: 'Evening', time: '6:00 PM', location: 'Practice Venue', address: '123 Example St, Dallas, TX', attire: 'Black tie optional', description: 'Practice-mode details.' },
