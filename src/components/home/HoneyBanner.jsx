@@ -6,7 +6,7 @@
 import HoneyDance from './HoneyDance.jsx'
 import Countdown from './Countdown.jsx'
 
-export default function HoneyBanner({ welcome, dates, countdownTo, showRsvp = true }) {
+export default function HoneyBanner({ welcome, dates, countdownTo, showRsvp = true, bubbles }) {
   return (
     <div className="honey">
       {/* The first screen: the names, then the dancing couple filling the rest. */}
@@ -31,7 +31,7 @@ export default function HoneyBanner({ welcome, dates, countdownTo, showRsvp = tr
             </p>
           </div>
         </div>
-        <HoneyDance />
+        <HoneyDance bubbles={bubbles} />
       </div>
       {/* Below the first screen: some breathing room, then the countdown. */}
       <Countdown to={countdownTo} />

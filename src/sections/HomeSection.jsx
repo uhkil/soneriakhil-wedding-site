@@ -6,6 +6,7 @@ import Section from '../components/Section.jsx'
 import HoneyBanner from '../components/home/HoneyBanner.jsx'
 import { useGuest } from '../guest/GuestProvider.jsx'
 import { dateRange, firstEvent, rsvpClosed } from '../data/schedule.js'
+import { bubblesFor } from '../guest/bubbles.js'
 
 // Who the welcome names:
 //   1 or 2 people on the invitation: both first names, e.g. "Priya & Sam"
@@ -31,7 +32,7 @@ export default function HomeSection() {
     <Section id="home" className="hero hero-honey">
       {/* Only this guest's dates: e.g. "April 10, 2027" if all their events are
           that day, and the countdown runs to their first event. */}
-      <HoneyBanner welcome={welcomeNames(party, guestId)} dates={dateRange(party.events)} countdownTo={firstEvent(party.events)?.start.getTime()} showRsvp={!rsvpClosed(party)} />
+      <HoneyBanner welcome={welcomeNames(party, guestId)} dates={dateRange(party.events)} countdownTo={firstEvent(party.events)?.start.getTime()} showRsvp={!rsvpClosed(party)} bubbles={bubblesFor(party, guestId)} />
     </Section>
   )
 }

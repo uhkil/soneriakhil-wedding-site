@@ -2763,6 +2763,78 @@ img.nugget-photo {
   }
 }
 
+/* ---------- Registry: the honeymoon fund ---------- */
+
+/* A little wider than the other quiet sections, so the two ways to pay fit
+   side by side. */
+#registry .section-inner {
+  max-width: 760px;
+}
+
+.registry-note {
+  max-width: 34em;
+  margin: 0 auto 40px;
+  line-height: 1.6;
+  text-wrap: balance; /* even lines, no word left alone */
+}
+
+/* The fund's card: the dark-blue card (like Travel's), centered, with a
+   short line and the button that opens the pop-up. */
+.registry-card {
+  max-width: 560px;
+  margin: 0 auto;
+  text-align: center;
+}
+
+.registry-card .card-pill {
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.registry-fund-text {
+  max-width: 30em;
+  margin: 0 auto 26px;
+  line-height: 1.6;
+  text-wrap: balance;
+}
+
+/* "Give to our honeymoon →": light blue on the dark card. */
+[data-design='honey'] .registry-card .registry-give {
+  padding: 13px 28px;
+  border: 1.5px solid var(--paper);
+  border-radius: 16px;
+  background: var(--paper);
+  color: var(--ink);
+  font-size: 0.78rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  cursor: pointer;
+}
+
+[data-design='honey'] .registry-card .registry-give:hover {
+  background: transparent;
+  color: var(--paper);
+}
+
+/* The pop-up's options are links (they open the payment sites). */
+.gift-option {
+  text-decoration: none;
+}
+
+.gift-option .external-icon {
+  margin-left: 0.4em;
+}
+
+/* The tip under each option: plain small text (easier to read than the
+   spaced-out capitals the login pop-up uses for a household name). */
+[data-design='honey'] .gift-option .choose-party {
+  margin-top: 2px;
+  font-size: 0.85rem;
+  letter-spacing: 0;
+  text-transform: none;
+  opacity: 0.8;
+}
+
 /* ---------- FAQ ---------- */
 
 /* Start at the top (instead of centered up and down), so opening or closing
@@ -4471,6 +4543,16 @@ img.nugget-photo {
   }
   .honey-bubble .bubble-line {
     display: block;
+  }
+  /* A guest's message with a line longer than the Sheet's tips suggest:
+     the bubble wraps within its half of the screen instead of running off
+     the edge. */
+  .honey-stage-wrap .honey-bubble.bubble-long {
+    box-sizing: border-box; /* the padding counts toward the limit */
+    width: max-content;
+    max-width: calc(50vw - 18px);
+    white-space: normal;
+    text-wrap: balance;
   }
   /* Their bottoms stay put just above the heads, whatever their size. */
   .honey-stage-wrap .honey-bubble-her {

@@ -13,6 +13,7 @@
 // index.css), as sharp WebP images (SVGs with cut-outs blur on iPhones).
 import { useEffect, useRef, useState } from 'react'
 import { useFrameSequence } from './useFrameSequence.js'
+import { bubblesFor } from '../../guest/bubbles.js'
 
 function frameFiles(folder, count, version) {
   const base = import.meta.env.BASE_URL + `assets/${folder}/`
@@ -47,13 +48,15 @@ const SEQUENCE = [
   ['frame-7', 0, 260], // arm down, settled, and stopping here
 ]
 
-export default function HoneyDance() {
+// bubbles: what each of them says (see src/guest/bubbles.js; this guest's own
+// words from the Sheet, or the usual ones).
+export default function HoneyDance({ bubbles = bubblesFor(null) }) {
   // Each replay remounts the animation, so it starts again from frame 1.
   const [runs, setRuns] = useState(0)
-  return <Dance key={runs} onReplay={() => setRuns((n) => n + 1)} />
+  return <Dance key={runs} bubbles={bubbles} onReplay={() => setRuns((n) => n + 1)} />
 }
 
-function Dance({ onReplay }) {
+function Dance({ bubbles, onReplay }) {
   const sources = SOURCES
   const sequence = SEQUENCE
   // The bubbles appear with the second wave, just before the last frame.
@@ -94,12 +97,8 @@ function Dance({ onReplay }) {
         {/* Real text, so it's crisp and read by screen readers. Soneri is on
             the left, Akhil on the right. On phones, each "bubble-line" starts
             a second line, so the bubble can hug the words (see index.css). */}
-        <p className="honey-bubble honey-bubble-her">
-          we’re excited to <span className="bubble-line">celebrate with you{'\u00a0:\u2011)'}</span>
-        </p>
-        <p className="honey-bubble honey-bubble-him">
-          welcome to our <span className="bubble-line">wedding website!</span>
-        </p>
+        <Bubble who="her" bubble={bubbles.soneri} />
+        <Bubble who="him" bubble={bubbles.akhil} />
       </div>
 
       {/* A replay (circular arrow) icon, once the animation has finished: shows in the bottom-right corner
@@ -113,5 +112,22 @@ function Dance({ onReplay }) {
         </button>
       )}
     </div>
+  )
+}
+
+// One speech bubble: its first line, then (on phones) the second line below
+// it. A line too long for a small phone lets the bubble wrap instead.
+function Bubble({ who, bubble }) {
+  const [first, second] = bubble.lines
+  return (
+    <p className={`honey-bubble honey-bubble-${who}${bubble.long ? ' bubble-long' : ''}`}>
+      {first}
+      {second && (
+        <>
+          {' '}
+          <span className="bubble-line">{second}</span>
+        </>
+      )}
+    </p>
   )
 }

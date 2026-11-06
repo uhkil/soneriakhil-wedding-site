@@ -52,6 +52,14 @@ const guests = [
   { guestId: 'G008', partyId: 'P004', firstName: 'Sam', lastName: 'Rivera' },
 ]
 
+// Practice speech bubbles (like the Sheet's soneri_bubble / akhil_bubble):
+// Jordan Lee gets their own; Sam Lee (same family) shows a household falls
+// back to Jordan's; a long one for Bartholomew shows the wrapping safety net.
+const BUBBLES = {
+  G004: { soneri: 'jordan!! we can’t / wait to see you :-)', akhil: 'the lee family / is in the house!' },
+  G013: { soneri: 'this message is a little too long for one line on a phone', akhil: '' },
+}
+
 // Saved answers live only in memory: refreshing the page clears them.
 const saved = {}
 
@@ -82,6 +90,8 @@ function partyDetails(partyId) {
     onFile,
     hasResponded: Boolean(saved[partyId]),
     lastRsvpAt: saved[partyId]?.at || '',
+    // Like the Sheet's soneri_bubble / akhil_bubble columns (rows with something written).
+    bubbles: Object.fromEntries(members.filter((g) => BUBBLES[g.guestId]).map((g) => [g.guestId, BUBBLES[g.guestId]])),
     // Like the real back end: only the city a saved address is in.
     addressOnFile: answers.address ? addressPlace(answers.address) : '',
     // Each part partly hidden, like the real back end.

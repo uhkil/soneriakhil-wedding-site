@@ -31,6 +31,10 @@
  *                          checkbox: checked = invited to that event
  *   plus_one               checked = may bring a guest
  *   guest_id               filled in automatically; don't change it
+ *   soneri_bubble,         optional: what Soneri and Akhil say in the speech
+ *   akhil_bubble           bubbles on the Home page to whoever logs in with
+ *                          this row (blank = the usual words). Added on their
+ *                          own; hover over the column title for tips.
  *
  * The website can ask for four things ("actions"):
  *   search   — find guests by first + last name
@@ -72,6 +76,21 @@ const HEADERS = {
   'Party Responses': ['updated_at', 'party_id', 'party_name', 'email', 'phone', 'note', 'address'],
   'Change Log': ['submitted_at', 'party_id', 'party_name', 'who', 'answers', 'dietary'],
 }
+
+// The speech-bubble columns, and the tips shown when hovering over their titles.
+const BUBBLE_TIPS =
+  'Shown on the Home page after this guest logs in (blank = the usual words).\n\n' +
+  '• Two short lines, up to about 20 characters each (about 40 in all), so it fits every phone.\n' +
+  '• Choose where the line breaks with a / (e.g. "so glad you’re / coming, auntie!"), or press ⌘+Enter for a new line in the cell. Without one, it splits near the middle.\n' +
+  '• Lowercase reads best, like the other bubbles. Emoji and :-) are fine.\n' +
+  '• A cell over 44 characters turns red: too long for small phones.\n' +
+  '• For a family, write it on the row of whoever will log in. If their cell is blank, another row of the household is used.\n' +
+  '• Anyone who opens this invitation sees it.'
+const BUBBLE_COLUMNS = {
+  soneri_bubble: 'Soneri’s bubble (on the left). Usually: "we’re excited to / celebrate with you :-)"\n\n' + BUBBLE_TIPS,
+  akhil_bubble: 'Akhil’s bubble (on the right). Usually: "welcome to our / wedding website!"\n\n' + BUBBLE_TIPS,
+}
+const BUBBLE_MAX = 44
 
 const MAX_MATCHES = 5 // more matches than this → ask the guest to be more specific
 const MAX_CODE_TRIES = 8 // wrong passcodes allowed per guest, per hour
@@ -156,6 +175,8 @@ function loadGuestList(fresh) {
       household,
       side: row.side || '',
       group: row.group || '',
+      soneriBubble: row.soneri_bubble || '',
+      akhilBubble: row.akhil_bubble || '',
       subGroup: row['sub-group'] || row.sub_group || row.subgroup || '',
     }
     people.push(person)
@@ -206,6 +227,7 @@ function lastGuestRow(sheet, header) {
 function ensureGuestIds() {
   const sheet = getTab(TAB.guests)
   const header = guestHeader(sheet)
+  ensureBubbleColumns(sheet, header)
   const idCol = header.indexOf('guest_id')
   if (idCol === -1) {
     throw new Error('The Guests tab has no guest_id column. Use Wedding RSVP → Switch to the new guest list.')
@@ -248,6 +270,34 @@ function ensureGuestIds() {
   } finally {
     lock.releaseLock()
   }
+}
+
+/**
+ * Adds the speech-bubble columns (soneri_bubble, akhil_bubble) to the end of
+ * the Guests tab if they aren't there yet: bold titles with tips on hover, and
+ * cells that turn red when a message is too long for small phones.
+ */
+function ensureBubbleColumns(sheet, header) {
+  sheet = sheet || getTab(TAB.guests)
+  header = header || guestHeader(sheet)
+  while (header.length && !header[header.length - 1]) header.pop() // after the last titled column
+  Object.keys(BUBBLE_COLUMNS).forEach((name) => {
+    if (header.includes(name)) return
+    header.push(name)
+    const col = header.length
+    sheet.getRange(1, col).setValue(name).setFontWeight('bold').setNote(BUBBLE_COLUMNS[name])
+    sheet.setColumnWidth(col, 260)
+    const cells = sheet.getRange(2, col, Math.max(sheet.getMaxRows() - 1, 1), 1)
+    cells.setNumberFormat('@').setWrap(true)
+    const letter = sheet.getRange(1, col).getA1Notation().replace(/\d+/g, '')
+    const tooLong = SpreadsheetApp.newConditionalFormatRule()
+      .whenFormulaSatisfied(`=LEN(${letter}2)>${BUBBLE_MAX}`)
+      .setBackground('#fbe0de')
+      .setFontColor('#8a2a22')
+      .setRanges([cells])
+      .build()
+    sheet.setConditionalFormatRules(sheet.getConditionalFormatRules().concat([tooLong]))
+  })
 }
 
 /**
@@ -450,6 +500,14 @@ function partyDetails(partyId, list) {
     addressOnFile,
     addressMasked,
     lastRsvpAt: lastSaved(memberIds), // when this invitation last saved its RSVP ('' if never)
+    // What Soneri and Akhil say in the Home page's speech bubbles, by guest id
+    // (only rows with something written; the website uses the row of whoever
+    // logged in, else another row of the household, else the usual words).
+    bubbles: Object.fromEntries(
+      members
+        .filter((g) => !g.isPlusOne && (g.soneriBubble || g.akhilBubble))
+        .map((g) => [g.guestId, { soneri: g.soneriBubble || '', akhil: g.akhilBubble || '' }])
+    ),
   }
 }
 
@@ -1070,6 +1128,12 @@ function unique(values) {
 
 /** Adds a "Wedding RSVP" menu to the Sheet (Google runs this when the Sheet opens). */
 function onOpen() {
+  // (So the speech-bubble columns appear as soon as the Sheet is opened.)
+  try {
+    ensureBubbleColumns()
+  } catch (err) {
+    console.error(err)
+  }
   SpreadsheetApp.getUi()
     .createMenu('Wedding RSVP')
     .addItem('Refresh Summary and All Guests', 'refreshReports')
