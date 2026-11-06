@@ -36,8 +36,7 @@ const faqs = [
     question: 'What will the weather be like in Arlington, TX in April?',
     answer: [
       'April is usually warm and pleasant: daytime highs in the upper 70s °F, evenings in the mid 50s.',
-      'Spring showers and the occasional thunderstorm are common.',
-      'We’d suggest bringing a light layer and an umbrella, just in case.',
+      'Spring showers are common, so we’d suggest bringing a light layer and an umbrella.',
       <>
         Check April weather in Arlington on{' '}
         <a href="https://www.accuweather.com/en/us/arlington/76006/april-weather/331134?year=2027" target="_blank" rel="noreferrer">
