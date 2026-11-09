@@ -156,17 +156,20 @@ function doPost(e) {
  * their own invitation, under their guest id.
  */
 function loadGuestList(fresh) {
-  // Remembered for a few minutes (see "Speed" below), so a guest's search,
-  // passcode, and RSVP don't each re-read the whole Guests tab.
+  // Remembered for hours (see "Speed" below), so a guest's search, passcode,
+  // and RSVP don't each re-read the whole Guests tab.
   if (!fresh) {
     const remembered = cacheGet('guestList')
     if (remembered) return remembered
   }
-  ensureGuestIds()
-  syncPasscodes()
+  // The Events and Guests tabs are each read once. The Guests tab is only
+  // read again if new ids or passcodes were just written into it (rare).
   const events = readTab(TAB.events).filter((ev) => ev.event_id)
+  let guests = readGuests()
+  if (ensureGuestIds(guests)) guests = readGuests()
+  if (syncPasscodes(guests, events)) guests = readGuests()
   const people = []
-  readGuestRows().forEach((row) => {
+  guestObjects(guests).forEach((row) => {
     const fullName = `${row.first_name || ''} ${row.last_name || ''}`.trim()
     if (!row.guest_id || !fullName) return
     const household = row.household || ''
@@ -197,51 +200,48 @@ function loadGuestList(fresh) {
   return list
 }
 
-/** The Guests tab's rows with a name in them, as objects (like readTab, but
- *  skipping the hundreds of empty checkbox rows below the last guest). */
-function readGuestRows() {
+/**
+ * The whole Guests tab in one read: { sheet, header, rows }. rows stop at the
+ * last row with a first or last name (skipping the hundreds of empty checkbox
+ * rows below it). The speech-bubble columns are added first if missing.
+ */
+function readGuests() {
   const sheet = getTab(TAB.guests)
-  const header = guestHeader(sheet)
-  const last = lastGuestRow(sheet, header)
-  if (last < 2) return []
-  return sheet
-    .getRange(2, 1, last - 1, header.length)
-    .getDisplayValues()
-    .map((r) => Object.fromEntries(header.map((h, i) => [h, (r[i] || '').trim()])))
+  let data = sheet.getDataRange().getDisplayValues()
+  if (ensureBubbleColumns(sheet, (data[0] || []).map((h) => h.trim()))) data = sheet.getDataRange().getDisplayValues()
+  const header = (data[0] || []).map((h) => h.trim())
+  while (header.length && !header[header.length - 1]) header.pop() // up to the last titled column
+  const nameCols = ['first_name', 'last_name'].map((h) => header.indexOf(h)).filter((i) => i >= 0)
+  let last = data.length
+  while (last > 1 && !nameCols.some((c) => (data[last - 1][c] || '').trim())) last--
+  const rows = data.slice(1, last).map((r) => header.map((h, i) => r[i] || ''))
+  return { sheet, header, rows }
+}
+
+/** The Guests tab's named rows as objects, by column title. */
+function guestObjects(guests) {
+  return guests.rows.map((r) => Object.fromEntries(guests.header.map((h, i) => [h, (r[i] || '').trim()])))
 }
 
 function guestHeader(sheet) {
   return sheet.getRange(1, 1, 1, Math.max(sheet.getLastColumn(), 1)).getDisplayValues()[0].map((h) => h.trim())
 }
 
-/** The last row of the Guests tab with a first or last name in it (1 if none). */
-function lastGuestRow(sheet, header) {
-  const cols = ['first_name', 'last_name'].map((h) => header.indexOf(h)).filter((i) => i >= 0)
-  const last = sheet.getLastRow()
-  if (last < 2 || !cols.length) return 1
-  const from = Math.min(...cols)
-  const names = sheet.getRange(2, from + 1, last - 1, Math.max(...cols) - from + 1).getDisplayValues()
-  for (let i = names.length - 1; i >= 0; i--) if (names[i].some((v) => v.trim())) return i + 2
-  return 1
-}
-
 /**
  * Gives every named row in the Guests tab a guest id (G001, G002, …) if it
  * doesn't have one yet, and a new one to any row that copied another row's
- * id. Runs on its own when you edit the Guests tab, and before every request.
- * Ids are never reused.
+ * id. Runs on its own when you edit the Guests tab, and whenever the guest
+ * list is re-read. Ids are never reused. Returns true if it wrote any.
+ * (guests: the Guests tab already read by readGuests, to save reading it again.)
  */
-function ensureGuestIds() {
-  const sheet = getTab(TAB.guests)
-  const header = guestHeader(sheet)
-  ensureBubbleColumns(sheet, header)
+function ensureGuestIds(guests) {
+  guests = guests || readGuests()
+  const { sheet, header } = guests
   const idCol = header.indexOf('guest_id')
   if (idCol === -1) {
     throw new Error('The Guests tab has no guest_id column. Use Wedding RSVP → Switch to the new guest list.')
   }
-  const needsId = () => {
-    const last = lastGuestRow(sheet, header)
-    const rows = last < 2 ? [] : sheet.getRange(2, 1, last - 1, header.length).getDisplayValues()
+  const needsId = (rows) => {
     const seen = new Set()
     const ids = rows.map((r) => r[idCol].trim())
     const missing = []
@@ -253,12 +253,12 @@ function ensureGuestIds() {
     })
     return { ids, missing }
   }
-  if (!needsId().missing.length) return
+  if (!needsId(guests.rows).missing.length) return false
 
   const lock = LockService.getScriptLock()
   lock.waitLock(20000)
   try {
-    const { ids, missing } = needsId() // again, now that no one else is writing
+    const { ids, missing } = needsId(readGuests().rows) // again, now that no one else is writing
     // An id is never used twice, even after its guest is deleted (or their
     // answers would carry over to someone new): new ids continue after the
     // highest one ever given out, in Guests, in RSVPs, or remembered here.
@@ -277,6 +277,7 @@ function ensureGuestIds() {
   } finally {
     lock.releaseLock()
   }
+  return true
 }
 
 // ---------------------------------------------------------------------------
@@ -299,14 +300,20 @@ const PASSCODE_WORDS = ['MANGO', 'SUNSET', 'DISCO', 'MARIGOLD', 'LANTERN', 'JASM
 const PASSCODE_HEADER = ['events', 'passcode', 'households', 'guests', 'event_ids']
 const AUTO_GREY = '#9aa0a6'
 
-/** Brings the Passcodes tab and every row's passcode up to date. */
-function syncPasscodes() {
+/**
+ * Brings the Passcodes tab and every row's passcode up to date. It only writes
+ * to the Sheet when something actually changed, so it's quick when nothing
+ * has. Returns true if it changed anything in the Guests tab's values.
+ * (snapshot / events: the Guests and Events tabs already read, if they were.)
+ */
+function syncPasscodes(snapshot, events) {
   const ss = SpreadsheetApp.getActive()
-  const guests = getTab(TAB.guests)
-  ensureBubbleColumns(guests) // first, so passcode is always the last column
-  const events = readTab(TAB.events).filter((ev) => ev.event_id)
-  let header = guestHeader(guests)
-  while (header.length && !header[header.length - 1]) header.pop()
+  snapshot = snapshot || readGuests() // (adds the speech-bubble columns first, so passcode is always the last column)
+  events = events || readTab(TAB.events).filter((ev) => ev.event_id)
+  const guests = snapshot.sheet
+  const header = snapshot.header.slice()
+  let rows = snapshot.rows
+  let wroteGuests = false
 
   // The passcode column, at the far right (added the first time).
   if (!header.includes('passcode')) {
@@ -324,12 +331,12 @@ function syncPasscodes() {
           'Guests log in with the passcode on their own row.'
       )
     guests.getRange(2, col, Math.max(guests.getMaxRows() - 1, 1), 1).setNumberFormat('@')
+    rows = rows.map((r) => r.concat(['']))
+    wroteGuests = true
   }
   const pcCol = header.indexOf('passcode')
 
   // Each household's set of events (everyone's checked boxes put together).
-  const last = lastGuestRow(guests, header)
-  const rows = last < 2 ? [] : guests.getRange(2, 1, last - 1, header.length).getDisplayValues()
   const at = (name) => header.indexOf(name)
   const household = (r) => {
     const h = (r[at('household')] || '').trim()
@@ -349,12 +356,9 @@ function syncPasscodes() {
   // The Passcodes tab: keep the passcodes already chosen, add new sets of events.
   const tab = ss.getSheetByName(TAB.passcodes) || ss.insertSheet(TAB.passcodes)
   const saved = {}
-  if (tab.getLastRow() > 1) {
-    tab
-      .getRange(2, 1, tab.getLastRow() - 1, PASSCODE_HEADER.length)
-      .getDisplayValues()
-      .forEach((r) => r[4] && (saved[r[4]] = r[1]))
-  }
+  // What's in the tab now (also compared below, to rewrite it only if it changed).
+  const current = tab.getLastRow() > 0 ? tab.getRange(1, 1, tab.getLastRow(), PASSCODE_HEADER.length).getDisplayValues() : []
+  current.slice(1).forEach((r) => r[4] && (saved[r[4]] = r[1]))
   const combos = {}
   Object.values(homes).forEach((home) => {
     const key = comboOf(home)
@@ -367,7 +371,8 @@ function syncPasscodes() {
   // Words already taken: the groups' passcodes, and any typed over a row (so a
   // new suggestion never matches someone's own passcode).
   const props = PropertiesService.getScriptProperties()
-  const autos = new Set(JSON.parse(props.getProperty('AUTO_PASSCODES') || '[]'))
+  const autosBefore = props.getProperty('AUTO_PASSCODES') || '[]'
+  const autos = new Set(JSON.parse(autosBefore))
   Object.values(saved).forEach((code) => autos.add(cleanCode(code)))
   const used = new Set(Object.values(saved).map(cleanCode))
   rows.forEach((r) => cleanCode(r[pcCol]) && !autos.has(cleanCode(r[pcCol])) && used.add(cleanCode(r[pcCol])))
@@ -396,12 +401,20 @@ function syncPasscodes() {
     values.push([value])
     colors.push([own ? '#000000' : AUTO_GREY])
   })
+  // The colours are only repainted when they'd come out different from last
+  // time (remembered as one letter per row: k = black, g = grey), since
+  // reading them back from the Sheet would be another slow trip.
+  const colorKey = colors.map((c) => (c[0] === AUTO_GREY ? 'g' : 'k')).join('')
+  const colorsBefore = props.getProperty('PASSCODE_COLORS')
   if (rows.length) {
     const range = guests.getRange(2, pcCol + 1, rows.length, 1)
     if (changed) range.setValues(values)
-    range.setFontColors(colors)
+    if (changed || colorKey !== colorsBefore) range.setFontColors(colors)
   }
-  props.setProperty('AUTO_PASSCODES', JSON.stringify([...autos]))
+  if (colorKey !== colorsBefore) props.setProperty('PASSCODE_COLORS', colorKey)
+  if (changed || wroteGuests) CacheService.getScriptCache().remove('guestList')
+  const autosNow = JSON.stringify([...autos])
+  if (autosNow !== autosBefore) props.setProperty('AUTO_PASSCODES', autosNow)
 
   // The Passcodes tab itself.
   const nameOf = (id) => (events.find((ev) => ev.event_id === id) || {}).name || id
@@ -420,6 +433,9 @@ function syncPasscodes() {
       key,
     ])
   )
+  // Rewritten (with its notes and formatting) only when something in it changed.
+  const same = (a, b) => a.length === b.length && a.every((r, i) => r.every((v, j) => String(v) === String(b[i][j] || '')))
+  if (same(table, current)) return changed || wroteGuests
   tab.clearContents()
   tab.getRange(1, 1, table.length, PASSCODE_HEADER.length).setNumberFormat('@').setValues(table)
   tab.getRange(1, 1, 1, PASSCODE_HEADER.length).setFontWeight('bold')
@@ -442,22 +458,23 @@ function syncPasscodes() {
   ])
   tab.setColumnWidth(1, 320)
   tab.setColumnWidth(4, 420)
-
-
-  if (changed) CacheService.getScriptCache().remove('guestList')
+  return changed || wroteGuests
 }
 
 /**
  * Adds the speech-bubble columns (soneri_bubble, akhil_bubble) to the end of
  * the Guests tab if they aren't there yet: bold titles with tips on hover, and
  * cells that turn red when a message is too long for small phones.
+ * Returns true if it added any.
  */
 function ensureBubbleColumns(sheet, header) {
   sheet = sheet || getTab(TAB.guests)
-  header = header || guestHeader(sheet)
+  header = (header || guestHeader(sheet)).slice()
   while (header.length && !header[header.length - 1]) header.pop() // after the last titled column
+  let added = false
   Object.keys(BUBBLE_COLUMNS).forEach((name) => {
     if (header.includes(name)) return
+    added = true
     header.push(name)
     const col = header.length
     sheet.getRange(1, col).setValue(name).setFontWeight('bold').setNote(BUBBLE_COLUMNS[name])
@@ -473,6 +490,7 @@ function ensureBubbleColumns(sheet, header) {
       .build()
     sheet.setConditionalFormatRules(sheet.getConditionalFormatRules().concat([tooLong]))
   })
+  return added
 }
 
 /**
@@ -494,15 +512,20 @@ function onEdit(e) {
 }
 
 // ---------------------------------------------------------------------------
-// Speed: remembering the guest list for a few minutes
+// Speed: remembering the guest list
 // ---------------------------------------------------------------------------
-// Reading the Sheet is the slow part of every request. The guest list and
-// passcode are remembered (in Google's cache, packed small) for a few
-// minutes. Any edit to Guests, Events, or Settings forgets them right away
-// (onEdit above), and so does Wedding RSVP → Refresh. Saved answers (RSVPs)
-// are never remembered: they're always read fresh.
+// Reading the Sheet is the slow part of every request. The guest list is
+// remembered (in Google's cache, packed small) for up to 6 hours, Google's
+// longest. It's never out of date, because it's forgotten right away whenever
+// it could have changed:
+//   • any edit to Guests, Events, Settings, or Passcodes (onEdit above)
+//   • adding or deleting rows or columns (onSheetChange below)
+//   • Wedding RSVP → Refresh Summary and All Guests
+// and every 10 minutes keepWarm (below) reads it fresh anyway. Saved answers
+// (RSVPs) are never remembered: they're always read fresh.
 
-const REMEMBER_SECONDS = 5 * 60
+const REMEMBER_SECONDS = 6 * 60 * 60
+const WARM_EVERY_MINUTES = 10 // Google allows 1, 5, 10, 15, or 30
 
 function cacheGet(key) {
   try {
@@ -526,6 +549,45 @@ function cachePut(key, value) {
 
 function forgetRemembered() {
   CacheService.getScriptCache().removeAll(['guestList', 'passcode'])
+}
+
+/**
+ * Runs every 10 minutes (see turnOnSpeedUps): keeps the script awake and the
+ * guest list fresh in memory, so even the first guest in a while gets a quick
+ * reply. It reads the Sheet and only writes if something needs fixing (new
+ * guest ids, passcodes), so it's quick.
+ */
+function keepWarm() {
+  loadGuestList(true)
+}
+
+/**
+ * Google runs this when rows or columns are added or deleted (which onEdit
+ * doesn't notice), so a deleted guest disappears from the website right away.
+ * Turned on by turnOnSpeedUps.
+ */
+function onSheetChange(e) {
+  if (e && e.changeType === 'EDIT') return // (onEdit handles these)
+  forgetRemembered()
+}
+
+/**
+ * One time: turns on keepWarm (every 10 minutes) and onSheetChange. Wedding
+ * RSVP → Turn on speed-ups runs it. Safe to run again: it never adds
+ * duplicates.
+ */
+function turnOnSpeedUps() {
+  ScriptApp.getProjectTriggers()
+    .filter((t) => ['keepWarm', 'onSheetChange'].includes(t.getHandlerFunction()))
+    .forEach((t) => ScriptApp.deleteTrigger(t))
+  ScriptApp.newTrigger('keepWarm').timeBased().everyMinutes(WARM_EVERY_MINUTES).create()
+  ScriptApp.newTrigger('onSheetChange').forSpreadsheet(SpreadsheetApp.getActive()).onChange().create()
+  keepWarm()
+  try {
+    SpreadsheetApp.getUi().alert('Speed-ups are on. The website will stay quick, even after a quiet spell.')
+  } catch (err) {
+    console.log('Speed-ups are on.') // (run from the editor: no Sheet window to show it in)
+  }
 }
 
 // ---------------------------------------------------------------------------
@@ -593,9 +655,13 @@ function verifyCode(guestId, code) {
   return { token: makeToken(guest.partyId, list), party: partyDetails(guest.partyId, list) }
 }
 
-/** Everything the website needs about one invitation (and nothing private). */
-function partyDetails(partyId, list) {
+/**
+ * Everything the website needs about one invitation (and nothing private).
+ * (rsvps: the RSVPs tab already read by readRsvps, to save reading it again.)
+ */
+function partyDetails(partyId, list, rsvps) {
   list = list || loadGuestList()
+  rsvps = rsvps || readRsvps()
   const members = list.people.filter((g) => g.partyId === partyId)
   if (!members.length) throw new UserError('We could not find your invitation.')
 
@@ -630,7 +696,7 @@ function partyDetails(partyId, list) {
   const onFile = {}
   let addressOnFile = '' // the place ("Dallas, TX"), or "outside the US"
   let addressMasked = null // each part partly hidden, shown in grey in its box
-  readTab(TAB.rsvps)
+  rsvps.rows
     .filter((r) => memberIds.has(r.guest_id))
     .forEach((r) => {
       if (r.address && !addressOnFile) {
@@ -671,7 +737,7 @@ function partyDetails(partyId, list) {
     hasResponded: Object.keys(answers).length > 0,
     addressOnFile,
     addressMasked,
-    lastRsvpAt: lastSaved(memberIds), // when this invitation last saved its RSVP ('' if never)
+    lastRsvpAt: rsvps.lastSaved(memberIds), // when this invitation last saved its RSVP ('' if never)
     // What Soneri and Akhil say in the Home page's speech bubbles, by guest id
     // (only rows with something written; the website uses the row of whoever
     // logged in, else another row of the household, else the usual words).
@@ -684,24 +750,31 @@ function partyDetails(partyId, list) {
 }
 
 /**
- * When anyone on this invitation last saved an RSVP: the latest updated_at in
- * the RSVPs tab, as an ISO date the website turns into the guest's own time.
- * (Read as real dates, not as they're shown in the Sheet, so the Sheet's date
- * format doesn't matter.)
+ * The RSVPs tab: { rows, lastSaved }. rows are its rows as objects (like
+ * readTab). lastSaved(guestIds) is when any of those guests last saved an
+ * RSVP: the latest updated_at, as an ISO date the website turns into the
+ * guest's own time ('' if never). (updated_at is read as real dates, not as
+ * they're shown in the Sheet, so the Sheet's date format doesn't matter.)
  */
-function lastSaved(memberIds) {
+function readRsvps() {
   const sheet = getTab(TAB.rsvps)
-  if (sheet.getLastRow() < 2) return ''
-  const header = sheet.getRange(1, 1, 1, sheet.getLastColumn()).getValues()[0].map((h) => String(h).trim())
+  const [first, ...data] = sheet.getDataRange().getDisplayValues()
+  const header = (first || []).map((h) => h.trim())
+  const rows = data
+    .filter((r) => r.some((cell) => cell.trim() !== ''))
+    .map((r) => Object.fromEntries(header.map((h, i) => [h, (r[i] || '').trim()])))
   const idCol = header.indexOf('guest_id')
   const whenCol = header.indexOf('updated_at')
-  if (idCol < 0 || whenCol < 0) return ''
-  let latest = null
-  sheet.getRange(2, 1, sheet.getLastRow() - 1, header.length).getValues().forEach((r) => {
-    const when = r[whenCol]
-    if (memberIds.has(String(r[idCol]).trim()) && when instanceof Date && (!latest || when > latest)) latest = when
-  })
-  return latest ? latest.toISOString() : ''
+  const ids = idCol < 0 ? [] : data.map((r) => r[idCol].trim())
+  const whens = whenCol < 0 || !data.length ? [] : sheet.getRange(2, whenCol + 1, data.length, 1).getValues().map((r) => r[0])
+  function lastSaved(memberIds) {
+    let latest = null
+    whens.forEach((when, i) => {
+      if (memberIds.has(ids[i]) && when instanceof Date && (!latest || when > latest)) latest = when
+    })
+    return latest ? latest.toISOString() : ''
+  }
+  return { rows, lastSaved }
 }
 
 /**
@@ -710,11 +783,12 @@ function lastSaved(memberIds) {
  * Summary and All Guests tabs.
  */
 function saveRsvp(req, list) {
-  const details = partyDetails(req.partyId, list)
+  const rsvpsBefore = readRsvps()
+  const details = partyDetails(req.partyId, list, rsvpsBefore)
   const guestsById = byId(details.guests, 'guestId')
   const eventsById = byId(details.events, 'id')
   const allEventIds = list.events.map((ev) => ev.event_id)
-  const savedRows = byId(readTab(TAB.rsvps).filter((r) => guestsById[r.guest_id]), 'guest_id')
+  const savedRows = byId(rsvpsBefore.rows.filter((r) => guestsById[r.guest_id]), 'guest_id')
   const now = new Date()
 
   // The mailing address (one for the whole invitation). Blank boxes keep the
@@ -797,28 +871,24 @@ function saveRsvp(req, list) {
   try {
     const rsvps = getTab(TAB.rsvps)
     const rsvpHeader = ensureColumns(rsvps, HEADERS.RSVPs.concat(allEventIds))
-    guestRows.forEach((row) => upsertRow(rsvps, rsvpHeader, 'guest_id', row))
+    upsertRows(rsvps, rsvpHeader, 'guest_id', guestRows)
 
     const responses = getTab(TAB.responses)
-    upsertRow(responses, ensureColumns(responses, HEADERS['Party Responses']), 'party_id', responseRow)
+    upsertRows(responses, ensureColumns(responses, HEADERS['Party Responses']), 'party_id', [responseRow])
 
     const log = getTab(TAB.log)
     const logHeader = ensureColumns(log, HEADERS['Change Log'])
-    const logRow = (who, answers, dietary) =>
-      appendObject(log, logHeader, {
+    appendObjects(
+      log,
+      logHeader,
+      guestRows.map((r) => ({
         submitted_at: now,
         party_id: details.partyId,
         party_name: details.partyName,
-        who,
-        answers,
-        dietary,
-      })
-    guestRows.forEach((r) =>
-      logRow(
-        r.guest_name || '(unnamed plus-one)',
-        `${r._summary} · email: ${r.email || '—'} · phone: ${r.phone || '—'} · note: ${r.note || '—'} · address: ${r.address || '—'}`,
-        r.dietary
-      )
+        who: r.guest_name || '(unnamed plus-one)',
+        answers: `${r._summary} · email: ${r.email || '—'} · phone: ${r.phone || '—'} · note: ${r.note || '—'} · address: ${r.address || '—'}`,
+        dietary: r.dietary,
+      }))
     )
   } finally {
     lock.releaseLock()
@@ -907,24 +977,32 @@ function asText(value) {
   return typeof value === 'string' && (/^[=+\-@]/.test(value) || /^\d+$/.test(value)) ? "'" + value : value
 }
 
-/** Updates the row whose keyColumn matches, or adds a new row. */
-function upsertRow(sheet, header, keyColumn, data) {
+/** For each item: updates the row whose keyColumn matches, or adds a new row
+ *  at the bottom (the key column is read once for all of them). */
+function upsertRows(sheet, header, keyColumn, items) {
   const keyIndex = header.indexOf(keyColumn)
-  const values = header.map((h) => asText(h in data ? data[h] : ''))
   const keys = sheet.getLastRow() > 1
     ? sheet.getRange(2, keyIndex + 1, sheet.getLastRow() - 1, 1).getDisplayValues().map((r) => r[0])
     : []
-  const found = keys.indexOf(String(data[keyColumn]))
-  if (found === -1) {
-    sheet.appendRow(values)
-  } else {
-    sheet.getRange(found + 2, 1, 1, values.length).setValues([values])
-  }
+  const added = []
+  items.forEach((data) => {
+    const values = header.map((h) => asText(h in data ? data[h] : ''))
+    const found = keys.indexOf(String(data[keyColumn]))
+    if (found === -1) added.push(data)
+    else sheet.getRange(found + 2, 1, 1, values.length).setValues([values])
+  })
+  appendObjects(sheet, header, added)
 }
 
-/** Adds a new row at the bottom, matching values to the header's columns. */
-function appendObject(sheet, header, data) {
-  sheet.appendRow(header.map((h) => asText(h in data ? data[h] : '')))
+/** Adds new rows at the bottom (in one go), matching values to the header's columns. */
+function appendObjects(sheet, header, items) {
+  if (!items.length) return
+  const values = items.map((data) => header.map((h) => asText(h in data ? data[h] : '')))
+  const at = sheet.getLastRow() + 1
+  // Room at the bottom first (a tab starts with 1,000 rows; the Change Log outgrows that).
+  const short = at + values.length - 1 - sheet.getMaxRows()
+  if (short > 0) sheet.insertRowsAfter(sheet.getMaxRows(), short)
+  sheet.getRange(at, 1, values.length, header.length).setValues(values)
 }
 
 // ---------------------------------------------------------------------------
@@ -1315,6 +1393,7 @@ function onOpen() {
   SpreadsheetApp.getUi()
     .createMenu('Wedding RSVP')
     .addItem('Refresh Summary and All Guests', 'refreshReports')
+    .addItem('Turn on speed-ups (one time)', 'turnOnSpeedUps')
     .addSeparator()
     .addItem('Switch to the new guest list (one time)', 'switchToNewGuestList')
     .addToUi()

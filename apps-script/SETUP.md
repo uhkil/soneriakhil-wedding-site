@@ -126,6 +126,20 @@ Edits to `Code.gs` don't go live until you publish a new version:
 **Deploy → Manage deployments → ✏️ Edit → Version: New version → Deploy.**
 The web app URL stays the same.
 
+## Speed-ups (one time)
+
+Use **Wedding RSVP → Turn on speed-ups (one time)** in the Sheet (reload the
+Sheet first if the menu item isn't there). Google asks for permission the
+first time: allow it as in step 3. This turns on two things:
+
+- **Every 10 minutes**, the script reads the guest list fresh and keeps it in
+  memory, so the website answers quickly even after a quiet spell.
+- **Adding or deleting rows or columns** in the Sheet shows up on the website
+  right away (ordinary edits already do).
+
+To check it's on: in the script editor, the ⏰ **Triggers** page (left side)
+lists `keepWarm` and `onSheetChange`. Running it again is safe.
+
 ## Before going live
 
 - Replace the sample guests in the Guests tab with your real guest list.
