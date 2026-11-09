@@ -54,5 +54,15 @@ export const verifyCode = (guestId, code) => call('verify', { guestId, code })
 // Reloads a party's details with a saved login token.
 export const loadParty = (partyId, token) => call('party', { partyId, token }).then((r) => r.party)
 
+// Wakes the RSVP service as soon as the login page opens. Google puts the
+// script to sleep when it's idle, and the first request after that takes
+// about 7 seconds. A name search that matches no one makes the script wake
+// up and load the guest list, so by the time the guest has typed their name
+// it's ready. The reply ("couldn't find that name") is ignored.
+export function wakeService() {
+  if (isPractice) return
+  send({ action: 'search', name: 'wake up' }).catch(() => {})
+}
+
 // Saves a party's RSVP. Returns the updated party.
 export const submitRsvp = (rsvp) => call('submit', rsvp).then((r) => r.party)

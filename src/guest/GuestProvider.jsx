@@ -11,7 +11,7 @@
 // After the right passcode, the login token is saved in this browser, so guests
 // stay logged in when they come back, until they log out.
 import { createContext, useContext, useEffect, useState } from 'react'
-import { isPractice, loadParty, verifyCode } from '../api/rsvpApi.js'
+import { isPractice, loadParty, verifyCode, wakeService } from '../api/rsvpApi.js'
 
 const GuestContext = createContext(null)
 
@@ -44,7 +44,10 @@ export function GuestProvider({ children }) {
   // On page load: if this browser has a saved login, reload that party.
   useEffect(() => {
     const saved = readSaved()
-    if (!saved) return
+    if (!saved) {
+      wakeService() // not logged in: get the RSVP service ready while they type
+      return
+    }
     loadParty(saved.partyId, saved.token)
       .then((p) => {
         setParty(p)
