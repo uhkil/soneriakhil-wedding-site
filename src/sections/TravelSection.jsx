@@ -41,6 +41,7 @@ const activities = [
   {
     title: 'Deep Ellum & Bishop Arts',
     icon: 'palette',
+    link: { words: 'Two vibrant neighborhoods', href: 'https://www.wander-lust.nl/dallas-deep-ellum-and-bishop-arts-district/' },
     text: 'Two vibrant neighborhoods with all things we luv: art galleries, shopping, and good food.',
   },
   {
