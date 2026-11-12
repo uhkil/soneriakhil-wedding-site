@@ -2599,39 +2599,6 @@ img.nugget-photo {
   padding: 36px 40px 38px;
 }
 
-/* "What to do": a placeholder until the list is ready, in a card as tall as
-   "Getting there" (an invisible copy of it sets the height), with the words
-   in the middle, up and down and side to side. */
-.travel-sized {
-  display: grid;
-}
-.travel-sizer,
-.travel-sized-body {
-  grid-area: 1 / 1;
-}
-.travel-sizer {
-  visibility: hidden; /* takes up the room, but can't be seen, read, or clicked */
-}
-.travel-sized-body {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-.travel-coming-soon {
-  margin: 0;
-  text-align: center;
-  font-style: italic;
-  /* down a little, so it's in the middle of the dark space between the
-     title and the card's bottom edge (the card's bottom padding is deeper
-     than the room under the title) */
-  transform: translateY(14px);
-}
-@media (max-width: 699px) {
-  .travel-coming-soon {
-    transform: translateY(9px);
-  }
-}
-
 /* Phones: the toggle spans the width, its buttons sharing it evenly. */
 @media (max-width: 699px) {
   .travel-toggle {
@@ -2691,6 +2658,92 @@ img.nugget-photo {
 @media (max-width: 699px) {
   .travel-boxes {
     grid-template-columns: 1fr;
+  }
+}
+
+/* What to do: a grid of cards, two across (one across on phones), each
+   with a line icon in a light-blue circle beside its title and a couple of
+   lines about it. The cards are outlined like the airport boxes. */
+.travel-text .activity-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 18px;
+  margin: 22px 0 4px;
+  padding: 0;
+  list-style: none;
+}
+
+.travel-text .activity-card {
+  display: flex;
+  gap: 16px;
+  align-items: flex-start;
+  margin: 0;
+  padding: 20px 22px;
+  border: 1.5px solid currentColor;
+  border-radius: 18px;
+}
+
+.activity-icon {
+  flex: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 46px;
+  height: 46px;
+  border-radius: 50%;
+  background: var(--paper);
+  color: var(--ink);
+}
+
+.activity-icon svg {
+  width: 26px;
+  height: 26px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.6;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.activity-card h4 {
+  margin: 2px 0 6px;
+  font: 700 1.05rem/1.25 var(--font-ui);
+}
+
+.activity-card p a {
+  color: inherit;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 3px;
+}
+.activity-card p a:hover {
+  text-decoration-thickness: 2px;
+}
+.activity-card p a:focus-visible {
+  outline: 2px solid var(--paper);
+  outline-offset: 2px;
+  border-radius: 2px;
+}
+
+.travel-text .activity-card p {
+  margin: 0;
+}
+
+@media (max-width: 699px) {
+  .travel-text .activity-grid {
+    grid-template-columns: 1fr;
+    gap: 14px;
+  }
+  .travel-text .activity-card {
+    gap: 14px;
+    padding: 16px 16px 18px;
+  }
+  .activity-icon {
+    width: 40px;
+    height: 40px;
+  }
+  .activity-icon svg {
+    width: 23px;
+    height: 23px;
   }
 }
 

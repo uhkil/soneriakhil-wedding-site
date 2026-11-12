@@ -34,9 +34,9 @@ const eventDetails = {
     location: 'Weston Gardens',
     address: '8101 Anglin Dr, Fort Worth, TX 76140',
     mapUrl: 'https://maps.app.goo.gl/9ukmWUF7erqTjdSNA',
-    attire: 'More details coming soon', // was 'Garden party | Chic semi-formal western'
+    attire: 'Western semi-formal | Daytime colors | Wear something fun you’re excited about',
     moodboard: '',
-    description: 'Join the couple for an intimate gathering.',
+    description: 'Join the couple for an intimate garden party.',
   },
   sangeet: {
     name: 'Welcome Night | Sangeet',
@@ -45,7 +45,7 @@ const eventDetails = {
     location: 'Live! by Loews | Arlington Ballroom',
     address: LOEWS_ADDRESS,
     mapUrl: LOEWS_MAP,
-    attire: 'More details coming soon', // was 'Vibrant & festive colors | Traditional Indian or Indo-western'
+    attire: 'Indian or Indo-western | Fun & festive colors',
     moodboard: '',
     description: 'Join the couple for an evening filled with good food and dancing as they kick off the wedding weekend.',
   },
@@ -56,7 +56,7 @@ const eventDetails = {
     location: 'Live! by Loews | Clover Club Lawn',
     address: LOEWS_ADDRESS,
     mapUrl: LOEWS_MAP,
-    attire: 'More details coming soon', // was 'Traditional Indian | Please avoid wearing red'
+    attire: 'Traditional Indian | Please avoid wearing red',
     moodboard: '',
     description: 'Join the couple for a traditional Indian wedding ceremony, followed by lunch.',
   },
@@ -67,7 +67,7 @@ const eventDetails = {
     location: 'Live! by Loews | Arlington Ballroom',
     address: LOEWS_ADDRESS,
     mapUrl: LOEWS_MAP,
-    attire: 'More details coming soon', // was 'Deep & dark tones | Formal Indian or western | Please avoid wearing silver & gold'
+    attire: 'Women: Formal Indian, Indo-western, or western | Men: Formal western | Dark jewel tones',
     moodboard: '',
     description: 'Join the couple for an hour of mingling, followed by a night celebrating the newlyweds.',
   },
