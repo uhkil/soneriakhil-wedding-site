@@ -15,22 +15,22 @@ const ROOM_BLOCK = 'https://www.loewshotels.com/arlington-hotel/wedding-soneri-a
 // link, opening in a new tab. The words must appear in the text exactly.
 const activities = [
   {
-    title: 'Dallas Mavericks Game',
-    icon: 'basketball',
-    link: { words: 'Watch the Mavs', href: 'https://www.ticketmaster.com/dallas-mavericks-vs-memphis-grizzlies-dallas-texas-04-11-2027/event/0C00650C8E933CF3?landing=c' },
-    text: 'Watch the Mavs take on the Memphis Grizzlies on Sunday, April 11 at 7:30\u00a0PM.',
-  },
-  {
     title: 'Perot Museum of Nature and Science',
     icon: 'dinosaur',
     link: { words: 'first date', href: 'https://maps.app.goo.gl/EzDT61jkJxUEaKHK9' },
     text: 'Where we had our first date, with stunning architecture and panoramic skyline views.',
   },
   {
-    title: 'Pecan Hollow Golf Course',
-    icon: 'golf',
-    link: { words: 'high school course', href: 'https://maps.app.goo.gl/ySVPSC7A3zVH666f9' },
-    text: 'Akhil’s high school course, and where Soneri threw her Sweet 16.',
+    title: 'Dallas Mavericks Game',
+    icon: 'basketball',
+    link: { words: 'Watch the Mavs', href: 'https://www.ticketmaster.com/dallas-mavericks-vs-memphis-grizzlies-dallas-texas-04-11-2027/event/0C00650C8E933CF3?landing=c' },
+    text: 'Watch the Mavs take on the Memphis Grizzlies on Sunday, April 11 at 7:30\u00a0PM.',
+  },
+  {
+    title: 'Deep Ellum & Bishop Arts',
+    icon: 'palette',
+    link: { words: 'Two vibrant neighborhoods', href: 'https://www.wander-lust.nl/dallas-deep-ellum-and-bishop-arts-district/' },
+    text: 'Two vibrant neighborhoods with all things we luv: art galleries, shopping, and good food.',
   },
   {
     title: 'Dallas Arboretum',
@@ -39,10 +39,10 @@ const activities = [
     text: 'Wander 66 acres of gardens on White Rock Lake, right in the middle of their spring bloom.',
   },
   {
-    title: 'Deep Ellum & Bishop Arts',
-    icon: 'palette',
-    link: { words: 'Two vibrant neighborhoods', href: 'https://www.wander-lust.nl/dallas-deep-ellum-and-bishop-arts-district/' },
-    text: 'Two vibrant neighborhoods with all things we luv: art galleries, shopping, and good food.',
+    title: 'Pecan Hollow Golf Course',
+    icon: 'golf',
+    link: { words: 'high school course', href: 'https://maps.app.goo.gl/ySVPSC7A3zVH666f9' },
+    text: 'Akhil’s high school course, and where Soneri threw her Sweet 16.',
   },
   {
     title: 'Six Flags Over Texas',
