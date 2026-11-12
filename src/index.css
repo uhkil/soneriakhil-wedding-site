@@ -2775,6 +2775,24 @@ img.nugget-photo {
   margin: 0;
 }
 
+/* Phones: one detail per row, its label on the left and the value on the
+   right (three side by side would be too narrow). */
+@media (max-width: 699px) {
+  .travel-stats {
+    grid-auto-flow: row;
+    gap: 12px;
+  }
+  .travel-stats > div {
+    display: grid;
+    grid-template-columns: 9.5rem 1fr;
+    align-items: baseline;
+    gap: 12px;
+  }
+  .travel-stats dt {
+    margin-bottom: 0;
+  }
+}
+
 .travel-callout {
   padding: 24px 26px 26px;
   border-radius: 18px;

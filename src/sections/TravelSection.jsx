@@ -75,6 +75,10 @@ const topics = [
             <dt>Book by</dt>
             <dd>March 1, 2027</dd>
           </div>
+          <div>
+            <dt>Room block dates</dt>
+            <dd>April 8–11, 2027</dd>
+          </div>
         </dl>
 
         {/* The one thing not to miss: book through the room block. */}
