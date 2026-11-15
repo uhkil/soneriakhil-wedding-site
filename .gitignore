@@ -6,3 +6,6 @@ dist
 
 # Mac system files
 .DS_Store
+
+# Private settings for this computer only (e.g. a test RSVP address)
+.env.local

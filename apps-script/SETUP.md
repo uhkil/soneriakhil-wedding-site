@@ -90,7 +90,7 @@ events. Saved emails and phones are only sent back partly hidden
 | `side`, `group`, `sub-group` | **Private**, for you: e.g. `Bride` / `Groom`, `Mom's side`, `College friends`, and a smaller group within it. Never sent to the website. |
 | one checkbox per event (`ceremony`, `sangeet`, `indian-wedding`, `reception`) | Check each event they're invited to. They'll only see and RSVP for those, and the dates at the top of the site match (e.g. just "April 10, 2027"). Typing `x` or `yes` works too. |
 | `plus_one` | Check if they may bring a guest: their RSVP gets a "Your guest" spot. |
-| `guest_id` | Filled in automatically (G001, G002, …). Don't change it. |
+| `guest_id` | Filled in automatically (G0001, G0002, …). Don't change it. |
 | `soneri_bubble`, `akhil_bubble` | Optional: what Soneri and Akhil say in the speech bubbles on the Home page to whoever logs in with this row. Two short lines, about 20 characters each; `/` picks the line break. Blank = the usual words. Hover over the title for tips. |
 | `passcode` | Far right. Filled in automatically (grey) from the Passcodes tab. Type over it to give this household its own passcode (black). |
 
@@ -139,6 +139,90 @@ first time: allow it as in step 3. This turns on two things:
 
 To check it's on: in the script editor, the ⏰ **Triggers** page (left side)
 lists `keepWarm` and `onSheetChange`. Running it again is safe.
+
+## Importing guests from your original guest list
+
+**Wedding RSVP → Guest import** copies guests in from the **Wedding Guests Master** tab
+of your original guest list. It asks for that sheet's link each time (leave it blank to
+reuse the last one). The titles row is the one with "Invite Status" in column G.
+
+| Original list | → Guests tab |
+|---|---|
+| A | side |
+| B | group |
+| C | sub-group |
+| E (full name) | first_name + last_name: the **last word** is the last name, everything before it the first name |
+| F | household |
+| G (Invite Status) | invite_status |
+| N (a 1) | grah-shanti **and** mehendi |
+| O, P, Q, R, S (a 1) | haldi, ceremony, sangeet, indian-wedding, reception |
+| T (titled **Guest ID**) | ← each guest's id is written back here (the import stops if T has another title) |
+| "Check this" column | ← the script's notes on each row, so whoever owns a guest can fix it (added after your last column the first time; rewritten on every import, so don't type in it) |
+
+under_age, drinks_alcohol and hotel_id aren't imported: fill them in in the Guests tab.
+
+- **1. Preview (changes nothing):** fills the *Import Preview* tab and flags rows to check.
+- **2. Fresh start (first time only):** saves "Backup …" copies of Guests, RSVPs, Party
+  Responses, Change Log and Planner Event Answers, replaces everyone in Guests, clears saved
+  RSVPs, starts ids over at G0001 and logs everyone out of the website. **Don't run it again**
+  unless you mean to wipe every RSVP.
+- **3. Update from guest list (every time after):** matches each guest by Guest ID, shows what
+  will change, and on OK copies over every mapped field (names, side, group, sub-group,
+  household, status, events). New rows get the next id; guests removed from the master become
+  **XX: Not Invited**. Ids and RSVPs are kept.
+- **4. Refresh "Check this" notes:** rewrites only the notes in the master (Update does this too).
+
+**Add and remove guests only in the master**, then run Update: a guest typed straight into
+Guests isn't in the master, so Update would set them to Not Invited. Don't rename column
+titles in either sheet: the script finds columns by their titles.
+
+### Who can log in, and what a family sees
+
+Only guests invited to at least one website event (Civil Ceremony, Welcome Night / Sangeet,
+Indian Wedding, Reception) are on the website. One login opens the whole household: the
+schedule and dates show every event anyone in the family is invited to, and each RSVP card
+lists only the people invited to that event.
+
+| Person in a family | Can they log in? | Does the family see them after logging in? |
+|---|---|---|
+| On the Backup List (X) or Not Invited (XX) | No. Their name can't be found. | No, they're hidden completely. |
+| Invited to different events than the rest of the family | Yes, with the family passcode. | Yes, but only on the RSVP cards for their own events. |
+| Status A or B, but no events ticked | No. Their name can't be found. | No, they're hidden completely. |
+| Only planner events (Grah Shanti, Mehendi, Haldi) | No. Their name can't be found. | No, they're hidden completely. |
+
+Hidden guests get no passcode and don't change the family's passcode. They're still in All
+Guests (and the planner-event ones in Summary). Status **O: Invited, Won't Attend** and a
+blank status count as invited, so they can log in.
+
+Invite status: **X: Backup List** and **XX: Not Invited** rows turn light grey, show "—" in
+All Guests, and aren't counted in Summary. Change the status in the master to A or B and run
+Update to invite them. **Wedding RSVP → Update dropdowns and colors** refreshes the side /
+group / sub-group dropdowns after you add a new value.
+
+Guests and All Guests are kept in the same order: invited first (backup list, then not
+invited, at the bottom), then Soneri's side, then Akhil's, then household. **Wedding RSVP →
+Sort guests and refresh Summary and All Guests** re-sorts; filters keep working.
+
+Planning columns (private, never sent to the website; added on their own after
+plus_one when the Sheet opens): **under_age** (checkbox), **drinks_alcohol** (Yes / No),
+**hotel_id** (your own room label: give everyone sharing a room the same one, even across
+households), **check_this** (the import's notes). All Guests shows them.
+
+Planner-only events (**Grah Shanti, Mehendi, Haldi**): rows at the top of the Events tab with
+**planner_only = yes** (added once, on their own). Each gets an invited checkbox in Guests
+and a column in All Guests where you pick yes / no; those answers are kept in the
+*Planner Event Answers* tab so a refresh never loses them. They never reach the website
+and don't change the passcodes. Summary counts every event, overall and by side, with
+how many of the yeses are under age or drink.
+
+**Trial run first:** make copies of both sheets (File → Make a copy), paste the new code
+into the copy's script, and import there. For a login test, deploy the copy as its own
+web app and put its address in a `.env.local` file
+(`VITE_TEST_RSVP_API_URL=https://…/exec`); `npm run dev` then uses it, while the live
+site never does.
+
+**After pasting new code:** if it changes what the website gets (logins, invitations), also
+**Deploy → Manage deployments → ✏️ → New version**. Menu items use the saved code right away.
 
 ## Before going live
 

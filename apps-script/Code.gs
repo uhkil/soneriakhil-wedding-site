@@ -1,7 +1,4 @@
 /**
- * @OnlyCurrentDoc
- * (This line limits the script's permissions to this one Sheet.)
- *
  * Soneri & Akhil — RSVP back end (Google Apps Script)
  *
  * This code lives inside the wedding Google Sheet (Extensions → Apps Script).
@@ -27,9 +24,17 @@
  *                          them can RSVP for all of them.
  *   side, group, sub-group private notes for you (never sent to the website;
  *                          neither is any column you add yourself)
+ *   invite_status          A: All Events / B: Some Events / O: Invited, Won't
+ *                          Attend can log in. X: Backup List and XX: Not
+ *                          Invited can't: their row turns light grey, and
+ *                          they're left out of the counts until you change it.
+ *                          (Blank counts as invited.)
  *   one column per event   (named by its event_id from the Events tab) — a
  *                          checkbox: checked = invited to that event
  *   plus_one               checked = may bring a guest
+ *   under_age,             your planning notes (never sent to the website):
+ *   drinks_alcohol,        a checkbox, Yes / No, and your own label for a
+ *   hotel_id               hotel room (the same for everyone sharing it)
  *   guest_id               filled in automatically; don't change it
  *   passcode               (far right) filled in on its own, in grey, from the
  *                          Passcodes tab: the passcode for the events this
@@ -63,13 +68,68 @@ const TAB = {
   log: 'Change Log',
   summary: 'Summary',
   allGuests: 'All Guests',
+  plannerAnswers: 'Planner Event Answers',
   passcodes: 'Passcodes',
 }
 
 // The Guests tab's columns: these, then one checkbox column per event (named
 // by its event_id), then plus_one and guest_id.
-const GUEST_COLUMNS_BEFORE = ['first_name', 'last_name', 'household', 'side', 'group', 'sub-group']
+const GUEST_COLUMNS_BEFORE = ['first_name', 'last_name', 'household', 'side', 'group', 'sub-group', 'invite_status']
+
+// The invite statuses (the same as your original guest list), each with its
+// colors in the Guests tab. Backup List and Not Invited are "on hold": they
+// can't log in, their row is grey, and they aren't counted as invited.
+const INVITE_STATUSES = [
+  { code: 'A', label: 'A: All Events', background: '#2f6b45', color: '#ffffff' },
+  { code: 'B', label: 'B: Some Events', background: '#d9ead3', color: '#2f6b45' },
+  { code: 'O', label: "O: Invited, Won't Attend", background: '#f4cccc', color: '#a61c1c' },
+  { code: 'X', label: 'X: Backup List', background: '#fce8b2', color: '#5c4600' },
+  { code: 'XX', label: 'XX: Not Invited', background: '#a61c1c', color: '#ffffff' },
+]
+const ON_HOLD_GREY = '#b7bbc0'
+
+/** "XX: Not Invited" → "XX" (the letters before the colon), uppercase. */
+function statusCode(status) {
+  const m = String(status || '').trim().match(/^([A-Za-z]+)\s*:/)
+  return m ? m[1].toUpperCase() : ''
+}
+
+/** Backup List and Not Invited: not invited (yet). */
+function isOnHold(status) {
+  return /^X+$/.test(statusCode(status)) || /backup|not invited/i.test(String(status || ''))
+}
 const GUEST_COLUMNS_AFTER = ['plus_one', 'guest_id']
+
+// Planner-only events: in the Events tab with planner_only = yes. They get an
+// invited checkbox in Guests and columns in All Guests (where you type each
+// guest's yes / no), but they never reach the website and don't change the
+// passcodes (those still follow the website's events). Added once, on their
+// own, at the top of the Events tab (they come first in the wedding's timeline).
+// Events appear everywhere in the Sheet in the Events tab's order: drag its
+// rows to reorder them.
+const PLANNER_EVENTS = [
+  ['grah-shanti', 'Grah Shanti'],
+  ['mehendi', 'Mehendi'],
+  ['haldi', 'Haldi'],
+]
+
+/** The Events tab's rows (all of them, in order). */
+function readAllEvents() {
+  return readTab(TAB.events).filter((ev) => ev.event_id)
+}
+/** Planner-only events: in this Sheet only, never on the website. */
+function isPlannerOnly(ev) {
+  return isYes(ev.planner_only)
+}
+
+// Your planning columns in the Guests tab (added on their own, right after
+// plus_one). Only for you: never sent to the website. All Guests shows them.
+const ADMIN_COLUMNS = {
+  under_age: 'Check if this guest is under age (e.g. a kid, or under 21). Private: never shown to guests.',
+  drinks_alcohol: 'Yes or No (blank = don’t know yet). Private: never shown to guests.',
+  hotel_id: 'Your own label for a hotel room (e.g. Room 1). Give everyone sharing a room the same label, even across households. Private: never shown to guests.',
+  check_this: 'Filled in by the guest import: anything worth a second look about this guest (yellow). Clear the cell once it’s sorted out. Private: never shown to guests.',
+}
 
 const HEADERS = {
   Settings: ['setting', 'value'],
@@ -145,11 +205,15 @@ function doPost(e) {
 
 /**
  * Reads the Guests and Events tabs. Returns:
- *   events — the Events tab's rows, in order
+ *   events — the Events tab's rows for the website's events, in order
+ *            (plannerEvents: the planner-only ones; allEventIds: every id, in order)
  *   people — everyone who can be on an RSVP, including a "Your guest" spot
  *            right after anyone with plus_one checked. Each has: guestId,
  *            firstName, lastName, isPlusOne, invitedEvents (event ids),
- *            partyId, partyName, household, side, group, subGroup, hostName (plus-ones)
+ *            partyId, partyName, household, side, group, subGroup, inviteStatus,
+ *            order (row in Guests), hostName (plus-ones)
+ *   held   — guests on hold (X: Backup List, XX: Not Invited), the same way:
+ *            they can't log in and aren't counted, but All Guests lists them
  *
  * An invitation ("party") is a household: everyone with the same household
  * name (ignoring capitals and extra spaces). Someone with no household is
@@ -164,21 +228,28 @@ function loadGuestList(fresh) {
   }
   // The Events and Guests tabs are each read once. The Guests tab is only
   // read again if new ids or passcodes were just written into it (rare).
-  const events = readTab(TAB.events).filter((ev) => ev.event_id)
+  const allEvents = readAllEvents()
+  const events = allEvents.filter((ev) => !isPlannerOnly(ev)) // the website's events
+  const plannerEvents = allEvents.filter(isPlannerOnly).map((ev) => ({ event_id: ev.event_id, name: ev.name }))
   let guests = readGuests()
   if (ensureGuestIds(guests)) guests = readGuests()
   if (syncPasscodes(guests, events)) guests = readGuests()
   const people = []
-  guestObjects(guests).forEach((row) => {
+  const held = [] // Backup List and Not Invited: listed in All Guests only
+  guestObjects(guests).forEach((row, order) => {
     const fullName = `${row.first_name || ''} ${row.last_name || ''}`.trim()
     if (!row.guest_id || !fullName) return
     const household = row.household || ''
+    const onHold = isOnHold(row.invite_status)
     const person = {
+      order, // their place in the Guests tab
       guestId: row.guest_id,
       firstName: row.first_name || '',
       lastName: row.last_name || '',
       isPlusOne: false,
-      invitedEvents: events.map((ev) => ev.event_id).filter((id) => isYes(row[id])),
+      inviteStatus: row.invite_status || '',
+      invitedEvents: onHold ? [] : events.map((ev) => ev.event_id).filter((id) => isYes(row[id])),
+      plannerInvites: onHold ? [] : plannerEvents.map((ev) => ev.event_id).filter((id) => isYes(row[id])), // (never sent to the website)
       partyId: household ? 'H:' + household.toLowerCase().replace(/\s+/g, ' ') : row.guest_id,
       partyName: household || fullName,
       household,
@@ -188,14 +259,32 @@ function loadGuestList(fresh) {
       soneriBubble: row.soneri_bubble || '',
       akhilBubble: row.akhil_bubble || '',
       subGroup: row['sub-group'] || row.sub_group || row.subgroup || '',
+      // Planning notes, for All Guests only (never sent to the website).
+      underAge: isYes(row.under_age),
+      drinksAlcohol: row.drinks_alcohol || '',
+      hotelId: row.hotel_id || '',
+    }
+    if (onHold) {
+      held.push(person) // (no login, no plus-one spot, not counted)
+      return
     }
     people.push(person)
     if (isYes(row.plus_one)) {
       // Their guest: same invitation, same events, name typed in on the RSVP.
-      people.push({ ...person, guestId: row.guest_id + '-guest', firstName: '', lastName: '', isPlusOne: true, hostName: fullName })
+      people.push({
+        ...person,
+        guestId: row.guest_id + '-guest',
+        firstName: '',
+        lastName: '',
+        isPlusOne: true,
+        hostName: fullName,
+        underAge: false,
+        drinksAlcohol: '',
+      })
     }
   })
-  const list = { events, people }
+  // allEventIds: every event in the Events tab's order (for the reports).
+  const list = { events, plannerEvents, allEventIds: allEvents.map((ev) => ev.event_id), people, held }
   cachePut('guestList', list)
   return list
 }
@@ -228,7 +317,7 @@ function guestHeader(sheet) {
 }
 
 /**
- * Gives every named row in the Guests tab a guest id (G001, G002, …) if it
+ * Gives every named row in the Guests tab a guest id (G0001, G0002, …) if it
  * doesn't have one yet, and a new one to any row that copied another row's
  * id. Runs on its own when you edit the Guests tab, and whenever the guest
  * list is re-read. Ids are never reused. Returns true if it wrote any.
@@ -270,7 +359,7 @@ function ensureGuestIds(guests) {
     }, Number(props.getProperty('LAST_GUEST_ID') || 0))
     missing.forEach((i) => {
       next += 1
-      sheet.getRange(i + 2, idCol + 1).setValue('G' + String(next).padStart(3, '0'))
+      sheet.getRange(i + 2, idCol + 1).setValue(guestIdFor(next))
     })
     props.setProperty('LAST_GUEST_ID', String(next))
     forgetRemembered()
@@ -309,7 +398,7 @@ const AUTO_GREY = '#9aa0a6'
 function syncPasscodes(snapshot, events) {
   const ss = SpreadsheetApp.getActive()
   snapshot = snapshot || readGuests() // (adds the speech-bubble columns first, so passcode is always the last column)
-  events = events || readTab(TAB.events).filter((ev) => ev.event_id)
+  events = events || readAllEvents().filter((ev) => !isPlannerOnly(ev)) // (planner-only events don't change passcodes)
   const guests = snapshot.sheet
   const header = snapshot.header.slice()
   let rows = snapshot.rows
@@ -342,7 +431,10 @@ function syncPasscodes(snapshot, events) {
     const h = (r[at('household')] || '').trim()
     return h ? 'H:' + h.toLowerCase().replace(/\s+/g, ' ') : r[at('guest_id')] || r[at('first_name')] + ' ' + r[at('last_name')]
   }
-  const named = (r) => (r[at('first_name')] || '').trim() || (r[at('last_name')] || '').trim()
+  // (Guests on hold — Backup List, Not Invited — get no passcode until they're invited.)
+  // (Nor do guests with no website event ticked: they can't log in, even with their family.)
+  const onSite = (r) => events.some((ev) => at(ev.event_id) >= 0 && isYes(r[at(ev.event_id)]))
+  const named = (r) => ((r[at('first_name')] || '').trim() || (r[at('last_name')] || '').trim()) && !isOnHold(r[at('invite_status')]) && onSite(r)
   const homes = {}
   rows.forEach((r) => {
     if (!named(r)) return
@@ -481,16 +573,57 @@ function ensureBubbleColumns(sheet, header) {
     sheet.setColumnWidth(col, 260)
     const cells = sheet.getRange(2, col, Math.max(sheet.getMaxRows() - 1, 1), 1)
     cells.setNumberFormat('@').setWrap(true)
-    const letter = sheet.getRange(1, col).getA1Notation().replace(/\d+/g, '')
-    const tooLong = SpreadsheetApp.newConditionalFormatRule()
-      .whenFormulaSatisfied(`=LEN(${letter}2)>${BUBBLE_MAX}`)
-      .setBackground('#fbe0de')
-      .setFontColor('#8a2a22')
-      .setRanges([cells])
-      .build()
-    sheet.setConditionalFormatRules(sheet.getConditionalFormatRules().concat([tooLong]))
+    sheet.setConditionalFormatRules(sheet.getConditionalFormatRules().concat([bubbleRule(sheet, col)]))
   })
   return added
+}
+
+/**
+ * Adds your planning columns (under_age, drinks_alcohol, hotel_id) right
+ * after plus_one, if they aren't there yet, each with its checkbox or
+ * dropdown and a tip on hover. Returns true if it added any.
+ */
+function ensureAdminColumns(sheet) {
+  sheet = sheet || getTab(TAB.guests)
+  let added = false
+  Object.keys(ADMIN_COLUMNS).forEach((name) => {
+    const header = guestHeader(sheet)
+    if (header.includes(name)) return
+    added = true
+    // After plus_one, or after the planning column just before this one.
+    const names = ['plus_one'].concat(Object.keys(ADMIN_COLUMNS))
+    const before = names.slice(0, names.indexOf(name)).reverse().map((h) => header.indexOf(h) + 1).find((c) => c > 0)
+    let col = header.filter(Boolean).length + 1
+    if (before) {
+      sheet.insertColumnAfter(before)
+      col = before + 1
+    }
+    sheet.getRange(1, col).setValue(name).setFontWeight('bold').setNote(ADMIN_COLUMNS[name])
+    const cells = sheet.getRange(2, col, Math.max(sheet.getMaxRows() - 1, 1), 1)
+    cells.clearDataValidations() // (a new column copies the one to its left)
+    adminColumnFormat(name, cells)
+  })
+  return added
+}
+
+/** A planning column's checkbox or dropdown. */
+function adminColumnFormat(name, cells) {
+  if (name === 'under_age') cells.insertCheckboxes()
+  if (name === 'drinks_alcohol') {
+    cells.setDataValidation(SpreadsheetApp.newDataValidation().requireValueInList(['Yes', 'No'], true).setAllowInvalid(false).build())
+  }
+  if (name === 'hotel_id' || name === 'check_this') cells.setNumberFormat('@')
+}
+
+/** A speech-bubble column's cells turn red when the message is too long for small phones. */
+function bubbleRule(sheet, col) {
+  const letter = columnLetter(col)
+  return SpreadsheetApp.newConditionalFormatRule()
+    .whenFormulaSatisfied(`=LEN(${letter}2)>${BUBBLE_MAX}`)
+    .setBackground('#fbe0de')
+    .setFontColor('#8a2a22')
+    .setRanges([sheet.getRange(2, col, Math.max(sheet.getMaxRows() - 1, 1), 1)])
+    .build()
 }
 
 /**
@@ -506,6 +639,14 @@ function onEdit(e) {
     // Checking an event box, editing a passcode cell, or changing a group's
     // passcode: every row's passcode is brought up to date.
     if ([TAB.guests, TAB.events, TAB.passcodes].includes(name)) syncPasscodes()
+    // An answer typed for a planner-only event in All Guests: saved safely.
+    if (name === TAB.allGuests) savePlannerAnswers(e.range)
+    // A changed invite status: All Guests and Summary catch up too.
+    if (name === TAB.guests) {
+      const statusCol = guestHeader(getTab(TAB.guests)).indexOf('invite_status') + 1
+      const r = e.range
+      if (statusCol && r.getColumn() <= statusCol && statusCol <= r.getLastColumn()) refreshSoon()
+    }
   } catch (err) {
     console.error(err) // the ids are filled in on the next request instead
   }
@@ -607,7 +748,7 @@ function searchGuests(name) {
   const last = words[words.length - 1]
 
   const matches = loadGuestList().people.filter((g) => {
-    if (g.isPlusOne) return false // plus-ones log in through the person who invited them
+    if (g.isPlusOne || !onWebsite(g)) return false // plus-ones log in through the person who invited them
     const firstNames = normalize(g.firstName).split(' ')
     const lastNames = normalize(g.lastName).split(' ')
     return firstNames.includes(first) && lastNames.includes(last)
@@ -630,6 +771,16 @@ function searchGuests(name) {
   }
 }
 
+/**
+ * Whether a guest is on the website at all: invited to at least one website
+ * event. Guests with none ticked (or only Grah Shanti / Mehendi / Haldi) can't
+ * be found, can't log in, and don't show in their family's invitation. They're
+ * still in All Guests and Summary.
+ */
+function onWebsite(g) {
+  return g.invitedEvents.length > 0
+}
+
 /** Checks the guest's passcode, then opens their invitation. */
 function verifyCode(guestId, code) {
   const cache = CacheService.getScriptCache()
@@ -640,7 +791,7 @@ function verifyCode(guestId, code) {
   }
 
   const list = loadGuestList()
-  const guest = list.people.find((g) => g.guestId === String(guestId) && !g.isPlusOne)
+  const guest = list.people.find((g) => g.guestId === String(guestId) && !g.isPlusOne && onWebsite(g))
   // Each guest's passcode is the one on their own row of the Guests tab (see
   // syncPasscodes): it only opens invitations it was given to.
   if (guest && !cleanCode(guest.passcode)) {
@@ -662,7 +813,7 @@ function verifyCode(guestId, code) {
 function partyDetails(partyId, list, rsvps) {
   list = list || loadGuestList()
   rsvps = rsvps || readRsvps()
-  const members = list.people.filter((g) => g.partyId === partyId)
+  const members = list.people.filter((g) => g.partyId === partyId && onWebsite(g))
   if (!members.length) throw new UserError('We could not find your invitation.')
 
   const guests = members.map((g) => ({
@@ -909,7 +1060,7 @@ function saveRsvp(req, list) {
 
 function makeToken(partyId, list) {
   const codes = (list || loadGuestList()).people
-    .filter((g) => g.partyId === partyId && !g.isPlusOne)
+    .filter((g) => g.partyId === partyId && !g.isPlusOne && onWebsite(g))
     .map((g) => cleanCode(g.passcode))
   const key = [...new Set(codes)].sort().join(',')
   const sig = Utilities.computeHmacSha256Signature(`${partyId}|${key}`, secret())
@@ -918,7 +1069,7 @@ function makeToken(partyId, list) {
 
 function requireToken(partyId, token, list) {
   list = list || loadGuestList()
-  const exists = list.people.some((g) => g.partyId === partyId)
+  const exists = list.people.some((g) => g.partyId === partyId && onWebsite(g))
   if (!exists || !token || token !== makeToken(partyId, list)) {
     throw new UserError('Please find your invitation again.')
   }
@@ -1169,6 +1320,19 @@ function isYes(value) {
   return ['yes', 'y', 'true', 'x'].includes(String(value || '').trim().toLowerCase())
 }
 
+/** Column number → its letters: 1 → A, 27 → AA. */
+function columnLetter(n) {
+  let letters = ''
+  for (; n > 0; n = Math.floor((n - 1) / 26)) letters = String.fromCharCode(65 + ((n - 1) % 26)) + letters
+  return letters
+}
+
+/** A conditional-format formula: "the invite status in this column (row 2 on) is on hold". */
+function onHoldFormula(letter) {
+  const cell = `$${letter}2`
+  return `=OR(REGEXMATCH(${cell},"^\\s*[Xx]+\\s*:"),REGEXMATCH(LOWER(${cell}),"backup|not invited"))`
+}
+
 function byId(list, key) {
   return Object.fromEntries(list.map((item) => [item[key], item]))
 }
@@ -1189,11 +1353,40 @@ function limit(text, max) {
  */
 function refreshReports() {
   forgetRemembered()
+  ensurePlannerEvents()
   const list = loadGuestList(true)
-  ensureEventColumns(list.events)
-  const answers = byId(readTab(TAB.rsvps), 'guest_id')
+  ensureEventColumns(readAllEvents())
+  const answers = readAnswers()
   refreshSummary(list, answers)
   refreshAllGuests(list, answers)
+}
+
+/**
+ * Everyone's answers, by guest id: the website's (RSVPs tab) and the ones you
+ * typed in All Guests for planner-only events (kept in the Planner Event
+ * Answers tab), together: { G001: { sangeet: 'yes', mehendi: 'no', email: … } }.
+ */
+function readAnswers() {
+  const answers = byId(readTab(TAB.rsvps), 'guest_id')
+  plannerAnswerRows().forEach((r) => {
+    answers[r.guest_id] = answers[r.guest_id] || {}
+    Object.keys(r).forEach((k) => {
+      if (k !== 'guest_id' && k !== 'name' && r[k]) answers[r.guest_id]['planner:' + k] = r[k]
+    })
+  })
+  return answers
+}
+
+/**
+ * A guest's answer for one event: 'yes', 'no', 'waiting', or null when they
+ * aren't invited to it (planner-only events: what you typed in All Guests).
+ */
+function answerFor(g, eventId, list, answers) {
+  const a = answers[g.guestId] || {}
+  if (list.plannerEvents.some((ev) => ev.event_id === eventId)) {
+    return (g.plannerInvites || []).includes(eventId) ? a['planner:' + eventId] || 'waiting' : null
+  }
+  return g.invitedEvents.includes(eventId) ? a[eventId] || 'waiting' : null
 }
 
 /**
@@ -1202,21 +1395,45 @@ function refreshReports() {
  */
 function refreshSummary(list, answers) {
   list = list || loadGuestList()
-  answers = answers || byId(readTab(TAB.rsvps), 'guest_id')
-  const { events, people } = list
+  answers = answers || readAnswers()
+  const { people } = list
   const ss = SpreadsheetApp.getActive()
   const sheet = ss.getSheetByName(TAB.summary) || ss.insertSheet(TAB.summary, 0)
   const answerOf = (g, eventId) => (answers[g.guestId] || {})[eventId]
-  const W = 5 // columns used
+  const W = 8 // columns used
   const row = (...cells) => cells.concat(Array(W - cells.length).fill(''))
+  const nameOf = eventNamer(list)
 
-  const rows = [row('Last updated', new Date()), row(), row('Event', 'Invited', 'Yes', 'No', 'Waiting')]
+  // Every event (the website's and planner-only), in the Events tab's order.
+  const counts = (guests, id) => {
+    const said = guests.map((g) => answerFor(g, id, list, answers)).filter(Boolean)
+    const yesGuests = guests.filter((g) => answerFor(g, id, list, answers) === 'yes')
+    return {
+      invited: said.length,
+      yes: yesGuests.length,
+      no: said.filter((a) => a === 'no').length,
+      waiting: said.filter((a) => a !== 'yes' && a !== 'no').length,
+      kids: yesGuests.filter((g) => g.underAge).length,
+      drinkers: yesGuests.filter((g) => String(g.drinksAlcohol).toLowerCase() === 'yes').length,
+    }
+  }
+  const rows = [row('Last updated', new Date()), row(), row('Event', 'Invited', 'Yes', 'No', 'Waiting', 'Yes: under age', 'Yes: drinks alcohol')]
   const bold = [3]
-  events.forEach((ev) => {
-    const invited = people.filter((g) => g.invitedEvents.includes(ev.event_id))
-    const yes = invited.filter((g) => answerOf(g, ev.event_id) === 'yes').length
-    const no = invited.filter((g) => answerOf(g, ev.event_id) === 'no').length
-    rows.push(row(ev.name, invited.length, yes, no, invited.length - yes - no))
+  list.allEventIds.forEach((id) => {
+    const c = counts(people, id)
+    rows.push(row(nameOf(id), c.invited, c.yes, c.no, c.waiting, c.kids, c.drinkers))
+  })
+
+  // The same, split by side (for sharing costs): one row per event and side.
+  const sides = unique(people.map((g) => g.side || '(no side)')).sort((a, b) => a.localeCompare(b))
+  rows.push(row())
+  rows.push(row('By side', 'Invited', 'Yes', 'No', 'Waiting', 'Yes: under age', 'Yes: drinks alcohol'))
+  bold.push(rows.length)
+  list.allEventIds.forEach((id) => {
+    sides.forEach((side) => {
+      const c = counts(people.filter((g) => (g.side || '(no side)') === side), id)
+      rows.push(row(`${nameOf(id)} · ${side}`, c.invited, c.yes, c.no, c.waiting, c.kids, c.drinkers))
+    })
   })
 
   // Copy-ready lists: everyone's emails or phones in one cell, separated by
@@ -1237,14 +1454,18 @@ function refreshSummary(list, answers) {
 
   // Invitations that haven't answered yet: no one on them has saved answers
   // (worked out per person, so renaming a household keeps it right).
-  const responded = new Set(people.filter((g) => answers[g.guestId]).map((g) => g.partyId))
+  const responded = new Set(people.filter((g) => (answers[g.guestId] || {}).updated_at).map((g) => g.partyId)) // (an RSVP from the website)
   const invitations = {}
-  people.forEach((g) => (invitations[g.partyId] = g.partyName))
+  people.filter((g) => g.invitedEvents.length).forEach((g) => (invitations[g.partyId] = g.partyName)) // (invited to something)
   const ids = Object.keys(invitations)
   const waiting = ids.filter((id) => !responded.has(id))
   rows.push(row())
-  rows.push(row(`Invitations: ${ids.length} · responded: ${ids.length - waiting.length} · waiting: ${waiting.length}`))
+  rows.push(row(`Invitations (the website’s events): ${ids.length} · responded: ${ids.length - waiting.length} · waiting: ${waiting.length}`))
   bold.push(rows.length)
+  // Guests on hold (Backup List, Not Invited) aren't counted anywhere above.
+  const held = list.held || []
+  const heldCount = (code) => held.filter((g) => statusCode(g.inviteStatus) === code).length
+  rows.push(row(`Not invited yet (not counted above): backup list ${heldCount('X')} · not invited ${heldCount('XX')}`))
   rows.push(row('Still waiting on:'))
   waiting.forEach((id) => rows.push(row(invitations[id])))
 
@@ -1265,23 +1486,28 @@ function refreshSummary(list, answers) {
  */
 function refreshAllGuests(list, answers) {
   list = list || loadGuestList()
-  answers = answers || byId(readTab(TAB.rsvps), 'guest_id')
-  const { events, people } = list
+  answers = answers || readAnswers()
+  const { people } = list
+  const nameOf = eventNamer(list)
   const ss = SpreadsheetApp.getActive()
   const sheet = ss.getSheetByName(TAB.allGuests) || ss.insertSheet(TAB.allGuests, 1)
 
-  const before = ['Name', 'Household', 'Side', 'Group', 'Sub-group'] // the columns before the events
+  const before = ['Name', 'Household', 'Side', 'Group', 'Sub-group', 'Invite status'] // the columns before the events
   const header = before
-    .concat(events.map((ev) => ev.name))
-    .concat(['Dietary', 'Email', 'Phone', 'Address', 'Note', 'Last updated'])
-  const rows = people.map((g) => {
+    .concat(list.allEventIds.map(nameOf))
+    .concat(['Under age', 'Drinks alcohol', 'Hotel ID'])
+    .concat(['Dietary', 'Email', 'Phone', 'Address', 'Note', 'Last updated', 'Guest ID'])
+  // Everyone, guests on hold too (grey, with "—"), in the guest order (see compareGuests).
+  const everyone = people.concat(list.held || []).sort(compareGuests)
+  const rows = everyone.map((g) => {
     const a = answers[g.guestId] || {}
     let name = `${g.firstName} ${g.lastName}`.trim()
     if (g.isPlusOne) name = a.guest_name ? `${a.guest_name} (guest of ${g.hostName})` : `Guest of ${g.hostName}`
-    const perEvent = events.map((ev) => (g.invitedEvents.includes(ev.event_id) ? a[ev.event_id] || 'waiting' : '—'))
-    return [name, g.household, g.side, g.group, g.subGroup || '']
+    const perEvent = list.allEventIds.map((id) => answerFor(g, id, list, answers) || '—')
+    return [name, g.household, g.side, g.group, g.subGroup || '', g.inviteStatus || '']
       .concat(perEvent)
-      .concat([a.dietary || '', a.email || '', a.phone || '', a.address || '', a.note || '', a.updated_at || ''])
+      .concat([g.underAge ? 'yes' : '', g.drinksAlcohol || '', g.hotelId || ''])
+      .concat([a.dietary || '', a.email || '', a.phone || '', a.address || '', a.note || '', a.updated_at || '', g.guestId])
   })
   const all = [header].concat(rows)
 
@@ -1305,10 +1531,30 @@ function refreshAllGuests(list, answers) {
   sheet.setFrozenColumns(1)
 
   // Colors for the answers: yes green, no red, waiting gray.
-  const answerCells = sheet.getRange(2, before.length + 1, Math.max(rows.length, 1), Math.max(events.length, 1))
+  const answerCells = sheet.getRange(2, before.length + 1, Math.max(rows.length, 1), Math.max(list.allEventIds.length, 1))
+  // Planner-only events: yours to fill in (yes / no), with a dropdown. Kept
+  // safe in the Planner Event Answers tab, so they survive every refresh.
+  list.plannerEvents.forEach((ev) => {
+    const col = before.length + 1 + list.allEventIds.indexOf(ev.event_id)
+    sheet
+      .getRange(1, col)
+      .setBackground('#fff4c2')
+      .setNote('Not on the website: type each guest’s answer here (yes / no). “—” = not invited (check their box in Guests).')
+    sheet
+      .getRange(2, col, Math.max(rows.length, 1), 1)
+      .setDataValidation(SpreadsheetApp.newDataValidation().requireValueInList(['yes', 'no', 'waiting', '—'], true).setAllowInvalid(true).build())
+  })
   const rule = (text, background, color) =>
     SpreadsheetApp.newConditionalFormatRule().whenTextEqualTo(text).setBackground(background).setFontColor(color).setRanges([answerCells]).build()
+  // Guests on hold: the whole row in light grey (this rule comes first, so it wins).
+  const statusLetter = columnLetter(before.length)
+  const onHoldRow = SpreadsheetApp.newConditionalFormatRule()
+    .whenFormulaSatisfied(onHoldFormula(statusLetter))
+    .setFontColor(ON_HOLD_GREY)
+    .setRanges([sheet.getRange(2, 1, Math.max(rows.length, 1), header.length)])
+    .build()
   sheet.setConditionalFormatRules([
+    onHoldRow,
     rule('yes', '#d9f2e3', '#1b5e3a'),
     rule('no', '#fbe0de', '#8a2a22'),
     rule('waiting', '#f1f3f4', '#6b7280'),
@@ -1318,6 +1564,162 @@ function refreshAllGuests(list, answers) {
   Object.keys(criteria).forEach((c) => {
     if (Number(c) <= header.length) filter.setColumnFilterCriteria(Number(c), criteria[c])
   })
+}
+
+// ---------------------------------------------------------------------------
+// The guest order (Guests and All Guests)
+// ---------------------------------------------------------------------------
+// 1. Invited first (A, B, O, or blank), then X: Backup List, then XX: Not Invited.
+// 2. Within those, by side: Soneri, then Akhil (then any other side, then none).
+// 3. Within a side, families together (households A→Z), then guests on their
+//    own (by last name). A family keeps its own order from the Guests tab.
+// All Guests is always in this order. The Guests tab is put in this order by
+// the imports and by Wedding RSVP → Sort guests and refresh (never while
+// you're typing, so rows don't jump around).
+
+const SIDE_ORDER = ['soneri', 'akhil'] // (the start of the side's name, any capitals)
+
+function guestSortKey(g) {
+  const status = g.inviteStatus !== undefined ? g.inviteStatus : g.invite_status
+  const code = statusCode(status)
+  const tier = !isOnHold(status) ? 0 : code === 'XX' || /not invited/i.test(status || '') ? 2 : 1
+  const side = String(g.side || '').trim().toLowerCase()
+  const sideRank = !side ? 99 : SIDE_ORDER.findIndex((s) => side.startsWith(s))
+  const household = String(g.household || '').trim().toLowerCase()
+  const last = String(g.lastName !== undefined ? g.lastName : g.last_name || '').toLowerCase()
+  const first = String(g.firstName !== undefined ? g.firstName : g.first_name || '').toLowerCase()
+  return [
+    tier,
+    sideRank === -1 ? 50 : sideRank,
+    side,
+    household ? 0 : 1, // families first, then guests on their own
+    household,
+    household ? '' : last,
+    household ? '' : first,
+    g.order || 0,
+    g.isPlusOne ? 1 : 0, // a plus-one right after their host
+  ]
+}
+
+function compareGuests(a, b) {
+  const x = guestSortKey(a)
+  const y = guestSortKey(b)
+  for (let i = 0; i < x.length; i++) {
+    if (x[i] < y[i]) return -1
+    if (x[i] > y[i]) return 1
+  }
+  return 0
+}
+
+/**
+ * Puts the Guests tab's rows in the guest order (whole rows move: checkboxes,
+ * passcodes and all). Does nothing if they already are.
+ */
+function sortGuestsTab() {
+  const guests = readGuests()
+  const rows = guestObjects(guests).map((g, order) => ({ ...g, order }))
+  if (rows.length < 2) return
+  const sorted = rows.slice().sort(compareGuests)
+  if (sorted.every((g, i) => g.order === i)) return
+  const sheet = guests.sheet
+  const width = Math.max(sheet.getLastColumn(), guests.header.length)
+  // A spare column holds each row's new place while Google sorts the rows by it.
+  sheet.insertColumnAfter(width)
+  const place = {}
+  sorted.forEach((g, i) => (place[g.order] = i))
+  sheet.getRange(2, width + 1, rows.length, 1).setValues(rows.map((g) => [place[g.order]]))
+  sheet.getRange(2, 1, rows.length, width + 1).sort({ column: width + 1, ascending: true })
+  sheet.deleteColumn(width + 1)
+  forgetRemembered()
+}
+
+/** Wedding RSVP → Sort guests and refresh Summary and All Guests. */
+function sortAndRefresh() {
+  runFromMenu(() => {
+    sortGuestsTab()
+    refreshReports()
+  })
+}
+
+/** Event id → its name in the Events tab. */
+function eventNamer(list) {
+  const names = {}
+  list.events.concat(list.plannerEvents).forEach((ev) => (names[ev.event_id] = ev.name || ev.event_id))
+  return (id) => names[id] || id
+}
+
+/**
+ * One time: adds the planner-only events (Grah Shanti, Mehendi, Haldi) to the
+ * top of the Events tab, and its planner_only column. If you delete one
+ * later, it isn't added back.
+ */
+function ensurePlannerEvents() {
+  const props = PropertiesService.getScriptProperties()
+  if (props.getProperty('PLANNER_EVENTS_ADDED')) return
+  const sheet = getTab(TAB.events)
+  const header = ensureColumns(sheet, ['planner_only'])
+  sheet
+    .getRange(1, header.indexOf('planner_only') + 1)
+    .setNote('yes = only in this Sheet (Guests checkbox + All Guests answers), never on the website, and not part of the passcodes.')
+  const have = readAllEvents().map((ev) => ev.event_id)
+  const rows = PLANNER_EVENTS.filter(([id]) => !have.includes(id)).map(([id, name]) =>
+    header.map((h) => (h === 'event_id' ? id : h === 'name' ? name : h === 'planner_only' ? 'yes' : ''))
+  )
+  if (rows.length) {
+    // At the top, right under the titles (they're the first events of the week).
+    sheet.insertRowsBefore(2, rows.length)
+    sheet.getRange(2, 1, rows.length, header.length).setValues(rows)
+  }
+  props.setProperty('PLANNER_EVENTS_ADDED', 'yes')
+  forgetRemembered()
+}
+
+/** The Planner Event Answers tab's rows (made if needed): guest_id, name, one column per planner-only event. */
+function plannerAnswerRows() {
+  const ss = SpreadsheetApp.getActive()
+  if (!ss.getSheetByName(TAB.plannerAnswers)) return []
+  return readTab(TAB.plannerAnswers).filter((r) => r.guest_id)
+}
+
+/**
+ * When you type in a planner-only event's column in All Guests, the answers
+ * are saved in the Planner Event Answers tab (so a refresh never loses them),
+ * and Summary catches up. Runs from onEdit.
+ */
+function savePlannerAnswers(range) {
+  const sheet = range.getSheet()
+  const list = loadGuestList()
+  if (!list.plannerEvents.length) return
+  const header = sheet.getRange(1, 1, 1, sheet.getLastColumn()).getDisplayValues()[0]
+  const idCol = header.indexOf('Guest ID')
+  const nameOf = eventNamer(list)
+  // The planner-only columns this edit touched.
+  const touched = list.plannerEvents
+    .map((ev) => ({ id: ev.event_id, col: header.indexOf(nameOf(ev.event_id)) + 1 }))
+    .filter((c) => c.col >= range.getColumn() && c.col <= range.getLastColumn())
+  const firstRow = Math.max(range.getRow(), 2)
+  const lastRow = range.getRow() + range.getNumRows() - 1
+  if (!touched.length || idCol === -1 || lastRow < firstRow) return
+  const data = sheet.getRange(firstRow, 1, lastRow - firstRow + 1, header.length).getDisplayValues()
+
+  const ss = SpreadsheetApp.getActive()
+  const store = ss.getSheetByName(TAB.plannerAnswers) || ss.insertSheet(TAB.plannerAnswers)
+  const storeHeader = ensureColumns(store, ['guest_id', 'name'].concat(list.plannerEvents.map((ev) => ev.event_id)))
+  store.setFrozenRows(1)
+  const saved = byId(plannerAnswerRows(), 'guest_id')
+  const items = []
+  data.forEach((r) => {
+    const guestId = r[idCol]
+    if (!guestId) return
+    const item = Object.assign({}, saved[guestId] || {}, { guest_id: guestId, name: r[0] })
+    touched.forEach((c) => {
+      const typed = String(r[c.col - 1] || '').trim().toLowerCase()
+      item[c.id] = typed === 'yes' || typed === 'no' ? typed : '' // (waiting, —, or blank: no answer yet)
+    })
+    items.push(item)
+  })
+  upsertRows(store, storeHeader, 'guest_id', items)
+  refreshSummary(list)
 }
 
 /**
@@ -1350,20 +1752,26 @@ function refreshFromTrigger() {
 /** Adds a checkbox column to the Guests tab for any event that doesn't have one yet. */
 function ensureEventColumns(events) {
   const sheet = getTab(TAB.guests)
-  events.forEach((ev) => {
-    const header = sheet.getRange(1, 1, 1, sheet.getLastColumn()).getDisplayValues()[0].map((h) => h.trim())
+  const header = guestHeader(sheet)
+  events.forEach((ev, i) => {
     if (header.includes(ev.event_id)) return
-    const plusOne = header.indexOf('plus_one')
-    let col
-    if (plusOne === -1) {
-      col = header.length + 1
-    } else {
-      col = plusOne + 1
+    // In the Events tab's order: before the next event that has a column
+    // (else before plus_one, else at the end).
+    const next = events.slice(i + 1).map((e) => header.indexOf(e.event_id)).find((c) => c >= 0)
+    const at = next !== undefined ? next : header.indexOf('plus_one')
+    let col = header.filter(Boolean).length + 1
+    if (at >= 0) {
+      col = at + 1
       sheet.insertColumnBefore(col)
+      header.splice(at, 0, ev.event_id)
+    } else {
+      header[col - 1] = ev.event_id
     }
     const cell = sheet.getRange(1, col)
     cell.setValue(ev.event_id).setFontWeight('bold').setNote(`Check if this person is invited to ${ev.name}.`)
-    sheet.getRange(2, col, sheet.getMaxRows() - 1, 1).insertCheckboxes()
+    const cells = sheet.getRange(2, col, sheet.getMaxRows() - 1, 1)
+    cells.clearDataValidations()
+    cells.insertCheckboxes()
   })
 }
 
@@ -1383,20 +1791,842 @@ function unique(values) {
 
 /** Adds a "Wedding RSVP" menu to the Sheet (Google runs this when the Sheet opens). */
 function onOpen() {
-  // (So the speech-bubble columns appear as soon as the Sheet is opened.)
-  try {
-    ensureBubbleColumns()
-    syncPasscodes()
-  } catch (err) {
-    console.error(err)
-  }
+  // The menu first, so it's always there even if the setup below is slow.
   SpreadsheetApp.getUi()
     .createMenu('Wedding RSVP')
-    .addItem('Refresh Summary and All Guests', 'refreshReports')
+    .addItem('Sort guests and refresh Summary and All Guests', 'sortAndRefresh')
     .addItem('Turn on speed-ups (one time)', 'turnOnSpeedUps')
+    .addItem('Update dropdowns and colors', 'updateGuestsFormatting')
+    .addItem('Add any missing columns and events', 'addMissingColumns')
+    .addSeparator()
+    .addSubMenu(
+      SpreadsheetApp.getUi()
+        .createMenu('Guest import')
+        .addItem('1. Preview (changes nothing)', 'previewGuestImport')
+        .addItem('2. Fresh start (backs up, then replaces everyone)', 'importFreshStart')
+        .addItem('3. Update from guest list (keeps ids and RSVPs)', 'importUpdates')
+        .addItem('4. Refresh "Check this" notes in your guest list', 'refreshMasterChecks')
+    )
     .addSeparator()
     .addItem('Switch to the new guest list (one time)', 'switchToNewGuestList')
     .addToUi()
+  // (So new columns appear as soon as the Sheet is opened. Google stops this
+  // after 30 seconds; Wedding RSVP → Add any missing columns and events
+  // does the same with more time.)
+  try {
+    setUpColumns()
+  } catch (err) {
+    console.error(err)
+  }
+}
+
+/** The planner-only events, and every column the Guests tab should have. Quick when nothing's missing. */
+function setUpColumns() {
+  ensurePlannerEvents()
+  ensureEventColumns(readAllEvents())
+  ensureBubbleColumns()
+  ensureAdminColumns()
+  syncPasscodes()
+}
+
+/** Wedding RSVP → Add any missing columns and events. */
+function addMissingColumns() {
+  runFromMenu((ui) => {
+    setUpColumns()
+    forgetRemembered()
+    refreshReports()
+    ui.alert('Done: every event and column is in place, and Summary and All Guests are up to date.')
+  })
+}
+
+// ---------------------------------------------------------------------------
+// Importing guests from your original guest list
+// ---------------------------------------------------------------------------
+// Wedding RSVP → Guest import:
+//   1. Preview (changes nothing): the Import Preview tab shows every guest the
+//      way they'd come in, and flags anything worth a second look.
+//   2. Fresh start: saves a backup of Guests, RSVPs, Party Responses and Change
+//      Log, then replaces everyone in Guests, clears the saved RSVPs, and
+//      writes each guest's id into the original list's Guest ID column.
+//   3. Update from guest list: after the first Fresh start, this is the one
+//      to use. Matches everyone by Guest ID, shows what changed, and updates
+//      the wedding sheet (adding new guests, and setting anyone removed from
+//      your list to Not Invited). Keeps ids, RSVPs and planning columns.
+// The original list's link is asked for each time (blank = the last one), and
+// remembered in the script's private settings, never in this code: the
+// website's code is public.
+
+const MASTER_TAB = 'Wedding Guests Master'
+// Where each thing is in the original list, by column letter. The name is
+// split before its last word: "Mary Ann Smith" → Mary Ann | Smith.
+const MASTER_COLUMNS = { side: 'A', group: 'B', 'sub-group': 'C', name: 'E', household: 'F', invite_status: 'G' }
+// A 1 in these columns = invited to those events (by event_id). One column
+// can stand for more than one event (N: Grah Shanti and Mehendi).
+const MASTER_EVENTS = {
+  N: ['grah-shanti', 'mehendi'],
+  O: ['haldi'],
+  P: ['ceremony'],
+  Q: ['sangeet'],
+  R: ['indian-wedding'],
+  S: ['reception'],
+}
+const MASTER_ID_COLUMN = 'T' // the guest ids are written into this column
+const PREVIEW_TAB = 'Import Preview'
+
+/** Wedding RSVP → Guest import → 1. Preview (changes nothing). */
+function previewGuestImport() {
+  runFromMenu((ui) => {
+    const ss = SpreadsheetApp.getActive()
+    const file = openMaster(ui)
+    if (!file) return
+    const events = readAllEvents()
+    const master = readMaster(file, events)
+    const sheet = writePreview(ss, file, master, events)
+    ss.setActiveSheet(sheet)
+    const flagged = master.people.filter((p) => p.checks.length).length
+    ui.alert(
+      'Preview ready',
+      `${master.people.length} guests found. Nothing has been changed.\n\n` +
+        (flagged ? `${flagged} rows have something to check (yellow, in the last column).` : 'Nothing flagged.'),
+      ui.ButtonSet.OK
+    )
+  })
+}
+
+/** Wedding RSVP → Guest import → 2. Fresh start. */
+function importFreshStart() {
+  runFromMenu((ui) => {
+    const ss = SpreadsheetApp.getActive()
+    const file = openMaster(ui)
+    if (!file) return
+    const events = readAllEvents()
+    const master = readMaster(file, events)
+    if (!master.people.length) throw new UserError(`No guests found in "${MASTER_TAB}".`)
+    const guestsNow = readGuests().rows.length
+    const rsvpsNow = Math.max(getTab(TAB.rsvps).getLastRow() - 1, 0)
+    const answer = ui.alert(
+      'Fresh start?',
+      (rsvpsNow
+        ? `⚠️ ${rsvpsNow} RSVP rows are saved from the website. To bring over changes from your guest list without losing them, Cancel and use "3. Update from guest list" instead.\n\n`
+        : '') +
+        'This will:\n' +
+        '• save a copy of your Guests, RSVPs, Party Responses and Change Log tabs (named "Backup …")\n' +
+        `• replace the ${guestsNow} rows in Guests with the ${master.people.length} guests from "${file.getName()}"\n` +
+        `• clear the ${rsvpsNow} saved RSVP rows (anyone who already RSVP’d will need to again) and your planner-event answers\n` +
+        '• start guest ids over from G0001, and log everyone out of the website\n' +
+        `• write each guest’s id into the Guest ID column of "${MASTER_TAB}"\n\nContinue?`,
+      ui.ButtonSet.OK_CANCEL
+    )
+    if (answer !== ui.Button.OK) return
+
+    const lock = LockService.getScriptLock()
+    lock.waitLock(30000)
+    let backups
+    try {
+      backups = backUpTabs(ss)
+      // Everyone starts over: ids from G0001, saved answers cleared, and
+      // every saved login on guests' phones stops working (a new signing key).
+      const ids = newGuestIds(master.people.length, true)
+      ;[TAB.rsvps, TAB.responses, TAB.log, TAB.plannerAnswers].forEach((name) => {
+        const sheet = ss.getSheetByName(name)
+        if (sheet) clearBelowTitles(sheet)
+      })
+      PropertiesService.getScriptProperties().deleteProperty('TOKEN_SECRET') // (a new one is made on its own)
+      writeGuestRows(master.people, ids, events, true)
+      writeIdsBack(master, master.people.map((p, i) => [p.sheetRow, ids[i]]))
+      writeChecksToMaster(master)
+    } finally {
+      lock.releaseLock()
+    }
+    finishImport()
+    ss.setActiveSheet(getTab(TAB.guests))
+    ui.alert(
+      'Done!',
+      `${master.people.length} guests imported, and their ids written into "${MASTER_TAB}".\n\n` +
+        `Backups: ${backups.join(', ')} (delete them once you’re happy).\n\n` +
+        'Next: check the Passcodes tab for each group’s passcode.',
+      ui.ButtonSet.OK
+    )
+  })
+}
+
+/**
+ * Wedding RSVP → Guest import → 3. Update from guest list. Compares every
+ * mapped column (name, household, side, group, sub-group, invite status,
+ * events) by Guest ID, lists what would change in the Import Preview tab,
+ * and applies it only after you say OK. Also adds guests with no Guest ID
+ * yet, and sets anyone whose Guest ID is no longer in the master list to
+ * "XX: Not Invited". Guest ids, RSVPs, passcodes you typed, and your
+ * planning columns stay as they are.
+ */
+function importUpdates() {
+  runFromMenu((ui) => {
+    const ss = SpreadsheetApp.getActive()
+    const file = openMaster(ui)
+    if (!file) return
+    const events = readAllEvents()
+    const master = readMaster(file, events)
+    const plan = planUpdate(master, events)
+    const sheet = writeUpdatePreview(ss, file, plan)
+    ss.setActiveSheet(sheet)
+    const total = plan.changed.length + plan.added.length + plan.removed.length
+    if (!total) {
+      writeChecksToMaster(master) // (the notes in your list still catch up)
+      ui.alert('Nothing to update', 'The wedding sheet already matches your guest list. Its "Check this" notes are up to date.' + plan.warning, ui.ButtonSet.OK)
+      return
+    }
+    const answer = ui.alert(
+      'Apply these updates?',
+      `${plan.changed.length} guests changed · ${plan.added.length} new · ${plan.removed.length} no longer in your list (→ XX: Not Invited).\n\n` +
+        'The Import Preview tab lists every change. Guest ids, RSVPs and your planning columns stay as they are.' +
+        plan.warning,
+      ui.ButtonSet.OK_CANCEL
+    )
+    if (answer !== ui.Button.OK) return
+
+    const lock = LockService.getScriptLock()
+    lock.waitLock(30000)
+    try {
+      applyUpdate(plan, events)
+      if (plan.added.length) {
+        const ids = newGuestIds(plan.added.length)
+        writeGuestRows(plan.added, ids, events, false)
+        writeIdsBack(master, plan.added.map((p, i) => [p.sheetRow, ids[i]]))
+      }
+      writeChecksToMaster(master)
+    } finally {
+      lock.releaseLock()
+    }
+    finishImport()
+    ss.setActiveSheet(getTab(TAB.guests))
+    ui.alert('Done!', `Updated ${plan.changed.length}, added ${plan.added.length}, set ${plan.removed.length} to Not Invited.`, ui.ButtonSet.OK)
+  })
+}
+
+// The Guests tab columns that Update keeps in step with the master list.
+const UPDATE_TEXT_FIELDS = ['first_name', 'last_name', 'household', 'side', 'group', 'sub-group', 'invite_status']
+
+/**
+ * What Update would do: { changed: [{ id, name, row, set: {column: value}, notes }],
+ * added: [master people], removed: [{ id, name, row, from }], warning }.
+ */
+function planUpdate(master, events) {
+  const guests = readGuests()
+  const rows = guestObjects(guests)
+  const byGuestId = {}
+  rows.forEach((g, i) => g.guest_id && (byGuestId[g.guest_id] = { g, row: i + 2 }))
+  const eventIds = [].concat(...Object.values(MASTER_EVENTS)).filter((id) => guests.header.includes(id))
+  const nameOf = (id) => (events.find((ev) => ev.event_id === id) || {}).name || id
+  const seen = {}
+  const changed = []
+  const added = []
+  const unknownIds = []
+  const twice = []
+  master.people.forEach((p) => {
+    if (!p.existingId) return added.push(p)
+    if (seen[p.existingId]) return twice.push(p.existingId)
+    seen[p.existingId] = true
+    const found = byGuestId[p.existingId]
+    if (!found) return unknownIds.push(`${p.fullName} (${p.existingId})`)
+    const g = found.g
+    const set = {}
+    const notes = []
+    UPDATE_TEXT_FIELDS.forEach((f) => {
+      const now = String(g[f] || '').trim()
+      const next = String(p[f] || '').trim()
+      if (now !== next) {
+        set[f] = next
+        notes.push(`${f}: ${now || '(blank)'} → ${next || '(blank)'}`)
+      }
+    })
+    eventIds.forEach((id) => {
+      const now = isYes(g[id])
+      const next = p.events.includes(id)
+      if (now !== next) {
+        set[id] = next
+        notes.push(`${next ? 'added to' : 'removed from'} ${nameOf(id)}`)
+      }
+    })
+    if (notes.length) changed.push({ id: p.existingId, name: `${p.first_name} ${p.last_name}`.trim(), row: found.row, set, notes, checks: p.checks })
+  })
+  // In the wedding sheet, but no longer in the master list.
+  const removed = rows
+    .map((g, i) => ({ g, row: i + 2 }))
+    .filter(({ g }) => g.guest_id && !seen[g.guest_id] && statusCode(g.invite_status) !== 'XX')
+    .map(({ g, row }) => ({ id: g.guest_id, name: `${g.first_name} ${g.last_name}`.trim(), row, from: g.invite_status }))
+  let warning = ''
+  if (unknownIds.length) warning += `\n\nIn your list with a Guest ID the wedding sheet doesn’t have (left alone): ${unknownIds.join(', ')}`
+  if (twice.length) warning += `\n\nThe same Guest ID is on more than one row of your list (only the first is used): ${[...new Set(twice)].join(', ')}`
+  return { changed, added, removed, warning, header: guests.header }
+}
+
+/** Writes the planned changes into the Guests tab, one column at a time. */
+function applyUpdate(plan, events) {
+  const sheet = getTab(TAB.guests)
+  const header = guestHeader(sheet)
+  const changes = plan.changed.map((c) => ({ row: c.row, set: c.set, note: (c.checks || []).join(' · ') }))
+  plan.removed.forEach((r) =>
+    changes.push({ row: r.row, set: { invite_status: INVITE_STATUSES.find((s) => s.code === 'XX').label }, note: 'No longer in your guest list: set to Not Invited' })
+  )
+  if (!changes.length) return
+  const lastRow = Math.max(...changes.map((c) => c.row))
+  const columns = {}
+  changes.forEach((c) => {
+    Object.keys(c.set).forEach((h) => (columns[h] = true))
+    columns.check_this = true
+  })
+  Object.keys(columns).forEach((h) => {
+    const col = header.indexOf(h) + 1
+    if (!col) return
+    const range = sheet.getRange(2, col, lastRow - 1, 1)
+    const values = range.getValues()
+    changes.forEach((c) => {
+      if (h === 'check_this') values[c.row - 2][0] = asText(c.note)
+      else if (h in c.set) values[c.row - 2][0] = typeof c.set[h] === 'boolean' ? c.set[h] : asText(c.set[h])
+    })
+    range.clearDataValidations() // (dropdowns would refuse a new value; put back by formatGuestsTab)
+    range.setValues(values)
+  })
+  // The event checkboxes, back on every row (clearing the dropdowns above took them off).
+  events.forEach((ev) => {
+    if (columns[ev.event_id] && header.includes(ev.event_id)) {
+      sheet.getRange(2, header.indexOf(ev.event_id) + 1, sheet.getMaxRows() - 1, 1).insertCheckboxes()
+    }
+  })
+  forgetRemembered()
+}
+
+/** The Import Preview tab, listing what Update would change. */
+function writeUpdatePreview(ss, file, plan) {
+  const sheet = ss.getSheetByName(PREVIEW_TAB) || ss.insertSheet(PREVIEW_TAB)
+  const W = 4
+  const line = (...cells) => cells.concat(Array(W - cells.length).fill(''))
+  const rows = [
+    line(`Update preview made ${Utilities.formatDate(new Date(), ss.getSpreadsheetTimeZone(), 'MMM d, h:mm a')}. Nothing has been changed yet.`),
+    line(`From "${file.getName()}" → ${MASTER_TAB}, matched by Guest ID.`),
+    line(`${plan.changed.length} guests changed · ${plan.added.length} new · ${plan.removed.length} no longer in your list`),
+    line(),
+    line('Guest ID', 'Name', 'What changes', 'Check this'),
+  ]
+  plan.changed.forEach((c) => rows.push(line(c.id, c.name, c.notes.join(' · '), (c.checks || []).join(' · '))))
+  plan.added.forEach((p) => rows.push(line('(new)', `${p.first_name} ${p.last_name}`.trim(), `New guest: ${p.invite_status || 'no status'}`, p.checks.join(' · '))))
+  plan.removed.forEach((r) => rows.push(line(r.id, r.name, `Not in your list any more: ${r.from || '(blank)'} → XX: Not Invited`, '')))
+  sheet.clear()
+  sheet.setConditionalFormatRules([])
+  sheet.getRange(1, 1, rows.length, W).setValues(rows.map((r) => r.map(asText)))
+  sheet.getRange(5, 1, 1, W).setFontWeight('bold').setBackground('#f1f3f4')
+  sheet.setFrozenRows(5)
+  sheet.setColumnWidth(1, 90)
+  sheet.setColumnWidth(2, 200)
+  sheet.setColumnWidth(3, 520)
+  sheet.setColumnWidth(4, 360)
+  return sheet
+}
+
+/** Wedding RSVP → Guest import → Add new guests only. */
+function importNewGuests() {
+  runFromMenu((ui) => {
+    const ss = SpreadsheetApp.getActive()
+    const file = openMaster(ui)
+    if (!file) return
+    const events = readAllEvents()
+    const master = readMaster(file, events)
+    const known = new Set(guestObjects(readGuests()).map((g) => g.guest_id).filter(Boolean))
+    const fresh = master.people.filter((p) => !p.existingId)
+    const gone = master.people.filter((p) => p.existingId && !known.has(p.existingId))
+    const goneNote = gone.length
+      ? `\n\n${gone.length} rows have a Guest ID that isn’t in the Guests tab (deleted?), and were left alone: ` +
+        gone.map((p) => `${p.fullName} (${p.existingId})`).join(', ')
+      : ''
+    if (!fresh.length) {
+      ui.alert('No new guests', `Every guest in "${MASTER_TAB}" already has a Guest ID.${goneNote}`, ui.ButtonSet.OK)
+      return
+    }
+    const names = fresh.slice(0, 15).map((p) => p.fullName).join(', ') + (fresh.length > 15 ? `, and ${fresh.length - 15} more` : '')
+    const answer = ui.alert(`Add ${fresh.length} new guests?`, names + goneNote, ui.ButtonSet.OK_CANCEL)
+    if (answer !== ui.Button.OK) return
+
+    const lock = LockService.getScriptLock()
+    lock.waitLock(30000)
+    try {
+      const ids = newGuestIds(fresh.length)
+      writeGuestRows(fresh, ids, events, false)
+      writeIdsBack(master, fresh.map((p, i) => [p.sheetRow, ids[i]]))
+    } finally {
+      lock.releaseLock()
+    }
+    finishImport()
+    ss.setActiveSheet(getTab(TAB.guests))
+    ui.alert('Done!', `${fresh.length} guests added at the bottom of the Guests tab.`, ui.ButtonSet.OK)
+  })
+}
+
+/** Wedding RSVP → Update dropdowns and colors (e.g. after adding a new group). */
+function updateGuestsFormatting() {
+  runFromMenu(() => formatGuestsTab())
+}
+
+/** Runs a menu item, showing any problem in a popup instead of a red error bar. */
+function runFromMenu(fn) {
+  const ui = SpreadsheetApp.getUi()
+  try {
+    fn(ui)
+  } catch (err) {
+    console.error(err)
+    ui.alert(err instanceof UserError ? err.message : 'Something went wrong: ' + err.message)
+  }
+}
+
+// Opening another sheet needs this permission (the rest of the script only
+// uses this Sheet). Google asks for it the first time, if it hasn't yet.
+const OTHER_SHEETS_SCOPE = 'https://www.googleapis.com/auth/spreadsheets'
+
+/** Run this from the Apps Script editor (▶ Run) if the import says it doesn't have permission. */
+function allowGuestImport() {
+  ScriptApp.requireScopes(ScriptApp.AuthMode.FULL, [OTHER_SHEETS_SCOPE])
+  console.log('All set: the guest import can open your guest list now.')
+}
+
+/** Asks for the original guest list's link (blank = the last one) and opens it. */
+function openMaster(ui) {
+  ScriptApp.requireScopes(ScriptApp.AuthMode.FULL, [OTHER_SHEETS_SCOPE]) // (shows Google's permission box if needed)
+  const props = PropertiesService.getScriptProperties()
+  const saved = props.getProperty('MASTER_SHEET_URL') || ''
+  let savedName = ''
+  try {
+    savedName = saved ? SpreadsheetApp.openByUrl(saved).getName() : ''
+  } catch (err) {
+    savedName = ''
+  }
+  const reply = ui.prompt(
+    'Your original guest list',
+    `Paste the link to the Google Sheet with the "${MASTER_TAB}" tab.` +
+      (savedName ? `\n\nOr leave it blank to use "${savedName}" again.` : ''),
+    ui.ButtonSet.OK_CANCEL
+  )
+  if (reply.getSelectedButton() !== ui.Button.OK) return null
+  const url = reply.getResponseText().trim() || (savedName ? saved : '')
+  if (!url) throw new UserError('Please paste the link to your original guest list.')
+  let file
+  try {
+    file = SpreadsheetApp.openByUrl(url)
+  } catch (err) {
+    throw new UserError(
+      'That link didn’t open. Copy it from the address bar of your guest list, and check this Google account can open it.\n\n' +
+        `(Google said: ${err.message})`
+    )
+  }
+  if (file.getId() === SpreadsheetApp.getActive().getId()) {
+    throw new UserError('That’s the link to this wedding Sheet. Paste the link to your original guest list instead.')
+  }
+  props.setProperty('MASTER_SHEET_URL', url)
+  return file
+}
+
+/** Column letters → index from 0: A → 0, O → 14. */
+function letterIndex(letters) {
+  return letters.split('').reduce((n, ch) => n * 26 + ch.charCodeAt(0) - 64, 0) - 1
+}
+
+/**
+ * The original list's guests: one per row with a name in column E, each with
+ * first_name, last_name, side, group, sub-group, invite_status, events (ids),
+ * existingId (their Guest ID cell), sheetRow, fullName, and checks (things to
+ * look at).
+ */
+function readMaster(file, events) {
+  const tab = file.getSheetByName(MASTER_TAB)
+  if (!tab) throw new UserError(`"${file.getName()}" has no tab called "${MASTER_TAB}".`)
+  const data = tab.getDataRange().getDisplayValues()
+  const statusAt = letterIndex(MASTER_COLUMNS.invite_status)
+  // The titles row: the first with "Invite Status" in the status column.
+  const titleIndex = data.findIndex((r, i) => i < 20 && /invite\s*status/i.test(r[statusAt] || ''))
+  if (titleIndex === -1) {
+    throw new UserError(`Couldn’t find the "Invite Status" title in column ${MASTER_COLUMNS.invite_status} of "${MASTER_TAB}".`)
+  }
+  const titles = data[titleIndex].map((t) => String(t).trim())
+  const idCol = letterIndex(MASTER_ID_COLUMN)
+  if (!/guest\s*id/i.test(titles[idCol] || '')) {
+    throw new UserError(`Column ${MASTER_ID_COLUMN} of "${MASTER_TAB}" should be titled "Guest ID" (it says "${titles[idCol] || ''}"), so the guest ids don’t land in the wrong column.`)
+  }
+  const eventIds = events.map((ev) => ev.event_id)
+  const mappedIds = [].concat(...Object.values(MASTER_EVENTS))
+  mappedIds.forEach((id) => {
+    if (!eventIds.includes(id)) throw new UserError(`The Events tab has no event "${id}".`)
+  })
+
+  const cell = (r, letter) => String(r[letterIndex(letter)] || '').trim()
+  const people = []
+  data.forEach((r, i) => {
+    if (i <= titleIndex) return
+    const fullName = cell(r, MASTER_COLUMNS.name).replace(/\s+/g, ' ')
+    if (!fullName) return
+    const words = fullName.split(' ')
+    const last = words.length > 1 ? words.pop() : '' // (one word: a first name, no last name)
+    const typed = cell(r, MASTER_COLUMNS.invite_status)
+    const known = INVITE_STATUSES.find((s) => s.code === statusCode(typed))
+    people.push({
+      sheetRow: i + 1,
+      fullName,
+      first_name: words.join(' '),
+      last_name: last,
+      household: cell(r, MASTER_COLUMNS.household),
+      side: cell(r, MASTER_COLUMNS.side),
+      group: cell(r, MASTER_COLUMNS.group),
+      'sub-group': cell(r, MASTER_COLUMNS['sub-group']),
+      invite_status: known ? known.label : typed, // (the dropdown's exact wording)
+      knownStatus: !!known,
+      events: [].concat(
+        ...Object.keys(MASTER_EVENTS)
+          .filter((letter) => /^(1(\.0+)?|true)$/i.test(cell(r, letter)))
+          .map((letter) => MASTER_EVENTS[letter])
+      ),
+      existingId: String(r[idCol] || '').trim(),
+    })
+  })
+
+  // Things worth a second look.
+  const sameName = {}
+  people.forEach((p) => {
+    const key = normalize(p.fullName)
+    sameName[key] = (sameName[key] || 0) + 1
+  })
+  // The website's events (A: All Events / B: Some Events are about these).
+  const mapped = [].concat(...Object.values(MASTER_EVENTS))
+  const siteIds = events.filter((ev) => !isPlannerOnly(ev) && mapped.includes(ev.event_id)).map((ev) => ev.event_id)
+  people.forEach((p) => {
+    const onSite = p.events.filter((id) => siteIds.includes(id)).length
+    const checks = []
+    const code = statusCode(p.invite_status)
+    if (!p.last_name) checks.push('No last name: they can’t log in without one')
+    if (p.fullName.split(' ').length > 2) checks.push('Check where the last name starts')
+    if (/[&+/,]|\band\b/i.test(p.fullName)) checks.push('Looks like more than one person')
+    if (/[0-9()"]/.test(p.fullName)) checks.push('Has numbers or symbols (ignored when guests type their name)')
+    if (!p.side) checks.push('No side (needed to split counts and costs by side)')
+    if (!p.invite_status) checks.push('No invite status (counts as invited)')
+    else if (!p.knownStatus) checks.push('Unknown invite status (counts as invited)')
+    if (!isOnHold(p.invite_status) && !onSite) {
+      checks.push(p.events.length ? 'Only planner-only events: can’t log in or be seen on the website (even in their family)' : 'Invited, but to no events: can’t log in or be seen on the website (even in their family)')
+    }
+    if (code === 'A' && onSite < siteIds.length) checks.push('All Events, but not every website event has a 1')
+    if (code === 'B' && onSite === siteIds.length) checks.push('Some Events, but every website event has a 1')
+    if (sameName[normalize(p.fullName)] > 1) checks.push('Same name as another guest (they’ll be asked which is them)')
+    p.checks = checks
+  })
+  return { file, tab, data, titleRow: titleIndex + 1, titles, idCol, people }
+}
+
+/** Fills the Import Preview tab (made if needed) and returns it. */
+function writePreview(ss, file, master, events) {
+  const sheet = ss.getSheetByName(PREVIEW_TAB) || ss.insertSheet(PREVIEW_TAB)
+  const mapped = [].concat(...Object.values(MASTER_EVENTS))
+  const eventIds = events.map((ev) => ev.event_id).filter((id) => mapped.includes(id)) // (in the Events tab's order)
+  const nameOf = (id) => (events.find((ev) => ev.event_id === id) || {}).name || id
+  const title = (letter) => `${letter} “${master.titles[letterIndex(letter)] || ''}”`
+  const header = ['Row in your list', 'Name in your list', 'first_name', 'last_name', 'household', 'side', 'group', 'sub-group', 'invite_status']
+    .concat(eventIds, ['Check this'])
+  const W = header.length
+  const line = (text) => [text].concat(Array(W - 1).fill(''))
+
+  const invited = master.people.filter((p) => !isOnHold(p.invite_status))
+  const byStatus = INVITE_STATUSES.map((s) => `${s.label}: ${master.people.filter((p) => statusCode(p.invite_status) === s.code).length}`)
+  const other = master.people.filter((p) => !p.knownStatus).length
+  const withId = master.people.filter((p) => p.existingId).length
+  const top = [
+    line(`Preview made ${Utilities.formatDate(new Date(), ss.getSpreadsheetTimeZone(), 'MMM d, h:mm a')}. Nothing has been changed.`),
+    line(`Reading: "${file.getName()}" → ${MASTER_TAB} (titles in row ${master.titleRow}). Guest ids go into ${columnLetter(master.idCol + 1)} “${master.titles[master.idCol]}”.`),
+    line(
+      `Columns: ${title(MASTER_COLUMNS.name)} → first_name + last_name · ${title(MASTER_COLUMNS.side)} → side · ` +
+        `${title(MASTER_COLUMNS.group)} → group · ${title(MASTER_COLUMNS['sub-group'])} → sub-group · ` +
+        `${title(MASTER_COLUMNS.household)} → household · ${title(MASTER_COLUMNS.invite_status)} → invite_status · ` +
+        Object.keys(MASTER_EVENTS).map((l) => `${title(l)} → ${MASTER_EVENTS[l].map(nameOf).join(' + ')}`).join(' · ')
+    ),
+    line(`${master.people.length} guests · ${byStatus.join(' · ')}${other ? ` · blank or other: ${other}` : ''}`),
+    line(
+      'Invited (not counting backup list / not invited): ' +
+        eventIds.map((id) => `${nameOf(id)} ${invited.filter((p) => p.events.includes(id)).length}`).join(' · ')
+    ),
+    line(
+      `Fresh start would replace the ${readGuests().rows.length} rows now in Guests and clear ${Math.max(getTab(TAB.rsvps).getLastRow() - 1, 0)} saved RSVP rows.` +
+        (withId ? ` ${withId} rows already have a Guest ID (Fresh start gives them new ones; Add new guests only skips them).` : '')
+    ),
+    line(''),
+    header,
+  ]
+  const rows = master.people.map((p) =>
+    [p.sheetRow, p.fullName, p.first_name, p.last_name, p.household, p.side, p.group, p['sub-group'], p.invite_status]
+      .concat(eventIds.map((id) => (p.events.includes(id) ? '✓' : '')))
+      .concat([p.checks.join(' · ')])
+  )
+  const all = top.concat(rows)
+
+  sheet.clear()
+  sheet.setConditionalFormatRules([])
+  sheet.getRange(1, 1, all.length, W).setValues(all.map((r) => r.map(asText)))
+  sheet.getRange(1, 1, top.length - 2, 1).setWrapStrategy(SpreadsheetApp.WrapStrategy.OVERFLOW)
+  sheet.getRange(top.length, 1, 1, W).setFontWeight('bold').setBackground('#f1f3f4')
+  sheet.setFrozenRows(top.length)
+  const first = top.length + 1
+  if (rows.length) {
+    const body = sheet.getRange(first, 1, rows.length, W)
+    const statusLetter = columnLetter(header.indexOf('invite_status') + 1)
+    const statusCells = sheet.getRange(first, header.indexOf('invite_status') + 1, rows.length, 1)
+    const checkCells = sheet.getRange(first, W, rows.length, 1)
+    sheet.setConditionalFormatRules(
+      INVITE_STATUSES.map((s) =>
+        SpreadsheetApp.newConditionalFormatRule().whenTextStartsWith(s.code + ':').setBackground(s.background).setFontColor(s.color).setRanges([statusCells]).build()
+      ).concat([
+        SpreadsheetApp.newConditionalFormatRule().whenFormulaSatisfied(onHoldFormula(statusLetter).replace(/2\b/g, String(first))).setFontColor(ON_HOLD_GREY).setRanges([body]).build(),
+        SpreadsheetApp.newConditionalFormatRule().whenCellNotEmpty().setBackground('#fff4c2').setRanges([checkCells]).build(),
+      ])
+    )
+    sheet.getRange(first, header.indexOf(eventIds[0]) + 1, rows.length, eventIds.length).setHorizontalAlignment('center')
+  }
+  sheet.autoResizeColumns(1, W - 1)
+  sheet.setColumnWidth(W, 420)
+  return sheet
+}
+
+/**
+ * Writes guests into the Guests tab with the given ids: from row 2 after
+ * clearing it (replace), or below the last guest. Adds the invite_status
+ * column (after sub-group) and any missing event columns first.
+ */
+function writeGuestRows(people, ids, events, replace) {
+  const sheet = getTab(TAB.guests)
+  ensureStatusColumn(sheet)
+  ensureEventColumns(events)
+  ensureAdminColumns(sheet)
+  const { header, rows } = readGuests()
+  const eventIds = events.map((ev) => ev.event_id)
+  if (replace && sheet.getMaxRows() > 1) sheet.getRange(2, 1, sheet.getMaxRows() - 1, header.length).clearContent()
+  const start = replace ? 2 : rows.length + 2
+  const needed = start + people.length + 50 // (and some empty rows below)
+  if (sheet.getMaxRows() < needed) sheet.insertRowsAfter(sheet.getMaxRows(), needed - sheet.getMaxRows())
+  const values = people.map((p, i) =>
+    header.map((h) => {
+      if (eventIds.includes(h)) return p.events.includes(h)
+      if (h === 'plus_one' || h === 'under_age') return false
+      if (h === 'guest_id') return ids[i]
+      if (h === 'check_this') return asText((p.checks || []).join(' · '))
+      if (['first_name', 'last_name', 'household', 'side', 'group', 'sub-group', 'invite_status'].includes(h)) return asText(p[h] || '')
+      return ''
+    })
+  )
+  if (values.length) {
+    // Any dropdowns already on these rows would refuse values that aren't in
+    // them, so they're taken off first; formatGuestsTab puts dropdowns back
+    // with the imported values, and the checkboxes go back just below.
+    const range = sheet.getRange(start, 1, values.length, header.length)
+    range.clearDataValidations()
+    range.setValues(values)
+  }
+  // Checkboxes all the way down (new rows too), and grey ids.
+  const below = sheet.getMaxRows() - 1
+  eventIds.concat(['plus_one']).forEach((h) => {
+    if (header.includes(h)) sheet.getRange(2, header.indexOf(h) + 1, below, 1).insertCheckboxes()
+  })
+  // (The planning columns' checkbox and dropdown, on new rows too.)
+  Object.keys(ADMIN_COLUMNS).forEach((h) => {
+    if (header.includes(h)) adminColumnFormat(h, sheet.getRange(2, header.indexOf(h) + 1, below, 1))
+  })
+  sheet.getRange(2, header.indexOf('guest_id') + 1, below, 1).setFontColor(AUTO_GREY)
+}
+
+/** Adds the invite_status column right after sub-group, if it isn't there yet. */
+function ensureStatusColumn(sheet) {
+  const header = guestHeader(sheet)
+  if (header.includes('invite_status')) return
+  const after = header.indexOf('sub-group') + 1 // (column number; 0 = not found)
+  let col = header.filter(Boolean).length + 1
+  if (after) {
+    sheet.insertColumnAfter(after)
+    col = after + 1
+  }
+  sheet
+    .getRange(1, col)
+    .setValue('invite_status')
+    .setFontWeight('bold')
+    .setNote(
+      'A: All Events, B: Some Events, O: Invited, Won’t Attend: invited (they can log in).\n\n' +
+        'X: Backup List, XX: Not Invited: not invited yet. Their row turns light grey, they can’t log in, and they aren’t counted. ' +
+        'Change it to A or B to invite them (check their event boxes too).'
+    )
+}
+
+/**
+ * The Guests tab's dropdowns and colors: side, group and sub-group offer the
+ * values already in use (you can still type a new one), invite_status offers
+ * the five statuses; each status has its color, and rows on hold are grey.
+ */
+function formatGuestsTab() {
+  const sheet = getTab(TAB.guests)
+  const { header } = readGuests()
+  const below = Math.max(sheet.getMaxRows() - 1, 1)
+  const col = (h) => header.indexOf(h) + 1
+  const values = sheet.getRange(2, 1, below, header.length).getDisplayValues()
+  ;['side', 'group', 'sub-group'].forEach((h) => {
+    if (!col(h)) return
+    const range = sheet.getRange(2, col(h), below, 1)
+    const options = unique(values.map((r) => r[col(h) - 1])).sort((a, b) => a.localeCompare(b))
+    if (!options.length) return range.clearDataValidations()
+    range.setDataValidation(SpreadsheetApp.newDataValidation().requireValueInList(options, true).setAllowInvalid(true).build())
+  })
+  const rules = []
+  // Notes from the guest import: yellow until you clear them.
+  if (col('check_this')) {
+    rules.push(
+      SpreadsheetApp.newConditionalFormatRule()
+        .whenCellNotEmpty()
+        .setBackground('#fff4c2')
+        .setFontColor('#5c4600')
+        .setRanges([sheet.getRange(2, col('check_this'), below, 1)])
+        .build()
+    )
+    sheet.setColumnWidth(col('check_this'), 320)
+  }
+  if (col('invite_status')) {
+    const statusCells = sheet.getRange(2, col('invite_status'), below, 1)
+    statusCells.setDataValidation(
+      SpreadsheetApp.newDataValidation().requireValueInList(INVITE_STATUSES.map((s) => s.label), true).setAllowInvalid(false).build()
+    )
+    INVITE_STATUSES.forEach((s) =>
+      rules.push(
+        SpreadsheetApp.newConditionalFormatRule().whenTextStartsWith(s.code + ':').setBackground(s.background).setFontColor(s.color).setRanges([statusCells]).build()
+      )
+    )
+    rules.push(
+      SpreadsheetApp.newConditionalFormatRule()
+        .whenFormulaSatisfied(onHoldFormula(columnLetter(col('invite_status'))))
+        .setFontColor(ON_HOLD_GREY)
+        .setRanges([sheet.getRange(2, 1, below, header.length)])
+        .build()
+    )
+  }
+  Object.keys(BUBBLE_COLUMNS).forEach((h) => col(h) && rules.push(bubbleRule(sheet, col(h))))
+  sheet.setConditionalFormatRules(rules)
+}
+
+/** After an import: passcodes, dropdowns and colors, Summary and All Guests. */
+function finishImport() {
+  forgetRemembered()
+  sortGuestsTab()
+  loadGuestList(true) // fills in passcodes
+  formatGuestsTab()
+  refreshReports()
+}
+
+/** Guest number → its id: 1 → G0001. */
+function guestIdFor(n) {
+  return 'G' + String(n).padStart(4, '0')
+}
+
+/**
+ * New guest ids (G0001, G0002, …), after the highest one ever given out, or
+ * from G0001 (restart: a Fresh start, which also logs everyone out so an old
+ * login can never open a new guest's invitation).
+ */
+function newGuestIds(count, restart) {
+  const props = PropertiesService.getScriptProperties()
+  if (restart) {
+    const ids = []
+    for (let i = 1; i <= count; i++) ids.push(guestIdFor(i))
+    props.setProperty('LAST_GUEST_ID', String(count))
+    return ids
+  }
+  const inGuests = guestObjects(readGuests()).map((g) => g.guest_id)
+  const saved = getTab(TAB.rsvps).getLastRow() > 1 ? readTab(TAB.rsvps).map((r) => r.guest_id) : []
+  let next = inGuests.concat(saved).reduce((max, id) => {
+    const m = String(id).match(/^G(\d+)/)
+    return m ? Math.max(max, Number(m[1])) : max
+  }, Number(props.getProperty('LAST_GUEST_ID') || 0))
+  const ids = []
+  for (let i = 0; i < count; i++) ids.push(guestIdFor(++next))
+  props.setProperty('LAST_GUEST_ID', String(next))
+  return ids
+}
+
+// The column in your original list where each guest's "Check this" notes go
+// (found by its title; added after your last titled column if it isn't there).
+const MASTER_CHECK_TITLE = 'Check this'
+
+/**
+ * Writes each guest's notes (the same as check_this in Guests) into the
+ * original list's "Check this" column, so whoever looks after those guests
+ * can fix them there. Worked out from the list itself, so a fixed row's note
+ * clears the next time this runs. Only that column is written.
+ */
+function writeChecksToMaster(master) {
+  const tab = master.tab
+  const titleRow = master.titleRow
+  let col = master.titles.findIndex((t) => /^check\s*this$/i.test(String(t).trim())) + 1
+  if (!col) {
+    let lastTitled = master.titles.length
+    while (lastTitled > 0 && !String(master.titles[lastTitled - 1]).trim()) lastTitled--
+    col = Math.max(lastTitled, master.idCol + 1) + 1
+    if (col > tab.getMaxColumns()) tab.insertColumnsAfter(tab.getMaxColumns(), col - tab.getMaxColumns())
+    tab.getRange(titleRow, col).setValue(MASTER_CHECK_TITLE).setFontWeight('bold')
+    tab.getRange(titleRow, col).setNote('Filled in by the wedding RSVP sheet’s guest import: things to fix for this guest. It clears on its own once fixed (next import or refresh).')
+    // Yellow while a note is there (set up once, the first time).
+    const cells = tab.getRange(titleRow + 1, col, Math.max(tab.getMaxRows() - titleRow, 1), 1)
+    tab.setConditionalFormatRules(
+      tab.getConditionalFormatRules().concat([
+        SpreadsheetApp.newConditionalFormatRule().whenCellNotEmpty().setBackground('#fff4c2').setFontColor('#5c4600').setRanges([cells]).build(),
+      ])
+    )
+    tab.setColumnWidth(col, 320)
+  }
+  const last = master.data.length
+  if (last <= titleRow) return
+  const byRow = {}
+  master.people.forEach((p) => (byRow[p.sheetRow] = p.checks.join(' · ')))
+  const values = []
+  for (let row = titleRow + 1; row <= last; row++) values.push([asText(byRow[row] || '')])
+  tab.getRange(titleRow + 1, col, values.length, 1).setValues(values)
+}
+
+/** Wedding RSVP → Guest import → 4. Refresh "Check this" notes in your guest list. */
+function refreshMasterChecks() {
+  runFromMenu((ui) => {
+    const file = openMaster(ui)
+    if (!file) return
+    const master = readMaster(file, readAllEvents())
+    writeChecksToMaster(master)
+    const flagged = master.people.filter((p) => p.checks.length).length
+    ui.alert('Done', `"${MASTER_TAB}" now shows a "Check this" note on ${flagged} guests (and none on the rest). Nothing else was changed.`, ui.ButtonSet.OK)
+  })
+}
+
+/** Writes guest ids into the original list's Guest ID column: [[row, id], …].
+ *  Only those cells change (rows next to each other are written together). */
+function writeIdsBack(master, pairs) {
+  const sorted = pairs.slice().sort((a, b) => a[0] - b[0])
+  let i = 0
+  while (i < sorted.length) {
+    let j = i
+    while (j + 1 < sorted.length && sorted[j + 1][0] === sorted[j][0] + 1) j++
+    const run = sorted.slice(i, j + 1)
+    master.tab.getRange(run[0][0], master.idCol + 1, run.length, 1).setValues(run.map((p) => [p[1]]))
+    i = j + 1
+  }
+}
+
+/** Copies Guests, RSVPs, Party Responses and Change Log to "Backup <date> …" tabs; returns their names. */
+function backUpTabs(ss) {
+  const stamp = Utilities.formatDate(new Date(), ss.getSpreadsheetTimeZone(), 'MMM d h.mma')
+  return [TAB.guests, TAB.rsvps, TAB.responses, TAB.log, TAB.plannerAnswers].filter((name) => ss.getSheetByName(name)).map((name) => {
+    const copy = getTab(name).copyTo(ss)
+    let newName = `Backup ${stamp} ${name}`
+    for (let n = 2; ss.getSheetByName(newName); n++) newName = `Backup ${stamp} ${name} ${n}`
+    copy.setName(newName)
+    copy.setTabColor('#9aa0a6')
+    return newName
+  })
+}
+
+/** Empties a tab below its title row. */
+function clearBelowTitles(sheet) {
+  if (sheet.getLastRow() > 1) sheet.getRange(2, 1, sheet.getLastRow() - 1, Math.max(sheet.getLastColumn(), 1)).clearContent()
 }
 
 // ---------------------------------------------------------------------------
@@ -1487,7 +2717,7 @@ function createGuestsTab(ss) {
   Object.keys(notes).forEach((name) => sheet.getRange(1, col(name)).setNote(notes[name]))
 
   const rows = SAMPLE_GUESTS.map(([first, last, household, side, group, invitedTo, plusOne]) =>
-    [first, last, household, side, group, ''].concat(eventIds.map((id) => invitedTo.includes(id)), [plusOne, ''])
+    [first, last, household, side, group, '', ''].concat(eventIds.map((id) => invitedTo.includes(id)), [plusOne, ''])
   )
   sheet.getRange(2, 1, rows.length, header.length).setValues(rows)
   sheet.autoResizeColumns(1, header.length)
