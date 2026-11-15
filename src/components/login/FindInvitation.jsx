@@ -25,6 +25,15 @@ const NO_AUTOFILL = {
   'data-form-type': 'other',
 }
 
+// Phones type exactly what the guest presses: no automatic capitals, no
+// autocorrect (which "fixes" names), no spell check. Capitals don't matter
+// anyway: names and passcodes are matched ignoring them.
+const PLAIN_TYPING = {
+  autoCapitalize: 'none',
+  autoCorrect: 'off',
+  spellCheck: false,
+}
+
 export default function FindInvitation() {
   const { login } = useGuest()
   const [name, setName] = useState('')
@@ -100,6 +109,7 @@ export default function FindInvitation() {
               id="guest-name"
               type="text"
               {...NO_AUTOFILL}
+              {...PLAIN_TYPING}
               placeholder="First and last name"
               value={name}
               onChange={(e) => {
@@ -129,8 +139,7 @@ export default function FindInvitation() {
               id="invite-code"
               type="text"
               {...NO_AUTOFILL}
-              autoCapitalize="characters"
-              spellCheck="false"
+              {...PLAIN_TYPING}
               placeholder="Passcode"
               value={code}
               onChange={(e) => {
