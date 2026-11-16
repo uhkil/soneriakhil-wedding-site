@@ -622,7 +622,8 @@ function ensureAdminColumns(sheet) {
     }
     sheet.getRange(1, col).setValue(name).setFontWeight('bold').setNote(ADMIN_COLUMNS[name])
     const cells = sheet.getRange(2, col, Math.max(sheet.getMaxRows() - 1, 1), 1)
-    cells.clearDataValidations() // (a new column copies the one to its left)
+    cells.clearDataValidations() // (a new column copies the one to its left, checkboxes too)
+    cells.clearContent() // (…and their "false" values)
     adminColumnFormat(name, cells)
   })
   return added
@@ -1980,8 +1981,8 @@ function importFreshStart() {
       PropertiesService.getScriptProperties().deleteProperty('TOKEN_SECRET') // (a new one is made on its own)
       writeGuestRows(master.people, ids, events, true)
       writeIdsBack(master, master.people.map((p, i) => [p.sheetRow, ids[i]]))
-      writeChecksToMaster(master)
       writeContactsToMaster(master)
+      writeChecksToMaster(master)
     } finally {
       lock.releaseLock()
     }
@@ -2020,13 +2021,14 @@ function importUpdates() {
     const total = plan.changed.length + plan.added.length + plan.removed.length
     if (!total) {
       // (The notes still catch up, in both sheets.)
+      const filled = writeContactsToMaster(master)
       writeChecksToMaster(master)
-      writeContactsToMaster(master)
       const refreshed = refreshGuestNotes(plan)
       ui.alert(
         'Nothing to update',
         'The wedding sheet already matches your guest list. The "Check this" notes are up to date in both sheets' +
           (refreshed ? ` (${refreshed} in Guests just caught up).` : '.') +
+          contactNote(filled, master) +
           plan.warning,
         ui.ButtonSet.OK
       )
@@ -2043,6 +2045,7 @@ function importUpdates() {
 
     const lock = LockService.getScriptLock()
     lock.waitLock(30000)
+    let filled = 0
     try {
       applyUpdate(plan, events)
       if (plan.added.length) {
@@ -2050,14 +2053,14 @@ function importUpdates() {
         writeGuestRows(plan.added, ids, events, false)
         writeIdsBack(master, plan.added.map((p, i) => [p.sheetRow, ids[i]]))
       }
+      filled = writeContactsToMaster(master)
       writeChecksToMaster(master)
-      writeContactsToMaster(master)
     } finally {
       lock.releaseLock()
     }
     finishImport()
     ss.setActiveSheet(getTab(TAB.guests))
-    ui.alert('Done!', `Updated ${plan.changed.length}, added ${plan.added.length}, set ${plan.removed.length} to Not Invited.`, ui.ButtonSet.OK)
+    ui.alert('Done!', `Updated ${plan.changed.length}, added ${plan.added.length}, set ${plan.removed.length} to Not Invited.` + contactNote(filled, master), ui.ButtonSet.OK)
   })
 }
 
@@ -2647,10 +2650,11 @@ const MASTER_CHECK_TITLE = 'Check this'
 function writeChecksToMaster(master) {
   const tab = master.tab
   const titleRow = master.titleRow
-  let col = master.titles.findIndex((t) => /^check\s*this$/i.test(String(t).trim())) + 1
+  const titles = masterTitlesNow(master) // (read fresh: the Contacted column may have just been added)
+  let col = titles.findIndex((t) => /^check\s*this$/i.test(String(t).trim())) + 1
   if (!col) {
-    let lastTitled = master.titles.length
-    while (lastTitled > 0 && !String(master.titles[lastTitled - 1]).trim()) lastTitled--
+    let lastTitled = titles.length
+    while (lastTitled > 0 && !String(titles[lastTitled - 1]).trim()) lastTitled--
     col = Math.max(lastTitled, master.idCol + 1) + 1
     if (col > tab.getMaxColumns()) tab.insertColumnsAfter(tab.getMaxColumns(), col - tab.getMaxColumns())
     tab.getRange(titleRow, col).setValue(MASTER_CHECK_TITLE).setFontWeight('bold')
@@ -2702,6 +2706,17 @@ function readRsvpdIds() {
 
 const MASTER_CONTACT_TITLE = 'Contacted'
 
+/** The titles row of your guest list as it is right now (columns may have been added since it was read). */
+function masterTitlesNow(master) {
+  return master.tab.getRange(master.titleRow, 1, 1, master.tab.getMaxColumns()).getDisplayValues()[0].map((t) => String(t).trim())
+}
+
+/** For the Update's alert: how many "Contacted" cells were filled in your guest list. */
+function contactNote(filled, master) {
+  const blank = master.people.filter((p) => p.contactKnown && !p.contactTyped).length
+  return `\n\n"Contacted" in your guest list: ${filled} cells filled in (${blank} were blank → No; the rest RSVP’d).`
+}
+
 /**
  * The "Contacted" column of your guest list (added after the last column the
  * first time, with its dropdown and colors). Fills blanks with No and marks
@@ -2711,11 +2726,10 @@ const MASTER_CONTACT_TITLE = 'Contacted'
 function writeContactsToMaster(master) {
   const tab = master.tab
   const titleRow = master.titleRow
-  let col = master.contactCol + 1
+  const titles = masterTitlesNow(master) // (read fresh: the Check this column may have just been added)
+  let col = titles.findIndex((t) => /^contacted$/i.test(String(t).trim())) + 1
   const below = Math.max(tab.getMaxRows() - titleRow, 1)
   if (!col) {
-    // After the last titled column, read fresh (the Check this column may have just been added).
-    const titles = tab.getRange(titleRow, 1, 1, tab.getMaxColumns()).getDisplayValues()[0]
     let last = titles.length
     while (last > 0 && !String(titles[last - 1]).trim()) last--
     col = last + 1
@@ -2743,6 +2757,7 @@ function writeContactsToMaster(master) {
     tab.getRange(run[0][0], col, run.length, 1).setValues(run.map((p) => [p[1]]))
     i = j + 1
   }
+  SpreadsheetApp.flush() // (written now, before anything else can stop the run)
   return pairs.length
 }
 /** Wedding RSVP → Guest import → 4. Refresh "Check this" notes in your guest list. */
