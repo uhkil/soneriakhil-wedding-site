@@ -122,9 +122,30 @@ function isPlannerOnly(ev) {
   return isYes(ev.planner_only)
 }
 
+// Whether someone from the wedding party has reached out to invite a guest
+// (the "Contacted" column of your guest list, set by the parents). Blank
+// counts as No. RSVP'd is also set on its own once they RSVP on the website,
+// and is never undone.
+const CONTACT_STATUSES = [
+  { label: 'No', background: '#eceff1', color: '#5f6368' },
+  { label: 'Contacted', background: '#fff4c2', color: '#5c4600' },
+  { label: 'Followed up', background: '#fbe0de', color: '#8a2a22' },
+  { label: "RSVP'd", background: '#d9f2e3', color: '#1b5e3a' },
+]
+const RSVPD = "RSVP'd"
+
+/** The dropdown's exact wording for what was typed ('' → No), or null if it's none of them. */
+function contactLabel(text) {
+  const t = String(text || '').trim().toLowerCase().replace(/[’`]/g, "'")
+  if (!t) return 'No'
+  const found = CONTACT_STATUSES.find((c) => c.label.toLowerCase() === t || c.label.toLowerCase().replace(/'/g, '') === t.replace(/'/g, ''))
+  return found ? found.label : null
+}
+
 // Your planning columns in the Guests tab (added on their own, right after
 // plus_one). Only for you: never sent to the website. All Guests shows them.
 const ADMIN_COLUMNS = {
+  contacted: 'Has someone from the wedding party reached out to invite them? Copied from the "Contacted" column of your guest list by each Update (change it there, not here). RSVP’d is filled in on its own once they RSVP on the website. Private: never shown to guests.',
   under_age: 'Check if this guest is under age (e.g. a kid, or under 21). Private: never shown to guests.',
   drinks_alcohol: 'Yes or No (blank = don’t know yet). Private: never shown to guests.',
   hotel_id: 'Your own label for a hotel room (e.g. Room 1). Give everyone sharing a room the same label, even across households. Private: never shown to guests.',
@@ -248,6 +269,7 @@ function loadGuestList(fresh) {
       lastName: row.last_name || '',
       isPlusOne: false,
       inviteStatus: row.invite_status || '',
+      contacted: row.contacted || '',
       invitedEvents: onHold ? [] : events.map((ev) => ev.event_id).filter((id) => isYes(row[id])),
       plannerInvites: onHold ? [] : plannerEvents.map((ev) => ev.event_id).filter((id) => isYes(row[id])), // (never sent to the website)
       partyId: household ? 'H:' + household.toLowerCase().replace(/\s+/g, ' ') : row.guest_id,
@@ -608,6 +630,9 @@ function ensureAdminColumns(sheet) {
 
 /** A planning column's checkbox or dropdown. */
 function adminColumnFormat(name, cells) {
+  if (name === 'contacted') {
+    cells.setDataValidation(SpreadsheetApp.newDataValidation().requireValueInList(CONTACT_STATUSES.map((c) => c.label), true).setAllowInvalid(true).build())
+  }
   if (name === 'under_age') cells.insertCheckboxes()
   if (name === 'drinks_alcohol') {
     cells.setDataValidation(SpreadsheetApp.newDataValidation().requireValueInList(['Yes', 'No'], true).setAllowInvalid(false).build())
@@ -1436,6 +1461,20 @@ function refreshSummary(list, answers) {
     })
   })
 
+  // Who's been reached out to (invited guests, not plus-ones), by side.
+  const contactable = people.filter((g) => !g.isPlusOne)
+  const labels = CONTACT_STATUSES.map((c) => c.label)
+  const contactRow = (label, guests) => {
+    const of = (l) => guests.filter((g) => (g.contacted || 'No') === l).length
+    const other = guests.filter((g) => !labels.includes(g.contacted || 'No')).length
+    return row(label, guests.length, ...labels.map(of), other)
+  }
+  rows.push(row())
+  rows.push(row('Contacted (from your guest list)', 'Guests', ...labels, 'Other'))
+  bold.push(rows.length)
+  rows.push(contactRow('Everyone', contactable))
+  sides.forEach((side) => rows.push(contactRow(side, contactable.filter((g) => (g.side || '(no side)') === side))))
+
   // Copy-ready lists: everyone's emails or phones in one cell, separated by
   // commas, each only once (a family sharing an email shows it once).
   const coming = people.filter((g) => g.invitedEvents.some((id) => answerOf(g, id) === 'yes'))
@@ -1492,7 +1531,7 @@ function refreshAllGuests(list, answers) {
   const ss = SpreadsheetApp.getActive()
   const sheet = ss.getSheetByName(TAB.allGuests) || ss.insertSheet(TAB.allGuests, 1)
 
-  const before = ['Name', 'Household', 'Side', 'Group', 'Sub-group', 'Invite status'] // the columns before the events
+  const before = ['Name', 'Household', 'Side', 'Group', 'Sub-group', 'Invite status', 'Contacted'] // the columns before the events
   const header = before
     .concat(list.allEventIds.map(nameOf))
     .concat(['Under age', 'Drinks alcohol', 'Hotel ID'])
@@ -1504,21 +1543,23 @@ function refreshAllGuests(list, answers) {
     let name = `${g.firstName} ${g.lastName}`.trim()
     if (g.isPlusOne) name = a.guest_name ? `${a.guest_name} (guest of ${g.hostName})` : `Guest of ${g.hostName}`
     const perEvent = list.allEventIds.map((id) => answerFor(g, id, list, answers) || '—')
-    return [name, g.household, g.side, g.group, g.subGroup || '', g.inviteStatus || '']
+    return [name, g.household, g.side, g.group, g.subGroup || '', g.inviteStatus || '', g.isPlusOne ? '' : g.contacted || 'No']
       .concat(perEvent)
       .concat([g.underAge ? 'yes' : '', g.drinksAlcohol || '', g.hotelId || ''])
       .concat([a.dietary || '', a.email || '', a.phone || '', a.address || '', a.note || '', a.updated_at || '', g.guestId])
   })
   const all = [header].concat(rows)
 
-  // Remember any filter (e.g. Side = Bride), so it survives the refresh.
+  // Remember any filter (e.g. Side = Bride), so it survives the refresh. Kept
+  // by column title, so a column added in between doesn't move it.
   const criteria = {}
   const oldFilter = sheet.getFilter()
   if (oldFilter) {
     const r = oldFilter.getRange()
+    const oldTitles = sheet.getRange(1, 1, 1, r.getLastColumn()).getDisplayValues()[0]
     for (let c = r.getColumn(); c <= r.getLastColumn(); c++) {
       const cr = oldFilter.getColumnFilterCriteria(c)
-      if (cr) criteria[c] = cr.copy().build()
+      if (cr) criteria[oldTitles[c - 1]] = cr.copy().build()
     }
     oldFilter.remove()
   }
@@ -1553,16 +1594,21 @@ function refreshAllGuests(list, answers) {
     .setFontColor(ON_HOLD_GREY)
     .setRanges([sheet.getRange(2, 1, Math.max(rows.length, 1), header.length)])
     .build()
+  const contactCells = sheet.getRange(2, before.indexOf('Contacted') + 1, Math.max(rows.length, 1), 1)
   sheet.setConditionalFormatRules([
     onHoldRow,
     rule('yes', '#d9f2e3', '#1b5e3a'),
     rule('no', '#fbe0de', '#8a2a22'),
     rule('waiting', '#f1f3f4', '#6b7280'),
+    ...CONTACT_STATUSES.map((c) =>
+      SpreadsheetApp.newConditionalFormatRule().whenTextEqualTo(c.label).setBackground(c.background).setFontColor(c.color).setRanges([contactCells]).build()
+    ),
   ])
 
   const filter = range.createFilter()
-  Object.keys(criteria).forEach((c) => {
-    if (Number(c) <= header.length) filter.setColumnFilterCriteria(Number(c), criteria[c])
+  Object.keys(criteria).forEach((title) => {
+    const c = header.indexOf(title) + 1
+    if (c) filter.setColumnFilterCriteria(c, criteria[title])
   })
 }
 
@@ -1900,7 +1946,7 @@ function importFreshStart() {
     const file = openMaster(ui)
     if (!file) return
     const events = readAllEvents()
-    const master = readMaster(file, events)
+    const master = readMaster(file, events, new Set()) // (RSVPs are cleared, so no one has RSVP'd yet)
     if (!master.people.length) throw new UserError(`No guests found in "${MASTER_TAB}".`)
     const guestsNow = readGuests().rows.length
     const rsvpsNow = Math.max(getTab(TAB.rsvps).getLastRow() - 1, 0)
@@ -1935,6 +1981,7 @@ function importFreshStart() {
       writeGuestRows(master.people, ids, events, true)
       writeIdsBack(master, master.people.map((p, i) => [p.sheetRow, ids[i]]))
       writeChecksToMaster(master)
+      writeContactsToMaster(master)
     } finally {
       lock.releaseLock()
     }
@@ -1965,6 +2012,7 @@ function importUpdates() {
     const file = openMaster(ui)
     if (!file) return
     const events = readAllEvents()
+    ensureAdminColumns(getTab(TAB.guests)) // (the contacted column, the first time)
     const master = readMaster(file, events)
     const plan = planUpdate(master, events)
     const sheet = writeUpdatePreview(ss, file, plan)
@@ -1973,6 +2021,7 @@ function importUpdates() {
     if (!total) {
       // (The notes still catch up, in both sheets.)
       writeChecksToMaster(master)
+      writeContactsToMaster(master)
       const refreshed = refreshGuestNotes(plan)
       ui.alert(
         'Nothing to update',
@@ -2002,6 +2051,7 @@ function importUpdates() {
         writeIdsBack(master, plan.added.map((p, i) => [p.sheetRow, ids[i]]))
       }
       writeChecksToMaster(master)
+      writeContactsToMaster(master)
     } finally {
       lock.releaseLock()
     }
@@ -2012,7 +2062,7 @@ function importUpdates() {
 }
 
 // The Guests tab columns that Update keeps in step with the master list.
-const UPDATE_TEXT_FIELDS = ['first_name', 'last_name', 'household', 'side', 'group', 'sub-group', 'invite_status']
+const UPDATE_TEXT_FIELDS = ['first_name', 'last_name', 'household', 'side', 'group', 'sub-group', 'invite_status', 'contacted']
 
 /**
  * What Update would do: { changed: [{ id, name, row, set: {column: value}, notes }],
@@ -2245,7 +2295,8 @@ function letterIndex(letters) {
  * existingId (their Guest ID cell), sheetRow, fullName, and checks (things to
  * look at).
  */
-function readMaster(file, events) {
+function readMaster(file, events, rsvpd) {
+  rsvpd = rsvpd || readRsvpdIds() // (guest ids that have RSVP'd on the website)
   const tab = file.getSheetByName(MASTER_TAB)
   if (!tab) throw new UserError(`"${file.getName()}" has no tab called "${MASTER_TAB}".`)
   const data = tab.getDataRange().getDisplayValues()
@@ -2267,6 +2318,7 @@ function readMaster(file, events) {
   })
 
   const cell = (r, letter) => String(r[letterIndex(letter)] || '').trim()
+  const contactCol = titles.findIndex((t) => /^contacted$/i.test(t)) // (-1 until it's added)
   const people = []
   data.forEach((r, i) => {
     if (i <= titleIndex) return
@@ -2293,7 +2345,12 @@ function readMaster(file, events) {
           .map((letter) => MASTER_EVENTS[letter])
       ),
       existingId: String(r[idCol] || '').trim(),
+      contactTyped: contactCol < 0 ? '' : String(r[contactCol] || '').trim(),
     })
+    const p = people[people.length - 1]
+    const label = contactLabel(p.contactTyped)
+    p.contactKnown = label !== null
+    p.contacted = label === null ? p.contactTyped : rsvpd.has(p.existingId) ? RSVPD : label
   })
 
   // Things worth a second look.
@@ -2319,6 +2376,7 @@ function readMaster(file, events) {
     if (!p.side) checks.push('No side (needed to split counts and costs by side)')
     if (!p.invite_status) checks.push('No invite status (counts as invited)')
     else if (!p.knownStatus) checks.push('Unknown invite status (counts as invited)')
+    if (!p.contactKnown) checks.push(`Unknown Contacted value “${p.contactTyped}” (pick No, Contacted, Followed up or RSVP’d)`)
     if (!isOnHold(p.invite_status) && !onSite) {
       checks.push(p.events.length ? 'Only planner-only events: can’t log in or be seen on the website (even in their family)' : 'Invited, but to no events: can’t log in or be seen on the website (even in their family)')
     }
@@ -2336,7 +2394,7 @@ function readMaster(file, events) {
     }
     p.checks = checks
   })
-  return { file, tab, data, titleRow: titleIndex + 1, titles, idCol, people }
+  return { file, tab, data, titleRow: titleIndex + 1, titles, idCol, contactCol, people }
 }
 
 /** Fills the Import Preview tab (made if needed) and returns it. */
@@ -2432,7 +2490,7 @@ function writeGuestRows(people, ids, events, replace) {
       if (h === 'plus_one' || h === 'under_age') return false
       if (h === 'guest_id') return ids[i]
       if (h === 'check_this') return asText((p.checks || []).join(' · '))
-      if (['first_name', 'last_name', 'household', 'side', 'group', 'sub-group', 'invite_status'].includes(h)) return asText(p[h] || '')
+      if (['first_name', 'last_name', 'household', 'side', 'group', 'sub-group', 'invite_status', 'contacted'].includes(h)) return asText(p[h] || '')
       return ''
     })
   )
@@ -2524,6 +2582,13 @@ function formatGuestsTab() {
         .setFontColor(ON_HOLD_GREY)
         .setRanges([sheet.getRange(2, 1, below, header.length)])
         .build()
+    )
+  }
+  if (col('contacted')) {
+    const cells = sheet.getRange(2, col('contacted'), below, 1)
+    adminColumnFormat('contacted', cells)
+    CONTACT_STATUSES.forEach((c) =>
+      rules.push(SpreadsheetApp.newConditionalFormatRule().whenTextEqualTo(c.label).setBackground(c.background).setFontColor(c.color).setRanges([cells]).build())
     )
   }
   Object.keys(BUBBLE_COLUMNS).forEach((h) => col(h) && rules.push(bubbleRule(sheet, col(h))))
@@ -2626,6 +2691,59 @@ function refreshGuestNotes(plan) {
   rows.forEach((c) => (values[c.row - 2][0] = asText(c.note)))
   range.setValues(values)
   return rows.length
+}
+
+/** Guest ids with a saved RSVP from the website (anyone on an invitation that answered). */
+function readRsvpdIds() {
+  const sheet = SpreadsheetApp.getActive().getSheetByName(TAB.rsvps)
+  if (!sheet) return new Set()
+  return new Set(readRsvps().rows.filter((r) => r.updated_at && r.guest_id).map((r) => r.guest_id))
+}
+
+const MASTER_CONTACT_TITLE = 'Contacted'
+
+/**
+ * The "Contacted" column of your guest list (added after the last column the
+ * first time, with its dropdown and colors). Fills blanks with No and marks
+ * guests who've RSVP'd on the website, changing only the cells that differ
+ * (so a parent typing at the same moment elsewhere isn't overwritten).
+ */
+function writeContactsToMaster(master) {
+  const tab = master.tab
+  const titleRow = master.titleRow
+  let col = master.contactCol + 1
+  const below = Math.max(tab.getMaxRows() - titleRow, 1)
+  if (!col) {
+    // After the last titled column, read fresh (the Check this column may have just been added).
+    const titles = tab.getRange(titleRow, 1, 1, tab.getMaxColumns()).getDisplayValues()[0]
+    let last = titles.length
+    while (last > 0 && !String(titles[last - 1]).trim()) last--
+    col = last + 1
+    if (col > tab.getMaxColumns()) tab.insertColumnsAfter(tab.getMaxColumns(), col - tab.getMaxColumns())
+    tab.getRange(titleRow, col).setValue(MASTER_CONTACT_TITLE).setFontWeight('bold')
+    tab
+      .getRange(titleRow, col)
+      .setNote('Has someone from the wedding party reached out to invite this guest? Pick No, Contacted or Followed up. RSVP’d is filled in on its own once they RSVP on the website. The wedding RSVP sheet copies this on each Update.')
+    const cells = tab.getRange(titleRow + 1, col, below, 1)
+    cells.setDataValidation(SpreadsheetApp.newDataValidation().requireValueInList(CONTACT_STATUSES.map((c) => c.label), true).setAllowInvalid(false).build())
+    tab.setConditionalFormatRules(
+      tab
+        .getConditionalFormatRules()
+        .concat(CONTACT_STATUSES.map((c) => SpreadsheetApp.newConditionalFormatRule().whenTextEqualTo(c.label).setBackground(c.background).setFontColor(c.color).setRanges([cells]).build()))
+    )
+    tab.setColumnWidth(col, 120)
+  }
+  const pairs = master.people.filter((p) => p.contactKnown && p.contacted !== p.contactTyped).map((p) => [p.sheetRow, p.contacted])
+  pairs.sort((a, b) => a[0] - b[0])
+  let i = 0
+  while (i < pairs.length) {
+    let j = i
+    while (j + 1 < pairs.length && pairs[j + 1][0] === pairs[j][0] + 1) j++
+    const run = pairs.slice(i, j + 1)
+    tab.getRange(run[0][0], col, run.length, 1).setValues(run.map((p) => [p[1]]))
+    i = j + 1
+  }
+  return pairs.length
 }
 /** Wedding RSVP → Guest import → 4. Refresh "Check this" notes in your guest list. */
 function refreshMasterChecks() {

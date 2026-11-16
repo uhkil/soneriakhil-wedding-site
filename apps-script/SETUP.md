@@ -199,6 +199,15 @@ All Guests, and aren't counted in Summary. Change the status in the master to A 
 Update to invite them. **Wedding RSVP → Update dropdowns and colors** refreshes the side /
 group / sub-group dropdowns after you add a new value.
 
+**Contacted** (has someone from the wedding party reached out?): a column titled
+"Contacted" in your guest list, added by the first Update after your last column, with a
+dropdown: **No** (grey), **Contacted** (yellow), **Followed up** (red), **RSVP'd** (green).
+The parents pick from it there; blank counts as No. Each Update copies it into the Guests
+tab's `contacted` column and the All Guests tab, and Summary counts each value, overall and by side.
+Anyone who has RSVP'd on the website is set to **RSVP'd** on its own, in both sheets, and
+that's never undone. It's private: never sent to the website. It's found by its title, so
+the column can be moved.
+
 Guests and All Guests are kept in the same order: invited first (backup list, then not
 invited, at the bottom), then Soneri's side, then Akhil's, then household. **Wedding RSVP →
 Sort guests and refresh Summary and All Guests** re-sorts; filters keep working.
