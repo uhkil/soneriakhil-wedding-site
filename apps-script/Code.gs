@@ -128,7 +128,7 @@ const ADMIN_COLUMNS = {
   under_age: 'Check if this guest is under age (e.g. a kid, or under 21). Private: never shown to guests.',
   drinks_alcohol: 'Yes or No (blank = don’t know yet). Private: never shown to guests.',
   hotel_id: 'Your own label for a hotel room (e.g. Room 1). Give everyone sharing a room the same label, even across households. Private: never shown to guests.',
-  check_this: 'Filled in by the guest import: anything worth a second look about this guest (yellow). Clear the cell once it’s sorted out. Private: never shown to guests.',
+  check_this: 'Filled in by the guest import: anything worth a second look about this guest (yellow). Fix it in your guest list: the note updates on the next Update (or Guest import → 4. Refresh). Row numbers are rows of your guest list. Private: never shown to guests.',
 }
 
 const HEADERS = {
@@ -1971,8 +1971,16 @@ function importUpdates() {
     ss.setActiveSheet(sheet)
     const total = plan.changed.length + plan.added.length + plan.removed.length
     if (!total) {
-      writeChecksToMaster(master) // (the notes in your list still catch up)
-      ui.alert('Nothing to update', 'The wedding sheet already matches your guest list. Its "Check this" notes are up to date.' + plan.warning, ui.ButtonSet.OK)
+      // (The notes still catch up, in both sheets.)
+      writeChecksToMaster(master)
+      const refreshed = refreshGuestNotes(plan)
+      ui.alert(
+        'Nothing to update',
+        'The wedding sheet already matches your guest list. The "Check this" notes are up to date in both sheets' +
+          (refreshed ? ` (${refreshed} in Guests just caught up).` : '.') +
+          plan.warning,
+        ui.ButtonSet.OK
+      )
       return
     }
     const answer = ui.alert(
@@ -2022,6 +2030,7 @@ function planUpdate(master, events) {
   const added = []
   const unknownIds = []
   const twice = []
+  const checksOnly = [] // rows where only the Check this note is out of date
   master.people.forEach((p) => {
     if (!p.existingId) return added.push(p)
     if (seen[p.existingId]) return twice.push(p.existingId)
@@ -2048,6 +2057,7 @@ function planUpdate(master, events) {
       }
     })
     if (notes.length) changed.push({ id: p.existingId, name: `${p.first_name} ${p.last_name}`.trim(), row: found.row, set, notes, checks: p.checks })
+    else if (String(g.check_this || '').trim() !== p.checks.join(' · ')) checksOnly.push({ row: found.row, note: p.checks.join(' · ') })
   })
   // In the wedding sheet, but no longer in the master list.
   const removed = rows
@@ -2057,7 +2067,7 @@ function planUpdate(master, events) {
   let warning = ''
   if (unknownIds.length) warning += `\n\nIn your list with a Guest ID the wedding sheet doesn’t have (left alone): ${unknownIds.join(', ')}`
   if (twice.length) warning += `\n\nThe same Guest ID is on more than one row of your list (only the first is used): ${[...new Set(twice)].join(', ')}`
-  return { changed, added, removed, warning, header: guests.header }
+  return { changed, added, removed, checksOnly, warning, header: guests.header }
 }
 
 /** Writes the planned changes into the Guests tab, one column at a time. */
@@ -2068,6 +2078,7 @@ function applyUpdate(plan, events) {
   plan.removed.forEach((r) =>
     changes.push({ row: r.row, set: { invite_status: INVITE_STATUSES.find((s) => s.code === 'XX').label }, note: 'No longer in your guest list: set to Not Invited' })
   )
+  ;(plan.checksOnly || []).forEach((c) => changes.push({ row: c.row, set: {}, note: c.note }))
   if (!changes.length) return
   const lastRow = Math.max(...changes.map((c) => c.row))
   const columns = {}
@@ -2286,10 +2297,13 @@ function readMaster(file, events) {
   })
 
   // Things worth a second look.
+  // Same name: compared the way the website compares them (capitals, extra
+  // spaces, accents, dashes and punctuation ignored), so the note names the
+  // other rows: they can look different from this one.
   const sameName = {}
   people.forEach((p) => {
     const key = normalize(p.fullName)
-    sameName[key] = (sameName[key] || 0) + 1
+    ;(sameName[key] = sameName[key] || []).push(p)
   })
   // The website's events (A: All Events / B: Some Events are about these).
   const mapped = [].concat(...Object.values(MASTER_EVENTS))
@@ -2310,7 +2324,16 @@ function readMaster(file, events) {
     }
     if (code === 'A' && onSite < siteIds.length) checks.push('All Events, but not every website event has a 1')
     if (code === 'B' && onSite === siteIds.length) checks.push('Some Events, but every website event has a 1')
-    if (sameName[normalize(p.fullName)] > 1) checks.push('Same name as another guest (they’ll be asked which is them)')
+    const others = sameName[normalize(p.fullName)].filter((o) => o !== p)
+    if (others.length) {
+      const where = others.map((o) => `row ${o.sheetRow}${o.fullName !== p.fullName ? ` (“${o.fullName}”)` : ''}`).join(', ')
+      const bothOnSite = !isOnHold(p.invite_status) && others.some((o) => !isOnHold(o.invite_status))
+      checks.push(
+        bothOnSite
+          ? `Same name as ${where} of your guest list (they’ll be asked which is them; check it isn’t the same person twice)`
+          : `Same name as ${where} of your guest list (one is on hold; check it isn’t the same person twice)`
+      )
+    }
     p.checks = checks
   })
   return { file, tab, data, titleRow: titleIndex + 1, titles, idCol, people }
@@ -2585,15 +2608,42 @@ function writeChecksToMaster(master) {
   tab.getRange(titleRow + 1, col, values.length, 1).setValues(values)
 }
 
+
+/**
+ * Rewrites only the Guests tab's check_this cells that are out of date (for
+ * guests whose own details didn't change, so Update has nothing else to do
+ * for them). Returns how many it rewrote.
+ */
+function refreshGuestNotes(plan) {
+  const rows = plan.checksOnly || []
+  if (!rows.length) return 0
+  const sheet = getTab(TAB.guests)
+  const col = guestHeader(sheet).indexOf('check_this') + 1
+  if (!col) return 0
+  const lastRow = Math.max(...rows.map((c) => c.row))
+  const range = sheet.getRange(2, col, lastRow - 1, 1)
+  const values = range.getValues()
+  rows.forEach((c) => (values[c.row - 2][0] = asText(c.note)))
+  range.setValues(values)
+  return rows.length
+}
 /** Wedding RSVP → Guest import → 4. Refresh "Check this" notes in your guest list. */
 function refreshMasterChecks() {
   runFromMenu((ui) => {
     const file = openMaster(ui)
     if (!file) return
-    const master = readMaster(file, readAllEvents())
+    const events = readAllEvents()
+    const master = readMaster(file, events)
     writeChecksToMaster(master)
+    const refreshed = refreshGuestNotes(planUpdate(master, events))
     const flagged = master.people.filter((p) => p.checks.length).length
-    ui.alert('Done', `"${MASTER_TAB}" now shows a "Check this" note on ${flagged} guests (and none on the rest). Nothing else was changed.`, ui.ButtonSet.OK)
+    ui.alert(
+      'Done',
+      `"${MASTER_TAB}" now shows a "Check this" note on ${flagged} guests (and none on the rest)` +
+        (refreshed ? `, and ${refreshed} notes in the Guests tab caught up.` : '. The Guests tab’s notes already matched.') +
+        ' Nothing else was changed.',
+      ui.ButtonSet.OK
+    )
   })
 }
 
