@@ -157,6 +157,7 @@ reuse the last one). The titles row is the one with "Invite Status" in column G.
 | N (a 1) | grah-shanti **and** mehendi |
 | O, P, Q, R, S (a 1) | haldi, ceremony, sangeet, indian-wedding, reception |
 | T (titled **Guest ID**) | ← each guest's id is written back here (the import stops if T has another title) |
+| "Passcode" column | ← each guest's passcode, copied from Guests by Guest ID (added once, between "Check this" and "Contacted"; blank = can't log in yet; updated by every Update and by 4. Refresh, so don't type in it) |
 | "Check this" column | ← the script's notes on each row, so whoever owns a guest can fix it (added after your last column the first time; rewritten on every import, so don't type in it) |
 
 under_age, drinks_alcohol and hotel_id aren't imported: fill them in in the Guests tab.
@@ -170,7 +171,7 @@ under_age, drinks_alcohol and hotel_id aren't imported: fill them in in the Gues
   will change, and on OK copies over every mapped field (names, side, group, sub-group,
   household, status, events). New rows get the next id; guests removed from the master become
   **XX: Not Invited**. Ids and RSVPs are kept.
-- **4. Refresh "Check this" notes:** rewrites only the notes in the master (Update does this too).
+- **4. Refresh "Check this" notes and passcodes:** rewrites only the notes and passcodes in the master (Update does this too). Use it after changing a passcode in the Passcodes or Guests tab.
 
 **Add and remove guests only in the master**, then run Update: a guest typed straight into
 Guests isn't in the master, so Update would set them to Not Invited. Don't rename column

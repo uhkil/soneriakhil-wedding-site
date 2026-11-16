@@ -1852,7 +1852,7 @@ function onOpen() {
         .addItem('1. Preview (changes nothing)', 'previewGuestImport')
         .addItem('2. Fresh start (backs up, then replaces everyone)', 'importFreshStart')
         .addItem('3. Update from guest list (keeps ids and RSVPs)', 'importUpdates')
-        .addItem('4. Refresh "Check this" notes in your guest list', 'refreshMasterChecks')
+        .addItem('4. Refresh "Check this" notes and passcodes in your guest list', 'refreshMasterChecks')
     )
     .addSeparator()
     .addItem('Switch to the new guest list (one time)', 'switchToNewGuestList')
@@ -1987,10 +1987,11 @@ function importFreshStart() {
       lock.releaseLock()
     }
     finishImport()
+    writePasscodesToMaster(master)
     ss.setActiveSheet(getTab(TAB.guests))
     ui.alert(
       'Done!',
-      `${master.people.length} guests imported, and their ids written into "${MASTER_TAB}".\n\n` +
+      `${master.people.length} guests imported, and their ids and passcodes written into "${MASTER_TAB}".\n\n` +
         `Backups: ${backups.join(', ')} (delete them once you’re happy).\n\n` +
         'Next: check the Passcodes tab for each group’s passcode.',
       ui.ButtonSet.OK
@@ -2024,11 +2025,13 @@ function importUpdates() {
       const filled = writeContactsToMaster(master)
       writeChecksToMaster(master)
       const refreshed = refreshGuestNotes(plan)
+      const codes = writePasscodesToMaster(master)
       ui.alert(
         'Nothing to update',
         'The wedding sheet already matches your guest list. The "Check this" notes are up to date in both sheets' +
           (refreshed ? ` (${refreshed} in Guests just caught up).` : '.') +
           contactNote(filled, master) +
+          passcodeNote(codes) +
           plan.warning,
         ui.ButtonSet.OK
       )
@@ -2059,8 +2062,9 @@ function importUpdates() {
       lock.releaseLock()
     }
     finishImport()
+    const codes = writePasscodesToMaster(master) // (after finishImport: new guests' passcodes are made there)
     ss.setActiveSheet(getTab(TAB.guests))
-    ui.alert('Done!', `Updated ${plan.changed.length}, added ${plan.added.length}, set ${plan.removed.length} to Not Invited.` + contactNote(filled, master), ui.ButtonSet.OK)
+    ui.alert('Done!', `Updated ${plan.changed.length}, added ${plan.added.length}, set ${plan.removed.length} to Not Invited.` + contactNote(filled, master) + passcodeNote(codes), ui.ButtonSet.OK)
   })
 }
 
@@ -2705,6 +2709,71 @@ function readRsvpdIds() {
 }
 
 const MASTER_CONTACT_TITLE = 'Contacted'
+const MASTER_PASSCODE_TITLE = 'Passcode'
+
+/** For the alerts: how many passcodes changed in your guest list. */
+function passcodeNote(n) {
+  return `\n\nPasscodes in your guest list: ${n ? `${n} filled in or changed` : 'already up to date'}.`
+}
+
+/**
+ * The "Passcode" column of your guest list: each guest's passcode, copied
+ * from the Guests tab by Guest ID (blank for guests who can't log in: on
+ * hold, or no website events). Added the first time between "Check this" and
+ * "Contacted" (or next to whichever is there). Only cells that differ are
+ * written. Returns how many changed.
+ */
+function writePasscodesToMaster(master) {
+  const tab = master.tab
+  const titleRow = master.titleRow
+  let titles = masterTitlesNow(master)
+  const at = (re) => titles.findIndex((t) => re.test(t)) + 1
+  let col = at(/^passcode$/i)
+  if (!col) {
+    const marks = [at(/^check\s*this$/i), at(/^contacted$/i)].filter(Boolean)
+    let after = marks.length ? Math.min(...marks) : 0
+    if (!after) {
+      after = titles.length
+      while (after > 0 && !titles[after - 1]) after--
+    }
+    tab.insertColumnAfter(after)
+    col = after + 1
+    const cells = tab.getRange(titleRow + 1, col, Math.max(tab.getMaxRows() - titleRow, 1), 1)
+    cells.clearDataValidations() // (a new column copies the one to its left)
+    cells.clearContent()
+    cells.setNumberFormat('@')
+    tab
+      .getRange(titleRow, col)
+      .setValue(MASTER_PASSCODE_TITLE)
+      .setFontWeight('bold')
+      .setNote('Filled in by the wedding RSVP sheet: the passcode this guest logs in with on the website (with their first and last name). Blank = they can’t log in yet (backup list, not invited, or no website events). Updated on each Update; don’t type here.')
+    tab.setColumnWidth(col, 110)
+    titles = masterTitlesNow(master)
+  }
+  const last = tab.getLastRow()
+  if (last <= titleRow) return 0
+  const n = last - titleRow
+  const ids = tab.getRange(titleRow + 1, master.idCol + 1, n, 1).getDisplayValues()
+  const now = tab.getRange(titleRow + 1, col, n, 1).getDisplayValues()
+  const codes = {}
+  const list = loadGuestList(true) // (fresh: the passcodes as they are right now)
+  list.people.forEach((g) => !g.isPlusOne && g.invitedEvents.length && (codes[g.guestId] = g.passcode || ''))
+  const pairs = []
+  ids.forEach((r, i) => {
+    const id = String(r[0] || '').trim()
+    const want = id ? codes[id] || '' : ''
+    if (String(now[i][0] || '') !== want) pairs.push([titleRow + 1 + i, want])
+  })
+  let i = 0
+  while (i < pairs.length) {
+    let j = i
+    while (j + 1 < pairs.length && pairs[j + 1][0] === pairs[j][0] + 1) j++
+    const run = pairs.slice(i, j + 1)
+    tab.getRange(run[0][0], col, run.length, 1).setValues(run.map((p) => [asText(p[1])]))
+    i = j + 1
+  }
+  return pairs.length
+}
 
 /** The titles row of your guest list as it is right now (columns may have been added since it was read). */
 function masterTitlesNow(master) {
@@ -2769,12 +2838,14 @@ function refreshMasterChecks() {
     const master = readMaster(file, events)
     writeChecksToMaster(master)
     const refreshed = refreshGuestNotes(planUpdate(master, events))
+    const codes = writePasscodesToMaster(master)
     const flagged = master.people.filter((p) => p.checks.length).length
     ui.alert(
       'Done',
       `"${MASTER_TAB}" now shows a "Check this" note on ${flagged} guests (and none on the rest)` +
         (refreshed ? `, and ${refreshed} notes in the Guests tab caught up.` : '. The Guests tab’s notes already matched.') +
-        ' Nothing else was changed.',
+        passcodeNote(codes) +
+        '\n\nNothing else was changed.',
       ui.ButtonSet.OK
     )
   })
