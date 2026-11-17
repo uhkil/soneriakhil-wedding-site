@@ -825,7 +825,7 @@ function verifyCode(guestId, code) {
   }
   if (!guest || cleanCode(code) !== cleanCode(guest.passcode)) {
     cache.put(triesKey, String(tries + 1), 60 * 60)
-    throw new UserError("That passcode doesn't match. Check the passcode we sent you and try again.")
+    throw new UserError("That password doesn't match. Check the password we sent you and try again.")
   }
 
   cache.remove(triesKey)

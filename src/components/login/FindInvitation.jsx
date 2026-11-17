@@ -81,7 +81,7 @@ export default function FindInvitation() {
   // Step 2: check the passcode. On success the whole site opens, so this form goes away.
   async function openInvitation(event) {
     event.preventDefault()
-    if (!code.trim()) return fail('Please enter the passcode we sent you.', codeBox)
+    if (!code.trim()) return fail('Please enter the password we sent you.', codeBox)
     setError('')
     setBusy(true)
     try {
@@ -131,7 +131,7 @@ export default function FindInvitation() {
           {/* Two lines: the hello on its own, then what to do. */}
           <label htmlFor="invite-code" className="passcode-prompt">
             <span className="passcode-hello">Hi, {guest.name.split(' ')[0]}!</span>
-            <span>Enter the passcode we sent you.</span>
+            <span>Enter the password we sent you.</span>
           </label>
           <div className="field-row">
             <input
@@ -140,7 +140,7 @@ export default function FindInvitation() {
               type="text"
               {...NO_AUTOFILL}
               {...PLAIN_TYPING}
-              placeholder="Passcode"
+              placeholder="Password"
               value={code}
               onChange={(e) => {
                 setCode(e.target.value)

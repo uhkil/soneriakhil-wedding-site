@@ -139,7 +139,7 @@ export async function handlePractice(req) {
   if (req.action === 'verify') {
     const guest = guests.find((g) => g.guestId === req.guestId)
     if (!guest || cleanCode(req.code) !== passcodeFor(guest.partyId)) {
-      fail("That passcode doesn't match. Check the passcode we sent you and try again.")
+      fail("That password doesn't match. Check the password we sent you and try again.")
     }
     return { ok: true, token: 'practice-' + guest.partyId, party: partyDetails(guest.partyId) }
   }

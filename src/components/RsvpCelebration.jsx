@@ -101,7 +101,7 @@ export default function RsvpCelebration({ open, attending, onClose }) {
             <p className="celebration-line">Your RSVP was saved — we’ll miss you!</p>
           </>
         )}
-        <p className="celebration-small">Changes to your RSVP can be made any time before January 15.</p>
+        <p className="celebration-small">Changes to your RSVP can be made any time before January 10.</p>
       </div>
     </dialog>
   )

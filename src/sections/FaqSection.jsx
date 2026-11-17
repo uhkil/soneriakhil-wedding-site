@@ -50,7 +50,7 @@ const faqs = [
     question: 'When is the RSVP deadline?',
     answer: [
       <>
-        Please RSVP by <strong>January 15, 2027</strong>.
+        Please RSVP by <strong>January 10, 2027</strong>.
       </>,
       'You can update your answers anytime before then.',
     ],

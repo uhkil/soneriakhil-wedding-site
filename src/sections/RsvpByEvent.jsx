@@ -19,7 +19,7 @@
 // Once they've RSVP'd, they see a short summary instead (RsvpSummary below:
 // "Thanks for RSVPing!", who's coming to what, and their details, with
 // emails, phones and the address partly hidden), and an "Edit RSVP" button
-// that brings back the form. After January 15, 2027, just the summary.
+// that brings back the form. After January 10, 2027, just the summary.
 import { useEffect, useLayoutEffect, useRef, useState } from 'react'
 import { useGuest } from '../guest/GuestProvider.jsx'
 import { submitRsvp } from '../api/rsvpApi.js'
@@ -61,7 +61,7 @@ function savedAnswers(party) {
 
 export default function RsvpByEvent() {
   const { party } = useGuest()
-  // After January 15, 2027 (see rsvpClosed in schedule.js): no changes.
+  // After January 10, 2027 (see rsvpClosed in schedule.js): no changes.
   const closed = rsvpClosed(party)
   const [editing, setEditing] = useState(false)
   const [celebrate, setCelebrate] = useState(null)
@@ -74,7 +74,7 @@ export default function RsvpByEvent() {
 
   let content
   if (closed && !party.hasResponded) {
-    content = <p className="rsvp-intro">RSVPs closed on January 15. If you still need to RSVP, please reach out to us.</p>
+    content = <p className="rsvp-intro">RSVPs closed on January 10. If you still need to RSVP, please reach out to us.</p>
   } else if (party.hasResponded && (closed || !editing)) {
     content = <RsvpSummary closed={closed} onEdit={() => switchTo(true)} />
   } else {
@@ -132,8 +132,8 @@ function RsvpSummary({ closed, onEdit }) {
         <p className="rsvp-summary-title">Thanks for RSVPing!</p>
         <p className="rsvp-summary-sub">
           {closed
-            ? 'RSVPs closed on January 15. If something has changed, please reach out to us.'
-            : 'Here’s what we have for you. You can make changes until January 15, 2027.'}
+            ? 'RSVPs closed on January 10. If something has changed, please reach out to us.'
+            : 'Here’s what we have for you. You can make changes until January 10, 2027.'}
         </p>
 
         {/* One row per event, then one each for the details, the address and
@@ -418,7 +418,7 @@ function RsvpForm({ onSaved, onCancel }) {
           ? 'We have your RSVP. You can change anything below and save again.'
           : 'Let us know who’s coming to each event, then add your details.'}
         {/* On its own line. */}
-        <span className="rsvp-deadline">RSVPs close January 15, 2027</span>
+        <span className="rsvp-deadline">RSVPs close January 10, 2027</span>
       </p>
 
       <div className="rsvp-form rsvp-v2" role="form" aria-label="RSVP">
@@ -580,7 +580,7 @@ function RsvpForm({ onSaved, onCancel }) {
           <FormMessage>
             {error === LOGGED_OUT ? (
               <>
-                Your invitation has been signed out (the passcode may have changed).{' '}
+                Your invitation has been signed out (the password may have changed).{' '}
                 <button type="button" className="link-button" onClick={logout}>
                   Find your invitation again
                 </button>
