@@ -2809,6 +2809,11 @@ img.nugget-photo {
   margin-bottom: 20px;
 }
 
+/* (No button under the last line: no extra space either.) */
+.travel-text .travel-callout p:last-child {
+  margin-bottom: 0;
+}
+
 .travel-text .travel-callout .travel-callout-title {
   margin-bottom: 6px;
 }

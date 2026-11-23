@@ -81,15 +81,13 @@ const topics = [
           </div>
         </dl>
 
-        {/* The one thing not to miss: book through the room block. */}
+        {/* How to book: coming soon. (To bring the booking link back, put
+            the room block box back here: its title, a line about the
+            discount, and <a className="button travel-callout-button"
+            href={ROOM_BLOCK} …>Book with our room block <ExternalIcon /></a>.) */}
         <div className="travel-callout">
-          <p className="travel-callout-title">Please book through our room block</p>
-          <p>The discounted rate is only available through our link. Rooms booked any other way will cost more.</p>
-          {/* Opens the hotel's booking page in a new tab. */}
-          <a className="button travel-callout-button" href={ROOM_BLOCK} target="_blank" rel="noreferrer">
-            Book with our room block
-            <ExternalIcon />
-          </a>
+          <p className="travel-callout-title">Booking details coming soon</p>
+          <p>More details on how to book your room are coming very soon.</p>
         </div>
       </>
     ),
