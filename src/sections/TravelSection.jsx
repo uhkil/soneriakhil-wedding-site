@@ -5,9 +5,44 @@ import { useState } from 'react'
 import Section from '../components/Section.jsx'
 import SideDrawing from '../components/SideDrawing.jsx'
 import ActivityIcon from '../components/ActivityIcons.jsx'
+import { useGuest } from '../guest/GuestProvider.jsx'
 
-// ----- The details. -----
-const ROOM_BLOCK = 'https://www.loewshotels.com/arlington-hotel/wedding-soneri-akhil-patel-wedding-room-block'
+// ----- Where to stay: one version per invitation. -----
+// The Sheet's "hotel" column picks it (the same for everyone in a
+// household), sent after login as party.stay:
+//   lbl    → Live! by Loews: its room block and booking link
+//   la     → Loews Arlington: its room block and booking link
+//   backup → a back-up hotel, if the first two fill up. Not chosen yet, so
+//            "coming soon" for now: add it to HOTELS below (name, link,
+//            lead) once it's decided, and it shows like the other two.
+//   booked → the wedding party already booked their room: a thank-you only
+//   soon   → not decided yet (or the household's rows disagree): "coming
+//            soon", with nothing about either hotel
+const HOTELS = {
+  lbl: {
+    name: 'Live! by Loews',
+    link: 'https://www.loewshotels.com/live-by-loews-arlington-texas/wedding-soneri-akhil-patel-wedding-room-block',
+    lead: (
+      <>
+        We recommend staying at <strong>Live! by Loews</strong>, where most of the wedding events will be held. We’ve
+        secured a discounted room rate for our guests.
+      </>
+    ),
+  },
+  la: {
+    name: 'Loews Arlington',
+    link: 'https://www.loewshotels.com/arlington-hotel/wedding-soneri-akhil-patel-wedding-room-block',
+    lead: (
+      <>
+        We recommend staying at <strong>Loews Arlington</strong>. It’s connected to Live! by Loews, where most of the
+        wedding events will be held, and we’ve secured a discounted room rate for our guests.
+      </>
+    ),
+  },
+}
+// The same for both hotels.
+const BOOK_BY = 'March 1, 2027'
+const BLOCK_DATES = 'April 8–11, 2027'
 
 // "What to do": one card each, in this order (two across, one across on
 // phones). icon is one of the drawings in components/ActivityIcons.jsx.
@@ -58,39 +93,7 @@ const topics = [
   {
     id: 'where-to-stay',
     title: 'Where to stay',
-    body: (
-      <>
-        <p className="travel-lead">
-          We recommend staying at <strong>Loews Arlington</strong>. It’s connected to Live! by Loews, where most of the
-          wedding events will be held, and we’ve secured a discounted room rate for our guests.
-        </p>
-
-        {/* The key details, side by side (stacked on phones). */}
-        <dl className="travel-stats">
-          <div>
-            <dt>Hotel</dt>
-            <dd>Loews Arlington</dd>
-          </div>
-          <div>
-            <dt>Book by</dt>
-            <dd>March 1, 2027</dd>
-          </div>
-          <div>
-            <dt>Room block dates</dt>
-            <dd>April 8–11, 2027</dd>
-          </div>
-        </dl>
-
-        {/* How to book: coming soon. (To bring the booking link back, put
-            the room block box back here: its title, a line about the
-            discount, and <a className="button travel-callout-button"
-            href={ROOM_BLOCK} …>Book with our room block <ExternalIcon /></a>.) */}
-        <div className="travel-callout">
-          <p className="travel-callout-title">Booking details coming soon</p>
-          <p>More details on how to book your room are coming very soon.</p>
-        </div>
-      </>
-    ),
+    body: (stay) => <WhereToStay stay={stay} />,
   },
   {
     id: 'getting-there',
@@ -137,6 +140,62 @@ const topics = [
   },
 ]
 
+// The "Where to stay" card for this invitation (see HOTELS above).
+function WhereToStay({ stay }) {
+  const hotel = HOTELS[stay]
+  if (stay === 'booked') {
+    return (
+      <div className="travel-callout">
+        <p className="travel-callout-title">Your room is all set</p>
+        <p>
+          The wedding party has already booked your room, so there’s nothing you need to do. Thank you for making the
+          trip to celebrate with us. It means the world to us!
+        </p>
+      </div>
+    )
+  }
+  if (!hotel) {
+    return (
+      <div className="travel-callout">
+        <p className="travel-callout-title">Hotel details coming soon</p>
+        <p>More details on where to stay and how to book your room are coming very soon.</p>
+      </div>
+    )
+  }
+  return (
+    <>
+      <p className="travel-lead">{hotel.lead}</p>
+
+      {/* The key details, side by side (stacked on phones). */}
+      <dl className="travel-stats">
+        <div>
+          <dt>Hotel</dt>
+          <dd>{hotel.name}</dd>
+        </div>
+        <div>
+          <dt>Book by</dt>
+          <dd>{BOOK_BY}</dd>
+        </div>
+        <div>
+          <dt>Room block dates</dt>
+          <dd>{BLOCK_DATES}</dd>
+        </div>
+      </dl>
+
+      {/* The one thing not to miss: book through the room block. */}
+      <div className="travel-callout">
+        <p className="travel-callout-title">Please book through our room block</p>
+        <p>The discounted rate is only available through our link. Rooms booked any other way will cost more.</p>
+        {/* Opens the hotel's booking page in a new tab. */}
+        <a className="button travel-callout-button" href={hotel.link} target="_blank" rel="noreferrer">
+          Book with our room block
+          <ExternalIcon />
+        </a>
+      </div>
+    </>
+  )
+}
+
 export default function TravelSection() {
   return (
     <Section id="travel">
@@ -151,6 +210,8 @@ export default function TravelSection() {
 // The pill toggle (the same look as Memories') picks a topic; that topic
 // fills one big dark-blue card.
 function TravelTabs() {
+  const { party } = useGuest()
+  const stay = party?.stay || 'soon' // (an older saved login without it: "coming soon")
   const [current, setCurrent] = useState(topics[0].id)
   const index = topics.findIndex((t) => t.id === current)
   const topic = topics[index]
@@ -172,7 +233,7 @@ function TravelTabs() {
       </div>
       <div className="travel-card travel-panel" role="tabpanel" aria-label={topic.title}>
         <h3 className="card-pill">{topic.title}</h3>
-        <div className="travel-text">{topic.body}</div>
+        <div className="travel-text">{typeof topic.body === 'function' ? topic.body(stay) : topic.body}</div>
       </div>
     </div>
   )

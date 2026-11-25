@@ -157,6 +157,7 @@ reuse the last one). The titles row is the one with "Invite Status" in column G.
 | N (a 1) | grah-shanti **and** mehendi |
 | O, P, Q, R, S (a 1) | haldi, ceremony, sangeet, indian-wedding, reception |
 | T (titled **Guest ID**) | ← each guest's id is written back here (the import stops if T has another title) |
+| "hotel" column (found by its title) | hotel: which "Where to stay" the household sees after login. **LBL** = Live! by Loews and its booking link, **LA** = Loews Arlington and its booking link, **Back-up Hotel** = "coming soon" until that hotel is chosen and added to the website, **Booked by Wedding Party** = a thank-you, no link, **No Hotel Link** or blank = "coming soon", with no hotel named. Fill it in for one person or everyone in a family: blank cells take the family's value. Two different values in one family (e.g. LBL and LA) mean they see "coming soon", and the rows get a "Check this" note. Only family members who can log in count. Summary counts each choice by side. |
 | "Passcode" column | ← each guest's passcode, copied from Guests by Guest ID (added once, between "Check this" and "Contacted"; blank = can't log in yet; updated by every Update and by 4. Refresh, so don't type in it) |
 | "Check this" column | ← the script's notes on each row, so whoever owns a guest can fix it (added after your last column the first time; rewritten on every import, so don't type in it) |
 

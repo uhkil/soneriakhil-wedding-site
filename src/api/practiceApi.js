@@ -35,12 +35,16 @@ const PASSCODES = {
 }
 const passcodeFor = (partyId) => PASSCODES[parties[partyId].events.join(',')] || ''
 
+// stay: what "Where to stay" shows them (like the Sheet's hotel column):
+// lbl (Live! by Loews), la (Loews Arlington), booked (by the wedding
+// party), or soon (not decided yet). Priya's family and Bartholomew → Live! by Loews,
+// Jordan Lee → Loews Arlington, Sam Rivera → booked, Lena Park → soon.
 const parties = {
-  P001: { name: 'The Shah Family', events: ['ceremony', 'sangeet', 'indian-wedding', 'reception'] },
+  P001: { name: 'The Shah Family', events: ['ceremony', 'sangeet', 'indian-wedding', 'reception'], stay: 'lbl' },
   P002: { name: 'Priya Shah', events: ['sangeet', 'reception'] },
-  P003: { name: 'The Lee Family', events: ['ceremony', 'sangeet', 'indian-wedding', 'reception'] },
-  P004: { name: 'Sam Rivera', events: ['indian-wedding', 'reception'] }, // April 10 only
-  P005: { name: 'The Venkataraman-Christensen Family', events: ['ceremony', 'sangeet', 'indian-wedding', 'reception'] }, // long names
+  P003: { name: 'The Lee Family', events: ['ceremony', 'sangeet', 'indian-wedding', 'reception'], stay: 'la' },
+  P004: { name: 'Sam Rivera', events: ['indian-wedding', 'reception'], stay: 'booked' }, // April 10 only
+  P005: { name: 'The Venkataraman-Christensen Family', events: ['ceremony', 'sangeet', 'indian-wedding', 'reception'], stay: 'lbl' }, // long names
   P006: { name: 'Lena Park', events: ['indian-wedding'] }, // the Wedding only
 }
 
@@ -98,6 +102,7 @@ function partyDetails(partyId) {
     guests: members,
     events: events.filter((e) => invited.has(e.id)),
     answers: answers.answers,
+    stay: party.stay || 'soon',
     onFile,
     hasResponded: Boolean(saved[partyId]),
     lastRsvpAt: saved[partyId]?.at || '',

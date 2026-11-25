@@ -142,10 +142,51 @@ function contactLabel(text) {
   return found ? found.label : null
 }
 
+// Which hotel a guest's "Where to stay" shows (the "hotel" column of your
+// guest list, copied by Update). The website gets one choice per household:
+// lbl / la (that hotel and its booking link), backup (a back-up hotel, if
+// the first two fill up: "coming soon" on the website until its details are
+// added there), booked (a thank-you: the wedding party booked their room),
+// or soon ("coming soon": blank, No Hotel Link, anything else, or a
+// household whose rows disagree). The labels match your guest list's dropdown.
+const HOTEL_CHOICES = [
+  { label: 'LBL', stay: 'lbl' }, // Live! by Loews
+  { label: 'LA', stay: 'la' }, // Loews Arlington
+  { label: 'Back-up Hotel', stay: 'backup' }, // (not chosen yet)
+  { label: 'Booked by Wedding Party', stay: 'booked' },
+  { label: 'No Hotel Link', stay: 'soon' },
+]
+
+/** The dropdown's exact wording for what was typed ('' stays ''), or null if it's none of them. */
+function hotelLabel(text) {
+  const t = String(text || '').toLowerCase().replace(/[^a-z]/g, '')
+  if (!t) return ''
+  if (t === 'lbl' || t === 'livebyloews') return 'LBL'
+  if (t === 'la' || t === 'loewsarlington') return 'LA'
+  if (t.startsWith('backup')) return 'Back-up Hotel'
+  if (t.startsWith('booked')) return 'Booked by Wedding Party'
+  if (t.startsWith('nohotel')) return 'No Hotel Link'
+  return null
+}
+
+/** lbl / la / booked / soon for one guest's hotel value. */
+function stayOf(text) {
+  const label = hotelLabel(text)
+  const found = HOTEL_CHOICES.find((h) => h.label === label)
+  return found ? found.stay : 'soon'
+}
+
+/** A household's one choice: blanks follow the rest; filled-in values must agree, or it's "coming soon". */
+function householdStay(members) {
+  const stays = unique(members.filter((g) => String(g.hotel || '').trim()).map((g) => stayOf(g.hotel)))
+  return stays.length === 1 ? stays[0] : 'soon'
+}
+
 // Your planning columns in the Guests tab (added on their own, right after
 // plus_one). Only for you: never sent to the website. All Guests shows them.
 const ADMIN_COLUMNS = {
   contacted: 'Has someone from the wedding party reached out to invite them? Copied from the "Contacted" column of your guest list by each Update (change it there, not here). RSVP’d is filled in on its own once they RSVP on the website. Private: never shown to guests.',
+  hotel: 'Which hotel their “Where to stay” shows on the website: LBL (Live! by Loews), LA (Loews Arlington), Back-up Hotel (“coming soon” until its details are added to the website), Booked by Wedding Party (a thank-you, no link), or No Hotel Link / blank (“coming soon”). Copied from the "hotel" column of your guest list by each Update (change it there). Blank cells in your guest list take the family’s value; two different values in one family mean they see “coming soon”. Not the same as hotel_id (your room label).',
   under_age: 'Check if this guest is under age (e.g. a kid, or under 21). Private: never shown to guests.',
   drinks_alcohol: 'Yes or No (blank = don’t know yet). Private: never shown to guests.',
   hotel_id: 'Your own label for a hotel room (e.g. Room 1). Give everyone sharing a room the same label, even across households. Private: never shown to guests.',
@@ -270,6 +311,7 @@ function loadGuestList(fresh) {
       isPlusOne: false,
       inviteStatus: row.invite_status || '',
       contacted: row.contacted || '',
+      hotel: row.hotel || '',
       invitedEvents: onHold ? [] : events.map((ev) => ev.event_id).filter((id) => isYes(row[id])),
       plannerInvites: onHold ? [] : plannerEvents.map((ev) => ev.event_id).filter((id) => isYes(row[id])), // (never sent to the website)
       partyId: household ? 'H:' + household.toLowerCase().replace(/\s+/g, ' ') : row.guest_id,
@@ -631,6 +673,9 @@ function ensureAdminColumns(sheet) {
 
 /** A planning column's checkbox or dropdown. */
 function adminColumnFormat(name, cells) {
+  if (name === 'hotel') {
+    cells.setDataValidation(SpreadsheetApp.newDataValidation().requireValueInList(HOTEL_CHOICES.map((h) => h.label), true).setAllowInvalid(true).build())
+  }
   if (name === 'contacted') {
     cells.setDataValidation(SpreadsheetApp.newDataValidation().requireValueInList(CONTACT_STATUSES.map((c) => c.label), true).setAllowInvalid(true).build())
   }
@@ -905,6 +950,7 @@ function partyDetails(partyId, list, rsvps) {
   return {
     partyId,
     partyName: members[0].partyName,
+    stay: householdStay(members.filter((g) => !g.isPlusOne)), // which "Where to stay" they see (lbl / la / booked / soon)
     guests,
     events,
     answers,
@@ -1476,6 +1522,17 @@ function refreshSummary(list, answers) {
   rows.push(contactRow('Everyone', contactable))
   sides.forEach((side) => rows.push(contactRow(side, contactable.filter((g) => (g.side || '(no side)') === side))))
 
+  // Which hotel each guest is down for (from your guest list), by side.
+  const hotelRow = (label, guests) => {
+    const of = (l) => guests.filter((g) => hotelLabel(g.hotel) === l).length
+    return row(label, guests.length, of('LBL'), of('LA'), of('Back-up Hotel'), of('Booked by Wedding Party'), guests.filter((g) => stayOf(g.hotel) === 'soon').length)
+  }
+  rows.push(row())
+  rows.push(row('Hotel (from your guest list)', 'Guests', 'LBL', 'LA', 'Back-up Hotel', 'Booked by Wedding Party', 'Not decided (blank / No Hotel Link)'))
+  bold.push(rows.length)
+  rows.push(hotelRow('Everyone', contactable))
+  sides.forEach((side) => rows.push(hotelRow(side, contactable.filter((g) => (g.side || '(no side)') === side))))
+
   // Copy-ready lists: everyone's emails or phones in one cell, separated by
   // commas, each only once (a family sharing an email shows it once).
   const coming = people.filter((g) => g.invitedEvents.some((id) => answerOf(g, id) === 'yes'))
@@ -1535,7 +1592,7 @@ function refreshAllGuests(list, answers) {
   const before = ['Name', 'Household', 'Side', 'Group', 'Sub-group', 'Invite status', 'Contacted'] // the columns before the events
   const header = before
     .concat(list.allEventIds.map(nameOf))
-    .concat(['Under age', 'Drinks alcohol', 'Hotel ID'])
+    .concat(['Hotel', 'Under age', 'Drinks alcohol', 'Hotel ID'])
     .concat(['Dietary', 'Email', 'Phone', 'Address', 'Note', 'Last updated', 'Guest ID'])
   // Everyone, guests on hold too (grey, with "—"), in the guest order (see compareGuests).
   const everyone = people.concat(list.held || []).sort(compareGuests)
@@ -1546,7 +1603,7 @@ function refreshAllGuests(list, answers) {
     const perEvent = list.allEventIds.map((id) => answerFor(g, id, list, answers) || '—')
     return [name, g.household, g.side, g.group, g.subGroup || '', g.inviteStatus || '', g.isPlusOne ? '' : g.contacted || 'No']
       .concat(perEvent)
-      .concat([g.underAge ? 'yes' : '', g.drinksAlcohol || '', g.hotelId || ''])
+      .concat([g.hotel || '', g.underAge ? 'yes' : '', g.drinksAlcohol || '', g.hotelId || ''])
       .concat([a.dietary || '', a.email || '', a.phone || '', a.address || '', a.note || '', a.updated_at || '', g.guestId])
   })
   const all = [header].concat(rows)
@@ -2069,7 +2126,7 @@ function importUpdates() {
 }
 
 // The Guests tab columns that Update keeps in step with the master list.
-const UPDATE_TEXT_FIELDS = ['first_name', 'last_name', 'household', 'side', 'group', 'sub-group', 'invite_status', 'contacted']
+const UPDATE_TEXT_FIELDS = ['first_name', 'last_name', 'household', 'side', 'group', 'sub-group', 'invite_status', 'contacted', 'hotel']
 
 /**
  * What Update would do: { changed: [{ id, name, row, set: {column: value}, notes }],
@@ -2326,6 +2383,7 @@ function readMaster(file, events, rsvpd) {
 
   const cell = (r, letter) => String(r[letterIndex(letter)] || '').trim()
   const contactCol = titles.findIndex((t) => /^contacted$/i.test(t)) // (-1 until it's added)
+  const hotelCol = titles.findIndex((t) => /^hotel$/i.test(t)) // (found by its title; -1 if there isn't one)
   const people = []
   data.forEach((r, i) => {
     if (i <= titleIndex) return
@@ -2353,11 +2411,15 @@ function readMaster(file, events, rsvpd) {
       ),
       existingId: String(r[idCol] || '').trim(),
       contactTyped: contactCol < 0 ? '' : String(r[contactCol] || '').trim(),
+      hotelTyped: hotelCol < 0 ? '' : String(r[hotelCol] || '').trim(),
     })
     const p = people[people.length - 1]
     const label = contactLabel(p.contactTyped)
     p.contactKnown = label !== null
     p.contacted = label === null ? p.contactTyped : rsvpd.has(p.existingId) ? RSVPD : label
+    const hotel = hotelLabel(p.hotelTyped)
+    p.hotelKnown = hotel !== null
+    p.hotel = hotel === null ? p.hotelTyped : hotel
   })
 
   // Things worth a second look.
@@ -2372,6 +2434,24 @@ function readMaster(file, events, rsvpd) {
   // The website's events (A: All Events / B: Some Events are about these).
   const mapped = [].concat(...Object.values(MASTER_EVENTS))
   const siteIds = events.filter((ev) => !isPlannerOnly(ev) && mapped.includes(ev.event_id)).map((ev) => ev.event_id)
+  // Each household's hotel: blank cells follow the family's filled-in value
+  // (and get it in the wedding sheet too); two different filled-in values
+  // disagree. Only guests on the website count (like the website: not on
+  // hold, and invited to at least one of its events).
+  const onWebsiteRow = (p) => !isOnHold(p.invite_status) && p.events.some((id) => siteIds.includes(id))
+  const homeKey = (p) => p.household.toLowerCase().replace(/\s+/g, ' ')
+  const hotelsByHome = {}
+  const labelByHome = {}
+  people.forEach((p) => {
+    if (!p.household || !onWebsiteRow(p) || !p.hotelTyped) return
+    ;(hotelsByHome[homeKey(p)] = hotelsByHome[homeKey(p)] || new Set()).add(stayOf(p.hotel))
+    labelByHome[homeKey(p)] = labelByHome[homeKey(p)] || p.hotel
+  })
+  people.forEach((p) => {
+    const home = p.household && onWebsiteRow(p) ? hotelsByHome[homeKey(p)] : null
+    if (!p.hotelTyped && home && home.size === 1) p.hotel = labelByHome[homeKey(p)] // (blank: the family's)
+  })
+  const shown = { lbl: 'LBL', la: 'LA', backup: 'Back-up Hotel', booked: 'Booked by Wedding Party', soon: 'No Hotel Link or another value' }
   people.forEach((p) => {
     const onSite = p.events.filter((id) => siteIds.includes(id)).length
     const checks = []
@@ -2383,6 +2463,11 @@ function readMaster(file, events, rsvpd) {
     if (!p.side) checks.push('No side (needed to split counts and costs by side)')
     if (!p.invite_status) checks.push('No invite status (counts as invited)')
     else if (!p.knownStatus) checks.push('Unknown invite status (counts as invited)')
+    if (!p.hotelKnown) checks.push(`Unknown hotel value “${p.hotelTyped}” (pick LBL, LA, Back-up Hotel, Booked by Wedding Party or No Hotel Link): shows “coming soon”`)
+    const homeHotels = p.household && onWebsiteRow(p) ? hotelsByHome[homeKey(p)] : null
+    if (homeHotels && homeHotels.size > 1) {
+      checks.push(`Household’s hotel values don’t match (${[...homeHotels].map((h) => shown[h]).join(', ')}): the family sees “coming soon” until they do`)
+    }
     if (!p.contactKnown) checks.push(`Unknown Contacted value “${p.contactTyped}” (pick No, Contacted, Followed up or RSVP’d)`)
     if (!isOnHold(p.invite_status) && !onSite) {
       checks.push(p.events.length ? 'Only planner-only events: can’t log in or be seen on the website (even in their family)' : 'Invited, but to no events: can’t log in or be seen on the website (even in their family)')
@@ -2497,7 +2582,7 @@ function writeGuestRows(people, ids, events, replace) {
       if (h === 'plus_one' || h === 'under_age') return false
       if (h === 'guest_id') return ids[i]
       if (h === 'check_this') return asText((p.checks || []).join(' · '))
-      if (['first_name', 'last_name', 'household', 'side', 'group', 'sub-group', 'invite_status', 'contacted'].includes(h)) return asText(p[h] || '')
+      if (['first_name', 'last_name', 'household', 'side', 'group', 'sub-group', 'invite_status', 'contacted', 'hotel'].includes(h)) return asText(p[h] || '')
       return ''
     })
   )
@@ -2591,6 +2676,9 @@ function formatGuestsTab() {
         .build()
     )
   }
+  // The hotel dropdown, put back every time (a column added by hand next to
+  // contacted copies that one's dropdown instead).
+  if (col('hotel')) adminColumnFormat('hotel', sheet.getRange(2, col('hotel'), below, 1))
   if (col('contacted')) {
     const cells = sheet.getRange(2, col('contacted'), below, 1)
     adminColumnFormat('contacted', cells)
